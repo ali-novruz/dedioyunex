@@ -1,0 +1,16 @@
+# Upload only what the platform build needs (it also reads ../sdk/web).
+.env
+.env.*
+!.env.example
+deploy/
+dist/
+docs/
+tests/
+demo-partner/
+sdk/android/
+sdk/ios/
+platform/data/
+*.apk
+*.pdf
+**/node_modules
+**/.next

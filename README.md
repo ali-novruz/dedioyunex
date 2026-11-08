@@ -46,12 +46,15 @@ node tests/mock-ai.mjs &                    # sonra platformanı AI_BASE_URL=htt
 BASE=http://localhost:3100 bash tests/api-test.sh
 ```
 
-## Deploy (Hostinger VPS + Supabase + dedio.vercel.app)
+## Deploy (Vercel + Supabase)
+
+Canlı: https://mene-uygun.vercel.app · demo: https://mene-uygun-demo.vercel.app
 
 ```bash
-# VPS-də (Traefik artıq işləyir):
-cd deploy && cp .env.example .env     # DATABASE_URL (Supabase), SECRET, AI_API_KEY
-docker compose -f docker-compose.traefik.yml up -d --build
-# Vercel: dedio.vercel.app → VPS
-cd deploy/vercel-proxy && vercel deploy --prod
+vercel deploy --prod                  # repo kökündən: platforma (layihə "mene-uygun", Root Directory = platform)
+cd demo-partner && vercel deploy --prod   # demo sayt (layihə "mene-uygun-demo", PLATFORM_URL env)
 ```
+
+Canlıda test: `P=https://mene-uygun.vercel.app D=https://mene-uygun-demo.vercel.app SLOW=3 bash tests/e2e-web.sh "x-$(date +%s)@demo.az"`
+
+VPS yolu (`deploy/docker-compose.*`, `deploy/vercel-proxy`) saxlanılıb, amma istifadə olunmur: VPS-ə xaricdən qoşulmaq mümkün deyil.

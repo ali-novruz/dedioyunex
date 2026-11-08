@@ -81,7 +81,7 @@ function pool(): Pool {
       connectionString: env.databaseUrl,
       // Supabase requires TLS. DATABASE_SSL=require encrypts without pinning the CA (set DATABASE_SSL=disable for a local Postgres).
       ssl: env.databaseSsl === "require" ? { rejectUnauthorized: false } : undefined,
-      max: 8,
+      max: env.databasePoolMax,
       idleTimeoutMillis: 30_000,
     });
     p.on("connect", (c) => {

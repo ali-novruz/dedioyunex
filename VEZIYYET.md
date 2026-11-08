@@ -1,6 +1,7 @@
 # MƏNƏ UYĞUN — Vəziyyət (8 noyabr 2026)
 
 Kod: https://github.com/ali-novruz/dedioyunex (`main`)
+**Canlı: platforma https://mene-uygun.vercel.app · demo sayt https://mene-uygun-demo.vercel.app** (Vercel + Supabase)
 Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 
 ---
@@ -49,48 +50,42 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - Bank ssenarisi: 12 menyudan yalnız “Köçürmələr”, reklam gizli, 3 addım, sessiya 90 san → 30 dəq, sadə dildə təsdiq (“50 manat Nicat Əliyevə… son 4 rəqəm 4 4 1 7”).
 
 ### Testlər (hamısı keçir)
-- `tests/e2e-web.sh` — 7/7 (giriş → qeydiyyat → sayta qoşulma → uyğunlaşma → sinxron → ayırma)
-- `tests/api-test.sh` — 41/41 (təhlükəsizlik, AI, QR, mobil OAuth, CORS, silmə)
-- `tests/e2e-scenarios.sh` — bank ssenarisi
-- Səhifə izahı — sınaq AI serveri ilə yoxlanıb.
+- `tests/e2e-web.sh` — 7/7 **canlıda** (giriş → qeydiyyat → sayta qoşulma → uyğunlaşma → sinxron → ayırma)
+- `tests/e2e-scenarios.sh` — bank ssenarisi **canlıda** keçir
+- `tests/api-test.sh` — 41/41, yalnız yerli (sınaq AI serveri ilə); Vercel üçün dəyişikliklərdən sonra yenidən işlədilməyib
+- Real Groq açarı ilə canlıda: səsli köməkçinin ayar seçimi, aydınlaşdırıcı sual, səhifə izahı (“Sadə dildə”), səs → mətn hattı
 
 ### Sənədlər
 - `docs/MENE-UYGUN-spesifikasiya.pdf`, `docs/api.md`, `docs/ssenariler.md`, `README.md`, `backlog.md`
 
 ---
 
-## 🔄 İndi edilən
+## 🚀 Yerləşdirmə
 
-- **Hostinger VPS deploy** (`dedio` layihəsi): 3 konteyner işləyir — platforma (yığıldı, “Ready”), demo sayt, müvəqqəti Postgres. Firewall 80/443 açıqdır.
-  - **Problem tapıldı:** VPS-ə internetdən 80/443 portu ilə qoşulmaq mümkün deyil. Traefik loqlarında Let's Encrypt **4 noyabrdan bəri** bütün domenlər üçün “Timeout during connect (likely firewall problem)” yazır — təkcə dedio yox, filmicroll, novus, prospect, api saytlarının da sertifikat yenilənməsi alınmır (~20 gün sonra sertifikatlar bitəcək). Hostinger firewall qrupu 3 noyabrda dəyişdirilib; 80/443 qaydaları orada “accept” görünür, deməli bloklama ya serverin özündə (ufw/iptables), ya da Hostinger tərəfdədir. Bu təhlükəsizlik ayarı olduğu üçün mən dəyişmirəm — sizin yoxlamanız lazımdır.
-  - Backend: `https://dedio.89-116-236-208.sslip.io`
-  - Demo: `https://demo.89-116-236-208.sslip.io`
+- **Vercel** (`alinovruz29s-projects`): `mene-uygun` (Root Directory = `platform`, region `sin1`) və `mene-uygun-demo`.
+- **Supabase:** Session pooler, ayrıca `dedio` sxemi; `DATABASE_POOL_MAX=2` (serverless).
+- **AI:** Groq — `qwen/qwen3.8-27b` (`llama-3.3-70b-versatile` Groq-dan çıxarılıb) + `whisper-large-v3`.
+- Sirlər `deploy/.env`-dədir (git-ə düşmür) və Vercel env-ə yüklənib.
 
-## 🔀 Seçim
+## 🖥 VPS (ayrıca problem, həll olunmayıb)
 
-- **A — VPS-i düzəltmək:** Hostinger panel → VPS → Firewall və serverdə `ufw status` yoxlanmalıdır (80/443). Bu, digər saytlarınız üçün də vacibdir.
-- **B — Platformanı birbaşa Vercel-də (`dedio.vercel.app`) + Supabase ilə yerləşdirmək:** VPS problemi asılı olmadan bu gün işləyir. Lazımdır: Supabase ünvanı + Vercel icazəsi. Demo sayt ikinci Vercel layihəsi kimi.
+- VPS işləyir, konteynerlər sağlamdır, amma **internetdən heç bir port cavab vermir**: 80/443-dən başqa “accept any” olan 25577, 8765, 32768 də timeout verir; 443 dörd ölkədən yoxlanıb. Hostinger firewall-da qaydalar düzgündür və sinxrondur, deməli bloklama ya serverin özündə (ufw/iptables), ya da Hostinger tərəfdədir.
+- Traefik loqlarında Let's Encrypt 4 noyabrdan bəri timeout yazır; bu IP-yə birbaşa gələn digər saytlara da təsir edir.
+- Yoxlamaq üçün hPanel brauzer terminalında: `ufw status`, `iptables -S`. Lazım gəlsə Hostinger dəstəyinə yazılmalıdır.
+- VPS-dəki `dedio` layihəsi (3 konteyner) artıq lazım deyil, silinə bilər.
 
-## ⏭ Növbəti addımlar (mən edəcəyəm)
+## ⏭ Növbəti addımlar
 
-1. VPS-də saytın cavab verməsini təmin etmək (HTTPS sertifikatı / marşrut).
-2. Canlıda testləri işə salmaq (giriş, qoşulma, bank ssenarisi).
-3. Spesifikasiya PDF-ə ssenariləri və “Səhifəni izah et” funksiyasını əlavə etmək.
-4. Supabase ünvanı gələndə bazanı ora keçirmək (yalnız `DATABASE_URL` dəyişir).
-5. `dedio.vercel.app` → VPS yönləndirməsi (`deploy/vercel-proxy`) — sizin icazənizlə.
-
-## ⛔ Səndən lazım olanlar
-
-| Nə | Niyə | Harada |
-|---|---|---|
-| **Supabase bağlantı ünvanı** (Session pooler URI) | Bazanı Supabase-ə keçirmək | Supabase → Project Settings → Database → Connection string |
-| **Groq API açarı** (pulsuz) | Səsli köməkçi və “Səhifəni izah et” real AI ilə işləsin | https://console.groq.com/keys |
-| **Vercel icazəsi** | `dedio` layihəsinə yönləndirməni deploy etmək (və ya özün: `cd deploy/vercel-proxy && vercel deploy --prod`) | — |
-| İstəyə görə: GitHub token-ə `workflow, write:packages` | Docker imajlarını GitHub Actions ilə yığmaq (indi lazım deyil) | `gh auth refresh -s workflow,write:packages` |
+1. Yaşlı nitqi ilə səs testi və 3–5 nəfərlik real istifadəçi testi.
+2. Demo videosu.
+3. Öz startup saytına Web SDK inteqrasiyası.
 
 ## ⚠️ Qalan / yoxlanılmayanlar
 
-- Real AI açarı ilə səs və səhifə izahı (indi sınaq AI ilə test olunub). Azərbaycan dilində Whisper keyfiyyəti yaşlı nitqi ilə yoxlanmalıdır.
+- Azərbaycan dilində Whisper keyfiyyəti real yaşlı nitqi ilə yoxlanmalıdır (səs hattı işləyir; sınaq süni səslə edilib, keyfiyyət haqqında nəticə vermir).
+- Groq pulsuz planı: dəqiqədə 8000 token, təxminən 2–3 köməkçi sorğusu. Canlı demoda ardıcıl çox sorğu göndərməyin; bir dəfə müvəqqəti “over capacity” xətası görülüb (istifadəçiyə “yenidən cəhd edin” deyilir).
+- IP limitləri yaddaşdadır: Vercel-də hər instansiya üçün ayrıca sayılır, ona görə tək serverdəkindən zəifdir. Gündəlik AI limiti bazadadır və dəqiqdir.
+- SDK-nın sabit düymələri böyük şriftdə başlığın bir hissəsini örtə bilir.
 - Brauzerlərdə Azərbaycan səsi yoxdur → türk səsi istifadə olunur (ekranda deyilir). Bulud TTS — yol xəritəsində.
 - E-poçt göndərmə (SMTP) qurulmayıb → real e-poçtlar üçün kod getmir; “E-poçtsuz başla” və `@demo.az` işləyir.
 - iOS SDK yığılmayıb (Mac lazımdır); Android cihazda sınanmayıb.

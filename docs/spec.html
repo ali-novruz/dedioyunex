@@ -57,7 +57,7 @@
 <div class="cover">
   <h1>MƏNƏ UYĞUN</h1>
   <p class="sub">Şəxsi rəqəmsal əlçatanlıq profili — məhsul spesifikasiyası, xüsusiyyətlər, prioritetlər və MVP planı</p>
-  <p class="meta">YUNEX Hackathon · Versiya 1.1 (MVP hazırdır) · 8 noyabr 2026</p>
+  <p class="meta">YUNEX Hackathon · Versiya 1.2 (MVP canlıdır) · 8 noyabr 2026</p>
 </div>
 
 <h2>1. İdeya</h2>
@@ -238,6 +238,18 @@ ContentView().meneUygun()</pre>
 }</pre>
 <p class="muted">Kateqoriya seçimi (“görmə”, “eşitmə” və s.), ad, e-poçt və səs yazıları bu məlumata daxil deyil.</p>
 
+<h3>“Səhifəni izah et” (AI)</h3>
+<p>Qoşulmuş saytda SDK istifadəçiyə səhifəni sadə dildə başa salır. Sayt heç nə əlavə etməli deyil.</p>
+<table>
+  <tr><th style="width:30%">Funksiya</th><th>Nə edir</th></tr>
+  <tr><td>Bu səhifə nədir?</td><td>Qısa başlıq, 2–3 cümləlik xülasə və əsas məqamlar</td></tr>
+  <tr><td>Bu səhifədə nə edə bilərsiniz</td><td>Vacib düymələr, nə etdikləri və “Göstər” ilə yerini işarələmək</td></tr>
+  <tr><td>❓ Bu nədir?</td><td>İstənilən düyməyə toxunanda nə etdiyini izah edir (ikon və gizli funksiyalar da)</td></tr>
+  <tr><td><code>data-ai="auto"</code></td><td>Uzun başlığın altına avtomatik “Sadə dildə” qutusu</td></tr>
+  <tr><td>Yaddaş köməkçisi</td><td>Sadə rejimdə yuxarıda “📍 Siz buradasınız: …” zolağı və “Nə edim?” düyməsi</td></tr>
+</table>
+<div class="note"><b>Məxfilik:</b> form dəyərləri və <code>data-mu-private</code> bölmələri AI-a göndərilmir. Sayt <code>data-ai="off"</code> ilə funksiyanı tam bağlaya bilər.</div>
+
 <h2 class="page-break">5. Məxfilik və təhlükəsizlik</h2>
 <ul>
   <li><b>Xidmətlərə yalnız interfeys ayarları gedir.</b> Ad, e-poçt və ehtiyac kateqoriyaları ötürülmür; yalnız istifadəçinin gördüyü və təsdiqlədiyi ayarlar. (Qeyd: “ekran oxuyucu” kimi bəzi ayarlar dolayı məlumat verə bilər — buna görə hər xidmət üçün ayrıca icazə və ayrıca anonim ID istifadə olunur.)</li>
@@ -264,7 +276,7 @@ ContentView().meneUygun()</pre>
 </ul>
 
 <h2>7. Prioritetlər və MVP vəziyyəti</h2>
-<div class="note"><b>MVP hazırdır (8 noyabr 2026):</b> P0 və P1-in hamısı yazılıb və test olunub — veb axın 7/7 addım, API 35/35 yoxlama. Android SDK yığılır (APK), cihazda hələ sınanmayıb. iOS SDK yazılıb, Mac olmadığı üçün yığılmayıb.</div>
+<div class="note"><b>MVP hazırdır (8 noyabr 2026):</b> P0 və P1-in hamısı yazılıb və test olunub — canlı saytda veb axın 7/7 addım və bank ssenarisi keçir, API 41/41 yoxlama (sınaq AI serveri ilə). Android SDK yığılır (APK), cihazda hələ sınanmayıb. iOS SDK yazılıb, Mac olmadığı üçün yığılmayıb.</div>
 <p><span class="tag P0">P0</span> demo üçün mütləqdir &nbsp; <span class="tag P1">P1</span> bu gün hədəf &nbsp; <span class="tag P2">P2</span> vaxt qalarsa &nbsp; <span class="tag RM">Yol xəritəsi</span> hackathondan sonra</p>
 <table>
   <tr><th style="width:9%">Prioritet</th><th style="width:24%">Hissə</th><th>Əhatə</th></tr>
@@ -301,18 +313,18 @@ ContentView().meneUygun()</pre>
   </div>
   <div class="col"><i>Xarici xidmətlər</i>
     <div class="box ai">Səs → mətn (Whisper, Groq; və ya brauzer)</div>
-    <div class="box ai">Mətn → ayarlar (Llama 3.3, JSON cavab, sxem yoxlaması)</div>
+    <div class="box ai">Mətn → ayarlar (Qwen, Groq; JSON cavab, sxem yoxlaması)</div>
     <div class="box ai">E-poçt göndərmə (giriş kodu)</div>
   </div>
 </div>
 <table>
   <tr><th style="width:28%">Hissə</th><th>Texnologiya</th></tr>
   <tr><td>Platforma + API</td><td>Next.js (TypeScript), bir layihədə</td></tr>
-  <tr><td>Verilənlər bazası</td><td>SQLite (Node 24 <code>node:sqlite</code>), miqrasiyalarla — tək VPS üçün; böyüdükdə PostgreSQL</td></tr>
+  <tr><td>Verilənlər bazası</td><td>PostgreSQL (Supabase), ayrıca <code>dedio</code> sxemi, miqrasiyalarla</td></tr>
   <tr><td>Web SDK</td><td>TypeScript, tək fayl, asılılıqsız</td></tr>
   <tr><td>Android SDK</td><td>Kotlin, Jetpack Compose, Custom Tabs</td></tr>
   <tr><td>iOS SDK</td><td>Swift, SwiftUI, ASWebAuthenticationSession</td></tr>
-  <tr><td>AI</td><td>Pulsuz: Groq — Whisper (səs) + Llama 3.3 70B (ayarların çıxarılması); istənilən OpenAI-uyğun API ilə dəyişdirilə bilər</td></tr>
+  <tr><td>AI</td><td>Pulsuz: Groq — Whisper (səs) + Qwen (ayarların çıxarılması və səhifə izahı); istənilən OpenAI-uyğun API ilə dəyişdirilə bilər</td></tr>
   <tr><td>Səsli oxunuş</td><td>Brauzerin Web Speech API-si; Azərbaycan səsi yoxdursa bulud TTS</td></tr>
 </table>
 
@@ -324,6 +336,18 @@ ContentView().meneUygun()</pre>
   <li><b>Hər yerdə:</b> Eyni hesabla telefondakı demo tətbiqə girir — ayarlar orada da avtomatik gəlir.</li>
   <li><b>Nəzarət:</b> Platformada yazı ölçüsünü dəyişir — saytda yansıyır. “Bağlı xidmətlər”dən bağlantını ayırır.</li>
 </ol>
+
+<h3>Ssenarilər</h3>
+<p class="muted">Demo səhifələri DEMO Market saytındadır. Hamısı nümunədir, real qurum deyil.</p>
+<table>
+  <tr><th style="width:24%">Kim</th><th style="width:34%">İndi</th><th>MƏNƏ UYĞUN ilə</th></tr>
+  <tr><td><b>Əli baba</b>, 72 yaş, görməsi zəif — bank köçürməsi (<code>/bank</code>)</td><td>Xırda yazı, 12 bölməli menyu, SMS kodunu görmək üçün çıxanda sessiya bitir, səhv rəqəm riski</td><td>Yazılar 1,5× böyük, yalnız “Köçürmələr” qalır, reklam gizlənir, 3 addım, sessiya 90 saniyədən 30 dəqiqəyə, səsli sadə təsdiq: “50 manat Nicat Əliyevə göndərilir…”</td></tr>
+  <tr><td><b>Südabə xanım</b>, 65 yaş, oxumaq çətindir — dövlət arayışı (<code>/arayis</code>)</td><td>Reklam banneri, 5 menyu, uzun hüquqi mətn</td><td>Yayındırıcılar gizlənir, mətn sadə dildə 2 cümlə, ikonların yanında ad, səsli oxu, oxunaqlı şrift, oxuma xətti</td></tr>
+  <tr><td><b>Aytən</b>, 38 yaş, anası rayondadır — uzaqdan kömək</td><td>Telefonla addım-addım izah və ya anasının telefonunu alıb özü edir</td><td>Profili bir dəfə qurur, QR kodla anasının telefonuna ötürür; anasının e-poçtu olmasa belə işləyir</td></tr>
+  <tr><td>Unutqanlığı başlayan yaşlı — həkimə yazılma (<code>/xestexana</code>)</td><td>10 rəngli düymə, sürüşən reklam, niyə girdiyini unudur</td><td>Yalnız “Həkimə yazılmaq” qalır, reklam dayanır, daimi “📍 Siz buradasınız” zolağı, təsdiqdən əvvəl səsli təkrar</td></tr>
+  <tr><td>Hər kəs — uzun xəbər (<code>/xeber</code>)</td><td>40 sözlük başlıq, ağır rəsmi dil</td><td>Avtomatik “Sadə dildə” qutusu; “Bu nədir?” ilə ⌕ ◐ 🔔 kimi işarələrin izahı</td></tr>
+</table>
+<p><b>Pilotda ölçüləcək göstəricilər:</b> əməliyyatı yarımçıq tərk edənlərin payı, səhv köçürmələr, çağrı mərkəzinə “necə edim” zəngləri.</p>
 
 <h2>10. Münsiflərin sualları</h2>
 <table>
@@ -349,8 +373,8 @@ ContentView().meneUygun()</pre>
   <tr><td>Real istifadəçi testi</td><td>Hələ edilməyib. 3–5 nəfərlə (yaşlı qohum, tanış) 5 dəqiqəlik test: addım sayı və vaxt (əvvəl/sonra) + bir qısa rəy pitch üçün ən güclü sübutdur.</td></tr>
   <tr><td>Azərbaycan dilində səsli oxunuş</td><td>Brauzerlərdə Azərbaycan səsi olmaya bilər — test lazımdır; yoxdursa bulud TTS.</td></tr>
   
-  <tr><td>AI açarı</td><td>Pulsuz Groq açarı (Whisper + Llama) lazımdır; köməkçi sınaq serveri ilə test olunub, real açarla hələ yox.</td></tr>
-  <tr><td>Hosting və domen</td><td>Hostinger VPS + Docker Compose + Caddy (avtomatik HTTPS) hazırdır; domen Vercel DNS-dən VPS-ə yönləndiriləcək.</td></tr>
+  <tr><td>AI açarı</td><td>Pulsuz Groq planı dəqiqədə 8000 token verir (təxminən 2–3 köməkçi sorğusu); çox istifadəçi üçün ödənişli plan lazımdır. Real açarla test olunub.</td></tr>
+  <tr><td>Hosting və domen</td><td>Platforma və demo sayt Vercel-də, verilənlər bazası Supabase-də işləyir. Öz domeni hələ qoşulmayıb.</td></tr>
   
 </table>
 
@@ -360,8 +384,8 @@ ContentView().meneUygun()</pre>
   <li>✓ Platforma + API · Web SDK · Android SDK · iOS SDK (yığılmayıb).</li>
   <li>✓ AI köməkçi (səs, mətn, aydınlaşdırıcı sual, təsdiq, geri qaytarma).</li>
   <li>✓ DEMO Market inteqrasiyası + avtomatik testlər.</li>
-  <li>○ Groq açarı ilə real səs testi.</li>
-  <li>○ VPS deploy + domen.</li>
+  <li>✓ Canlı yerləşdirmə (Vercel + Supabase) və real Groq açarı ilə AI.</li>
+  <li>○ Yaşlı nitqi ilə Azərbaycan dilində səs testi.</li>
   <li>○ Öz saytınıza inteqrasiya, 3–5 nəfərlik istifadəçi testi, demo videosu.</li>
 </ol>
 

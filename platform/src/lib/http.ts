@@ -16,7 +16,7 @@ export async function handle(fn: () => Promise<Response | unknown>): Promise<Res
     if (e instanceof PreferenceError || e instanceof ClientInputError || e instanceof CategoryError) return NextResponse.json({ error: e.message }, { status: 400 });
     if (e instanceof AiError) {
       console.error("[ai]", e.message);
-      return NextResponse.json({ error: e.status === 503 ? "Səsli köməkçi hələ qurulmayıb (AI açarı yoxdur)." : "Köməkçi cavab verə bilmədi. Yenidən cəhd edin.", detail: e.message }, { status: e.status });
+      return NextResponse.json({ error: e.status === 503 ? "Səsli köməkçi hələ qurulmayıb (AI açarı yoxdur)." : "Köməkçi cavab verə bilmədi. Yenidən cəhd edin." }, { status: e.status });
     }
     console.error("[api] unexpected error", e);
     return NextResponse.json({ error: "Gözlənilməz xəta baş verdi" }, { status: 500 });

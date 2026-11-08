@@ -6,9 +6,9 @@ set -euo pipefail
 export AGENT_BROWSER_SESSION="mu-e2e-$$"
 EMAIL="${1:-e2e-$(date +%s)@demo.test}"
 OUT="${OUT_DIR:-$(mktemp -d)}"
-P=http://localhost:3000
-D=http://localhost:4000
-ab() { agent-browser "$@"; }
+P="${P:-http://localhost:3000}"
+D="${D:-http://localhost:4000}"
+ab() { if [[ "$1" == wait && "$2" =~ ^[0-9]+$ ]]; then agent-browser wait $(( $2 * ${SLOW:-1} )); else agent-browser "$@"; fi; } # SLOW=3 for remote targets
 ref() { ab snapshot -i | grep -F "$1" | head -1 | grep -oE "ref=e[0-9]+" | cut -d= -f2; }
 fail() { echo "FAIL: $*"; ab close >/dev/null 2>&1 || true; exit 1; }
 trap 'ab close >/dev/null 2>&1 || true' EXIT

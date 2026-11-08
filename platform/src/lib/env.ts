@@ -19,6 +19,13 @@ export const env = {
     if (v !== "require" && v !== "disable") throw new Error(`DATABASE_SSL must be "require" or "disable", got "${v}"`);
     return v;
   },
+  /** Connections per server instance. Serverless (Vercel) needs a small value: every instance holds its own pool against Supabase's limit. */
+  get databasePoolMax() {
+    const raw = process.env.DATABASE_POOL_MAX ?? "8";
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < 1) throw new Error(`DATABASE_POOL_MAX must be a positive integer, got "${raw}"`);
+    return n;
+  },
   get secret() {
     const s = required("SECRET");
     if (s.length < 32) throw new Error("SECRET must be at least 32 characters");

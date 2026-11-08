@@ -9,7 +9,7 @@ export function POST(req: Request) {
     const form = await req.formData();
     const audio = form.get("audio");
     if (!(audio instanceof Blob) || audio.size === 0) throw new AuthError("Səs yazısı göndərilmədi");
-    if (audio.size > 15 * 1024 * 1024) throw new AuthError("Səs yazısı çox uzundur");
+    if (audio.size > 4 * 1024 * 1024) throw new AuthError("Səs yazısı çox uzundur"); // Vercel rejects request bodies over 4.5 MB
     takeIpQuota("ai", clientIp(req), 200, 86_400_000, "Bu şəbəkədən günlük köməkçi limiti bitdi.");
     await takeAiQuota(user.id);
     // The recording is forwarded to the speech service and never stored.
