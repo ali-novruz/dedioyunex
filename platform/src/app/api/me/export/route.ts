@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { handle } from "@/lib/http";
 import { requireApiUser } from "@/lib/session";
 import { connectionsOf } from "@/lib/oauth";
+import { getContact } from "@/lib/users";
 
 export function GET() {
   return handle(async () => {
@@ -11,6 +12,7 @@ export function GET() {
       email: u.email,
       categories: u.categories,
       preferences: u.prefs,
+      trustedPerson: await getContact(u.id),
       connections: (await connectionsOf(u.id)).map((c) => ({ service: c.name, connectedAt: new Date(c.connectedAt).toISOString() })),
     };
     return new NextResponse(JSON.stringify(data, null, 2), {

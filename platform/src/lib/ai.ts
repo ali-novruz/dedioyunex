@@ -296,7 +296,7 @@ export interface ControlInput {
   language: Language;
 }
 
-const CONTROL_SYSTEM = (lang: Language) => `You tell an elderly person what one button or link on a web page does.
+const CONTROL_SYSTEM = (lang: Language) => `You tell an elderly person what one button, link or form field on a web page does; for a form field, say what to enter.
 Write ONLY in ${LANG_NAME[lang]}, in one short sentence of plain everyday words, at most 16 words, politely. If it is not certain, say what it most likely does.
 Return ONLY a JSON object: {"explain": "<the sentence>"}`;
 
@@ -321,6 +321,28 @@ export async function assistControl(input: ControlInput): Promise<{ explain: str
       const explain = str(raw.explain, 240);
       if (!explain) throw new AiError("AI answer has no explanation");
       return { explain };
+    },
+  );
+}
+
+const SCAM_SYSTEM = (lang: Language) => `You help an elderly person decide whether a phone call, SMS or message is a scam. Fact: no bank or government office ever asks by phone for a card number, CVV or one-time SMS code. Fake couriers and fake "safe transaction" links are common.
+Write ONLY in ${LANG_NAME[lang]}, in at most 2 short sentences of everyday words, telling them what to do. If in doubt, tell them to send nothing and call someone they trust.
+Return ONLY a JSON object: {"verdict": "scam" | "suspicious" | "safe", "explain": "<the sentences>"}`;
+
+export async function checkScam(text: string, language: Language): Promise<{ verdict: string; explain: string }> {
+  return askJson(
+    [
+      { role: "system", content: SCAM_SYSTEM(language) },
+      { role: "user", content: text },
+    ],
+    0.1,
+    140,
+    (content) => {
+      const raw = parseObject(content);
+      const explain = str(raw.explain, 400);
+      const verdict = raw.verdict === "safe" || raw.verdict === "scam" ? raw.verdict : "suspicious";
+      if (!explain) throw new AiError("AI returned no explanation");
+      return { verdict, explain };
     },
   );
 }

@@ -9,6 +9,8 @@ export interface StandardRefs {
 }
 
 export const STANDARDS: Record<PreferenceKey, StandardRefs> = {
+  guardLevel: { wcag: ["3.3.4 Error Prevention (Legal, Financial, Data)"], iso24751: "safety (approx)" },
+  formGuide: { wcag: ["3.3.2 Labels or Instructions"], iso24751: "content simplification (approx)" },
   readerMode: { wcag: ["1.4.8 Visual Presentation"], iso24751: "content simplification (approx)" },
   singleColumn: { wcag: ["1.4.10 Reflow"], iso24751: "layout (approx)" },
   collapseMenus: { wcag: ["2.4.5 Multiple Ways"], iso24751: "structure (approx)" },

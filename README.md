@@ -6,8 +6,8 @@
 |---|---|
 | `platform/` | İstifadəçi platforması + API + OAuth (Next.js 16, Postgres / Supabase) |
 | `sdk/web/` | Web SDK (`/sdk.js`) — ayar sxemi, tətbiq mühərriki, səsli oxunuş, uyğunluq yoxlaması |
-| `sdk/android/` | Android SDK (Kotlin/Compose) + nümunə tətbiq |
-| `sdk/ios/` | iOS SDK (Swift/SwiftUI) + nümunə — **Mac-da hələ yığılmayıb/test edilməyib** |
+| `sdk/android/` | Android SDK (P2, MVP-dən kənar) |
+| `sdk/ios/` | iOS SDK (P2, MVP-dən kənar), yığılmayıb |
 | `demo-partner/` | DEMO Market — inteqrasiya nümunəsi sayt |
 | `deploy/` | Docker Compose (Traefik) — Hostinger VPS; `vercel-proxy/` — dedio.vercel.app → VPS |
 | `tests/` | `e2e-web.sh` (brauzer), `api-test.sh` (API), `mock-ai.mjs` |

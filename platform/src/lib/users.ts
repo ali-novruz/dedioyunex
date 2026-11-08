@@ -11,7 +11,19 @@ export interface User {
   prefs: Preferences;
   onboarded: boolean;
   updatedAt: number;
+  /** While set and in the future, Safe mode holds guardLevel at "strict". */
+  safeUntil: number | null;
 }
+
+export interface TrustedContact {
+  name: string;
+  phone: string;
+  email: string | null;
+}
+
+const SAFE_MS = 24 * 60 * 60_000;
+/** Ending too quickly is what a caller on the phone would ask for. */
+export const SAFE_MIN_MS = 60_000;
 
 interface Row {
   id: string;
@@ -20,13 +32,22 @@ interface Row {
   prefs: string;
   onboarded: boolean;
   updated_at: number;
+  safe_until: number | null;
+  trusted_contact: string | null;
+}
+
+function preferencesOf(r: Row): Preferences {
+  const prefs = readPreferences(JSON.parse(r.prefs));
+  const expired = r.safe_until !== null && r.safe_until <= now();
+  return expired && prefs.guardLevel === "strict" ? { ...prefs, guardLevel: "normal" } : prefs;
 }
 
 const toUser = (r: Row): User => ({
   id: r.id,
   email: r.email,
   categories: (JSON.parse(decryptField(r.categories)) as unknown[]).filter(isCategory),
-  prefs: readPreferences(JSON.parse(r.prefs)),
+  prefs: preferencesOf(r),
+  safeUntil: r.safe_until !== null && r.safe_until > now() ? r.safe_until : null,
   onboarded: r.onboarded,
   updatedAt: r.updated_at,
 });
@@ -76,15 +97,39 @@ export async function attachEmail(userId: string, email: string): Promise<boolea
 export async function updatePreferences(userId: string, patch: unknown): Promise<Preferences> {
   const user = await getUser(userId);
   if (!user) throw new Error("User not found");
-  const next = normalizePreferences({ ...user.prefs, ...validatePatch(patch) });
+  const next = normalizePreferences({ ...user.prefs, ...validatePatch(patch), ...(user.safeUntil ? { guardLevel: "strict" } : {}) });
   await exec("UPDATE users SET prefs = $1, updated_at = $2 WHERE id = $3", [JSON.stringify(next), now(), userId]);
   return next;
 }
 
 export async function replacePreferences(userId: string, prefs: unknown): Promise<Preferences> {
-  const next = normalizePreferences(prefs);
+  const user = await getUser(userId);
+  const next = normalizePreferences({ ...(prefs as object), ...(user?.safeUntil ? { guardLevel: "strict" } : {}) });
   await exec("UPDATE users SET prefs = $1, updated_at = $2 WHERE id = $3", [JSON.stringify(next), now(), userId]);
   return next;
+}
+
+export async function startSafeMode(userId: string): Promise<number> {
+  const user = await getUser(userId);
+  if (!user) throw new Error("User not found");
+  const until = now() + SAFE_MS;
+  await exec("UPDATE users SET prefs = $1, safe_until = $2, updated_at = $3 WHERE id = $4", [JSON.stringify({ ...user.prefs, guardLevel: "strict" }), until, now(), userId]);
+  return until;
+}
+
+export async function endSafeMode(userId: string): Promise<void> {
+  const user = await getUser(userId);
+  if (!user) throw new Error("User not found");
+  await exec("UPDATE users SET prefs = $1, safe_until = NULL, updated_at = $2 WHERE id = $3", [JSON.stringify({ ...user.prefs, guardLevel: "normal" }), now(), userId]);
+}
+
+export async function getContact(userId: string): Promise<TrustedContact | null> {
+  const r = await one<{ trusted_contact: string | null }>("SELECT trusted_contact FROM users WHERE id = $1", [userId]);
+  return r?.trusted_contact ? (JSON.parse(decryptField(r.trusted_contact)) as TrustedContact) : null;
+}
+
+export async function setContact(userId: string, contact: TrustedContact | null): Promise<void> {
+  await exec("UPDATE users SET trusted_contact = $1, updated_at = $2 WHERE id = $3", [contact ? encryptField(JSON.stringify(contact)) : null, now(), userId]);
 }
 
 export async function setCategories(userId: string, cats: unknown): Promise<Category[]> {

@@ -138,6 +138,9 @@ export interface Preferences {
   hideSocial: boolean;
   aiSimplify: boolean;
   simplifyParagraphs: boolean;
+  // protection
+  guardLevel: string; // off | normal | strict (strict is also set for 24 h by Safe mode)
+  formGuide: boolean;
 }
 
 export type PreferenceKey = Exclude<keyof Preferences, "version">;
@@ -184,6 +187,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   captionSize: 1, captionStyle: "default", ttsPitch: 1, ttsVolume: 1, readOnSelect: false, readOnHover: false,
   warnExternalLinks: false, breakReminder: 0,
   readerMode: false, singleColumn: false, collapseMenus: false, hideSidebars: false, hidePopups: false, hideComments: false, hideSocial: false, aiSimplify: false, simplifyParagraphs: false,
+  guardLevel: "normal", formGuide: false,
 };
 
 /** A = SDK applies it automatically on any site. B = SDK exposes it, the service implements it. */
@@ -302,6 +306,8 @@ export const SETTINGS: SettingDef[] = [
   tog("hidePopups", ["cognitive", "tech"], "Açılan pəncərələri gizlət", "Çerez, abunə və reklam pəncərələri görünmür"),
   tog("hideComments", ["cognitive"], "Şərhləri gizlət", "Səhifənin altındakı şərhlər görünmür"),
   tog("hideSocial", ["cognitive", "tech"], "Paylaşım düymələrini gizlət", "Sosial şəbəkə düymələri görünmür"),
+  pick("guardLevel", ["cognitive", "tech"], "Ödəniş qoruması", "Ödəniş, göndərmə və silmə düymələrində yoxlama", [["normal", "Təsdiq soruş"], ["strict", "Ciddi yoxlama"], ["off", "Bağlı"]]),
+  tog("formGuide", ["cognitive", "tech", "reading"], "Formanı addım-addım doldur", "Hər ekranda bir sahə, yanında sadə izah"),
   // ---- safety and rest
   tog("warnExternalLinks", ["cognitive", "tech"], "Başqa sayta keçəndə soruş", "Fırıldaqçı linklərdən qorunmaq üçün"),
   pick("breakReminder", ["vision", "cognitive"], "Fasilə xatırlatması", "Vaxtaşırı dincəlməyi xatırladır", [[0, "Bağlı"], [20, "20 dəqiqədən bir"], [40, "40 dəqiqədən bir"]]),
@@ -369,6 +375,8 @@ const SETTING_EN: Record<PreferenceKey, { label: string; help: string; options?:
   hidePopups: { label: "Hide pop-up windows", help: "Cookie, subscribe and advert windows are hidden" },
   hideComments: { label: "Hide comments", help: "Comments at the bottom of the page are hidden" },
   hideSocial: { label: "Hide sharing buttons", help: "Social network buttons are hidden" },
+  guardLevel: { label: "Payment protection", help: "A check on payment, send and delete buttons", options: { normal: "Ask to confirm", strict: "Strict check", off: "Off" } },
+  formGuide: { label: "Fill forms step by step", help: "One field per screen, with a plain explanation" },
   breakReminder: { label: "Break reminder", help: "Reminds you to rest from time to time", options: { "0": "Off", "20": "Every 20 minutes", "40": "Every 40 minutes" } },
   fontScale: { label: "Text size", help: "Makes all text larger", options: { "1": "Normal", "1.25": "Large", "1.5": "Larger", "1.75": "Very large", "2": "Largest" } },
   lineSpacing: { label: "Line spacing", help: "More space between lines", options: { "1": "Normal", "1.5": "Wide", "2": "Very wide" } },
@@ -450,7 +458,7 @@ const NEED_SETTINGS: Partial<Record<Category, PreferenceKey[]>> = {
   sensory: ["hidePopups", "muteAudio", "stopAutoplay", "flashGuard", "reduceMotion", "saturation", "brightness", "hideDistractions", "hideVideos", "flatDesign", "warmth"],
   tremor: ["clickGuard", "largeTargets", "dwellClick", "largeCursor", "cursorColor", "noDrag", "extendedTimeouts", "confirmActions", "pageZoom"],
   oneHand: ["handedness", "largeTargets", "noDrag", "dwellClick", "skipLink", "extendedTimeouts", "clickGuard"],
-  memory: ["readerMode", "aiSimplify", "simplifyParagraphs", "collapseMenus", "hidePopups", "simpleMode", "stepByStep", "confirmActions", "plainLanguage", "aiHelp", "iconLabels", "extendedTimeouts", "hideDistractions", "warnExternalLinks", "emphasizeHeadings"],
+  memory: ["guardLevel", "formGuide", "readerMode", "aiSimplify", "simplifyParagraphs", "collapseMenus", "hidePopups", "simpleMode", "stepByStep", "confirmActions", "plainLanguage", "aiHelp", "iconLabels", "extendedTimeouts", "hideDistractions", "warnExternalLinks", "emphasizeHeadings"],
   dyslexia: ["readerMode", "singleColumn", "simplifyParagraphs", "dyslexiaFont", "fontFamily", "letterSpacing", "wordSpacing", "lineSpacing", "paragraphSpacing", "textAlign", "maxLineWidth", "noItalics", "noUppercase", "readingGuide", "readingRuler", "backgroundColor", "tts", "ttsRate", "readOnSelect"],
   numbers: ["clearNumbers", "fontScale", "confirmActions", "plainLanguage", "stepByStep", "tts", "extendedTimeouts"],
   speech: ["simplifyParagraphs", "plainLanguage", "iconLabels", "aiHelp", "tts", "ttsRate", "stepByStep", "extendedTimeouts"],
@@ -488,7 +496,7 @@ const GROUP_OF: Record<PreferenceKey, SettingGroup> = {
   largeTargets: "motor", extendedTimeouts: "motor", noDrag: "motor", clickGuard: "motor", dwellClick: "motor", handedness: "motor",
   captions: "sound", captionSize: "sound", captionStyle: "sound", visualAlerts: "sound", transcripts: "sound", signLanguage: "sound",
   tts: "voice", ttsRate: "voice", ttsPitch: "voice", ttsVolume: "voice", readOnSelect: "voice", readOnHover: "voice",
-  aiSimplify: "help", simplifyParagraphs: "help", plainLanguage: "help", stepByStep: "help", confirmActions: "help", iconLabels: "help", aiHelp: "help", warnExternalLinks: "help", breakReminder: "help",
+  guardLevel: "help", formGuide: "help", aiSimplify: "help", simplifyParagraphs: "help", plainLanguage: "help", stepByStep: "help", confirmActions: "help", iconLabels: "help", aiHelp: "help", warnExternalLinks: "help", breakReminder: "help",
   screenReader: "general", language: "general",
 };
 
@@ -583,7 +591,7 @@ export const PRESETS: Record<Category, Partial<Omit<Preferences, "version">>> = 
   sensory: { muteAudio: true, stopAutoplay: true, flashGuard: true, reduceMotion: true, saturation: 0.5, hideDistractions: true },
   tremor: { clickGuard: true, largeTargets: true, largeCursor: true, noDrag: true, extendedTimeouts: true, confirmActions: true },
   oneHand: { largeTargets: true, noDrag: true, skipLink: true },
-  memory: { aiSimplify: true, collapseMenus: true, hidePopups: true, simpleMode: true, stepByStep: true, confirmActions: true, plainLanguage: true, aiHelp: true, hideDistractions: true, extendedTimeouts: true, warnExternalLinks: true },
+  memory: { formGuide: true, aiSimplify: true, collapseMenus: true, hidePopups: true, simpleMode: true, stepByStep: true, confirmActions: true, plainLanguage: true, aiHelp: true, hideDistractions: true, extendedTimeouts: true, warnExternalLinks: true },
   dyslexia: { dyslexiaFont: true, lineSpacing: 1.5, letterSpacing: 0.05, wordSpacing: 0.2, textAlign: "left", noItalics: true, noUppercase: true, readingGuide: true, tts: true },
   numbers: { clearNumbers: true, fontScale: 1.25, confirmActions: true },
   speech: { plainLanguage: true, iconLabels: true, aiHelp: true, tts: true },

@@ -17,7 +17,6 @@ export function ClientManager({ initial, base }: { initial: Client[]; base: stri
   const [clients, setClients] = useState(initial);
   const [name, setName] = useState("");
   const [origins, setOrigins] = useState("");
-  const [redirects, setRedirects] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -30,12 +29,11 @@ export function ClientManager({ initial, base }: { initial: Client[]; base: stri
       const { client } = await api<{ client: Client }>("/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, origins, redirectUris: redirects }),
+        body: JSON.stringify({ name, origins, redirectUris: "" }),
       });
       setClients((c) => [client, ...c]);
       setName("");
       setOrigins("");
-      setRedirects("");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -68,7 +66,6 @@ export function ClientManager({ initial, base }: { initial: Client[]; base: stri
             <div className="stack">
               <p>client_id: <code className="inline-code font-bold">{c.id}</code></p>
               {c.allowedOrigins.length > 0 && <p className="muted">{l("Saytlar:", "Sites:")} {c.allowedOrigins.join(", ")}</p>}
-              {c.redirectUris.length > 0 && <p className="muted">{l("Mobil:", "Mobile:")} {c.redirectUris.join(", ")}</p>}
               {c.allowedOrigins.length > 0 && <pre className="code"><code>{snippet}</code></pre>}
               <div className="flex flex-wrap gap-3">
                 {c.allowedOrigins.length > 0 && (
@@ -93,10 +90,6 @@ export function ClientManager({ initial, base }: { initial: Client[]; base: stri
             <label className="label" htmlFor="c-origins">{l("Sayt ünvanları (hər sətirdə bir)", "Site addresses (one per line)")}</label>
             <textarea id="c-origins" className="field min-h-[5rem]" value={origins} onChange={(e) => setOrigins(e.target.value)} placeholder={"https://example.az\nhttp://localhost:5173"} />
             <p className="muted mt-1 text-[.9rem]">{l("Yalnız domen: https://saytim.az (yol olmadan). Test üçün http://localhost qəbul olunur.", "Domain only: https://example.az (no path). http://localhost is accepted for testing.")}</p>
-          </div>
-          <div>
-            <label className="label" htmlFor="c-redirects">{l("Mobil redirect URI (istəyə görə)", "Mobile redirect URI (optional)")}</label>
-            <input id="c-redirects" className="field" value={redirects} onChange={(e) => setRedirects(e.target.value)} placeholder="myapp://callback" />
           </div>
           {error && <p className="error" role="alert">{error}</p>}
           <button className="btn btn-primary btn-block" disabled={busy}>{busy ? l("Yaradılır…", "Creating…") : l("Qeydiyyatdan keçir", "Register")}</button>

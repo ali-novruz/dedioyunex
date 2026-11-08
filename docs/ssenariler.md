@@ -1,28 +1,21 @@
 # MƏNƏ UYĞUN — Ssenarilər (storytelling və demo)
 
 Hər ssenari: **kim · indi nə olur · MƏNƏ UYĞUN ilə nə dəyişir · demoda harada göstərilir**.
-Demo səhifələri DEMO Market saytındadır (`/bank`, `/arayis`, `/xestexana`, `/xeber`). Hamısı nümunədir, real qurum deyil.
+Demo səhifələri DEMO Market saytındadır (`/aptek`, `/arayis`, `/xestexana`, `/xeber`). Hamısı nümunədir, real qurum deyil.
 
 ---
 
-## 1. Bank köçürməsi — Əli baba (əsas demo)
+## 1. Dərman sifarişi və fırıldaq anı — Əli baba (əsas demo)
 
-**Kim:** 72 yaş, görməsi zəifdir. Nəvəsi xaricdədir, ona pul göndərmək istəyir.
+**Kim:** 72 yaş, görməsi zəifdir. Aptek saytından dərman sifariş edir.
 
-**İndi:**
-1. Bank tətbiqində yazılar xırdadır. Telefonun şriftini böyüdür, düymələr üst-üstə düşür.
-2. Menyuda 12 bölmə var — “Köçürmələr”i tapmaq 2 dəqiqə çəkir.
-3. SMS kodunu görmək üçün tətbiqdən çıxır, qayıdanda sessiya bitib.
-4. Üçüncü cəhddə səhv rəqəm yazır — ya səhv hesaba göndərir, ya da şöbəyə gedir.
+**İndi:** yazılar xırdadır, menyu qarışıqdır. Bir “kuryer” zəng edib kart kodunu istəyir.
 
-**MƏNƏ UYĞUN ilə** (`/bank`):
-- Yazılar 1,5× böyüyür, kontrast düzəlir, dizayn pozulmur.
-- Sadə rejim: 12 bölmədən yalnız **Köçürmələr** qalır, reklam gizlənir.
-- Addım-addım: kart → məbləğ → SMS kodu, hər ekranda bir iş.
-- “Daha çox vaxt”: sessiya 90 saniyədən 30 dəqiqəyə uzanır.
-- Göndərməzdən əvvəl sadə dildə təsdiq: *“50 manat Nicat Əliyevə göndərilir. Kartın son 4 rəqəmi: 4 4 1 7.”* — səsli oxunur.
-
-**Göstərici (pilot üçün):** əməliyyatı yarımçıq tərk edənlərin payı, səhv köçürmələr, çağrı mərkəzinə “necə edim” zəngləri.
+**MƏNƏ UYĞUN ilə** (`/aptek`):
+- Yazılar böyüyür, kontrast düzəlir, reklam gizlənir.
+- **Action Guard:** “Siz 45 AZN ödəyirsiniz. Əminsiniz?”
+- **Təhlükəsiz rejim:** böyük düyməyə basır: “Bu fırıldaqdır, heç nə göndərməyin.” Qızına bir toxunuşla xəbər verir.
+- Aptekdə yenidən ödəməyə keçəndə iki sual çıxır. “Kimsə zəng edib istədi?” sualına “Bəli” deyəndə ödəniş dayandırılır.
 
 ## 2. Dövlət arayışı — Südabə xanım
 
@@ -61,9 +54,10 @@ Demo səhifələri DEMO Market saytındadır (`/bank`, `/arayis`, `/xestexana`, 
 
 ## Demo axını (3 dəqiqə)
 
-1. **Əvvəl:** `/bank` — xırda yazı, 12 menyu, reklam, 1:30 sessiya taymeri.
-2. Platformada Əli baba danışır: *“Gözüm zəif görür, yazılar xırdadır, menyular qarışıqdır.”* → ayarlar qurulur, “Bəli, saxla”.
-3. `/bank` → “MƏNƏ UYĞUN-dan ayarları gətir” → İcazə ver → səhifə dərhal dəyişir.
-4. Köçürmə: 3 addım, SMS kodu, sadə təsdiq, səsli oxunuş.
-5. `/xestexana` — yaddaş zolağı; `/xeber` — “Sadə dildə” və “Bu nədir?”.
-6. Aytən: QR ilə profili anasının telefonuna ötürür.
+1. Əli baba aptek saytında dərman sifariş edir, yazılar xırdadır.
+2. Profil: “Yazılar xırdadır, qarışıqdır” deyir, ayarlar qurulur, saxlayır.
+3. Aptekdə “MƏNƏ UYĞUN-dan ayarları gətir”: sayt iri yazıya və sadə rejimə keçir.
+4. Poliklinikada eyni profil avtomatik gəlir, Form Guide addım-addım aparır.
+5. Fırıldaq anı: “kuryer” zəng edib kod istəyir. Böyük düymə: “Bu fırıldaqdır.” Qızına xəbər verir.
+6. Qoruma: aptekdə ödənişə keçəndə Action Guard sərtləşir, ödəniş getmir.
+7. Nəzarət: bağlantını ayırır.

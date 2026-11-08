@@ -23,13 +23,13 @@ const BOOL_ATTRS: (keyof Preferences)[] = [
   "plainLanguage", "stepByStep", "confirmActions", "iconLabels", "dyslexiaFont", "readingRuler", "tts", "aiHelp",
   "noItalics", "noUppercase", "emphasizeHeadings", "clearNumbers", "flatDesign", "outlineControls", "hideImages", "hoverZoom", "hideVideos", "hideBackgroundImages",
   "flashGuard", "stopAutoplay", "muteAudio", "unstickHeaders", "hideFooter", "skipLink", "hoverHighlight", "readingGuide", "focusMode", "clickGuard", "readOnSelect", "readOnHover", "warnExternalLinks",
-  "readerMode", "singleColumn", "collapseMenus", "hideSidebars", "hidePopups", "hideComments", "hideSocial", "aiSimplify", "simplifyParagraphs",
+  "readerMode", "singleColumn", "collapseMenus", "hideSidebars", "hidePopups", "hideComments", "hideSocial", "aiSimplify", "simplifyParagraphs", "formGuide",
 ];
 
 // Settings with a value: exposed as data-mu-* and --mu-* when they differ from the default.
 const VALUE_KEYS: (keyof Preferences)[] = [
   "fontFamily", "fontWeight", "wordSpacing", "paragraphSpacing", "textAlign", "maxLineWidth", "textColor", "backgroundColor", "linkColor", "headingColor", "buttonColor", "buttonTextColor", "borderColor", "focusColor",
-  "brightness", "saturation", "warmth", "pageZoom", "cursorColor", "dwellClick", "handedness", "captionSize", "captionStyle", "ttsPitch", "ttsVolume", "breakReminder",
+  "brightness", "saturation", "warmth", "pageZoom", "cursorColor", "dwellClick", "handedness", "captionSize", "captionStyle", "ttsPitch", "ttsVolume", "breakReminder", "guardLevel",
 ];
 
 // Only these need the page re-scanned. Everything else is applied by attributes and CSS, without touching layout.
@@ -191,6 +191,7 @@ function extraCss(A: string, notIcon: string): string[] {
     `${A} [data-mu-rd-main]{max-width:72ch!important;margin-inline:auto!important;float:none!important}`,
     `${A} [data-mu-collapsed]{display:none!important}`,
     `${A} [data-mu-ai-hidden]{display:none!important}`,
+    `${A} [data-mu-fg-hidden]{display:none!important}`,
     `${A}[data-mu-single-column] :is(main,section,[class*='grid' i],[class*='row' i],[class*='columns' i],[class*='flex' i])${mine}{display:block!important}`,
     `${A}[data-mu-single-column] :is(main,article,section,div)${mine}{float:none!important;width:auto!important;max-width:100%!important}`,
     `${A}[data-mu-hide-sidebars] :is(aside,[role=complementary],[class*='sidebar' i],[id*='sidebar' i])${mine}:not([data-mu-simple='keep']){display:none!important}`,

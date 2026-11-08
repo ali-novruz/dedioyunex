@@ -5,6 +5,8 @@
 import { PreferenceEngine, type Mode } from "./apply";
 import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, settingLabel, type Language, type Preferences, type PreferenceKey } from "./schema";
 import { runCheck, type CheckReport } from "./check";
+import { ActionGuard } from "./guard";
+import { FormGuide } from "./formguide";
 import { snapshot, controlFor, aidOf, elementsFor, type PageHelp } from "./assist";
 import { setCloudVoice, speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
 
@@ -264,6 +266,19 @@ class MeneUygunSDK {
         return r.blob();
       },
     });
+    const sayIfWanted = (text: string) => {
+      if (this.prefs?.tts) void this.speak(text).catch((e) => console.warn("[MeneUygun]", e));
+    };
+    this.guard = new ActionGuard(document, () => this.lang(), sayIfWanted);
+    this.forms = new FormGuide(
+      document,
+      () => this.lang(),
+      async (label, hint) => {
+        const body = await this.assistFetch({ title: document.title, headings: [], text: "", focus: { label, kind: "form field", hint } });
+        return String(body.explain);
+      },
+      sayIfWanted,
+    );
     new MutationObserver(() => {
       this.renderButtons();
       this.renderTts();
@@ -509,6 +524,8 @@ class MeneUygunSDK {
     if (persist) store.set(this.key("prefs"), JSON.stringify(prefs));
     this.engine!.apply(prefs);
     this.syncAutoReading();
+    this.guard.apply(prefs.guardLevel);
+    this.forms.apply(prefs.formGuide && this.cfg?.mode === "auto");
     void this.syncSimplify();
     this.renderTts();
     this.renderButtons();
@@ -521,6 +538,8 @@ class MeneUygunSDK {
     this.prefs = null;
     this.engine?.reset();
     this.syncAutoReading();
+    this.guard?.apply("off");
+    this.forms?.apply(false);
     this.stopListening();
     this.stopExplaining();
     this.closePanel();
@@ -1091,6 +1110,8 @@ html[data-mu-listening] body *{cursor:help!important}`;
     this.hoverTimer = window.setTimeout(() => this.readElement(block as HTMLElement), 700);
   };
 
+  private guard!: ActionGuard;
+  private forms!: FormGuide;
   private simplifiedFor = "";
   private simplifyShown = false;
 

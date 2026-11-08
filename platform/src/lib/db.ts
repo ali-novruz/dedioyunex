@@ -77,6 +77,7 @@ const MIGRATIONS: string[] = [
      value TEXT NOT NULL,
      created_at BIGINT NOT NULL
    );`,
+  `ALTER TABLE users ADD COLUMN safe_until BIGINT, ADD COLUMN trusted_contact TEXT;`,
 ];
 
 const g = globalThis as unknown as { __muPool?: Pool; __muReady?: Promise<void> };

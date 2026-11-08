@@ -154,19 +154,23 @@ document.addEventListener("meneuygun:preferences", (e) => e.detail)`}</Code>
         </div>
       </Window>
 
-      <h2 className="h2">{l("Mobil tətbiqlər", "Mobile apps")}</h2>
-      <Window title="Android / iOS">
-        <div className="stack">
-          <p className="muted">
-            {l("Android (Kotlin/Compose) və iOS (Swift/SwiftUI) SDK-ları eyni hesabla işləyir. Qeydiyyatda “Mobil redirect URI” daxil edin (məs. myapp://callback).", "The Android (Kotlin/Compose) and iOS (Swift/SwiftUI) SDKs work with the same account. Enter a “Mobile redirect URI” when you register (for example myapp://callback).")}
-          </p>
-          <Code>{`// Android
-MeneUygun.init(context, clientId = "${id}", baseUrl = "${base}", redirectUri = "myapp://callback")
-setContent { MeneUygunTheme { MeneUygunConnectButton(); App() } }
-
-// iOS
-MeneUygun.shared.configure(clientId: "${id}", baseURL: URL(string: "${base}")!, redirectURI: "myapp://callback")
-ContentView().meneUygun()`}</Code>
+      <h2 className="h2">{l("Qoruma və formalar", "Protection and forms")}</h2>
+      <Window title="Action Guard">
+        <div className="rows">
+          <div className="stack">
+            <h3 className="h3">{l("Vacib düymələri işarələyin", "Mark the important buttons")}</h3>
+            <p className="muted">{l("İstifadəçi basanda aydın təsdiq ekranı çıxır. Yoxlama brauzerdə aparılır, əməliyyat məlumatı serverə getmir.", "When pressed, a clear confirmation appears. The check runs in the browser and no action data goes to a server.")}</p>
+            <Code>{`<button data-mu-guard="payment" data-mu-guard-amount="45 AZN">${l("Ödə", "Pay")}</button>
+<button data-mu-guard="delete">${l("Sil", "Delete")}</button>
+<button data-mu-guard="submit" data-mu-guard-text="${l("Sifarişiniz göndərilir.", "Your order is being sent.")}">${l("Göndər", "Send")}</button>
+<button data-mu-guard="subscribe">${l("Abunə ol", "Subscribe")}</button>`}</Code>
+          </div>
+          <div className="stack">
+            <h3 className="h3">Form Guide</h3>
+            <p className="muted">{l("3 və daha çox sahəsi olan formalar avtomatik addım-addım göstərilir. İzahı özünüz yaza bilərsiniz.", "Forms with 3 or more fields are shown step by step automatically. You can write the explanation yourself.")}</p>
+            <Code>{`<input name="fin" data-mu-help="${l("Şəxsiyyət vəsiqənizdəki 7 işarəli kod", "The 7-character code on your ID card")}">
+<form data-mu-form-guide="off">...</form>`}</Code>
+          </div>
         </div>
       </Window>
 

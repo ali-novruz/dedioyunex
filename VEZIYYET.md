@@ -13,7 +13,7 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - **E-poçtsuz başla:** hesab yalnız bu cihazda; sonra e-poçt əlavə etmək olur.
 - **Ehtiyaca görə qeydiyyat:** Görmə · Eşitmə · Hərəkət · Anlama/yaddaş · Oxuma · Texnologiya → yalnız uyğun ayarlar görünür + başlanğıc ayarları avtomatik tətbiq olunur.
 - **Səsli / yazılı AI köməkçi:** “Yazılar xırdadır” deyirsən → ayarları özü qurur, ekran dərhal dəyişir, səsli izah edir, “Bəli, saxla / Yenidən de / Özüm dəyişim”. Qeyri-müəyyən cümlədə aydınlaşdırıcı sual verir. Saxladıqdan sonra “Əvvəlki ayarlara qayıt”.
-- **Əl ilə ayarlar:** 12 bölmədə 87 ayar (yazı, rənglər, ekran, şəkil/video/səs, səhifə quruluşu, kursor, oxuma, toxunma, altyazı, səsli oxunuş, sadələşdirmə), axtarışla. Hər dəyişiklik dərhal görünür və saxlanılır.
+- **Əl ilə ayarlar:** 12 bölmədə 89 ayar (yazı, rənglər, ekran, şəkil/video/səs, səhifə quruluşu, kursor, oxuma, toxunma, altyazı, səsli oxunuş, sadələşdirmə), axtarışla. Hər dəyişiklik dərhal görünür və saxlanılır.
 - **18 ehtiyac:** 6 əsas + rəng korluğu, işığa həssaslıq/miqren, epilepsiya, DEHB, autizm/tinnitus, Parkinson, bir əllə istifadə, demensiya, disleksiya, diskalkuliya, afaziya, xroniki yorğunluq. Hər biri uyğun ayarları və başlanğıc dəstini açır.
 - **Mürəkkəb saytları sadələşdirmə:** oxuma görünüşü, AI ilə düymələri azaltma, abzası sadə dilə çevirmə, uzun menyuları qısaltma, tək sütun, yan panel/açılan pəncərə/şərh/paylaşım gizlətmə.
 - **Bağlı xidmətlər:** hansı saytların ayarlarını gördüyü, bir toxunuşla ayırmaq.
@@ -43,18 +43,23 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - Uyğunluq göstəricisi: “Bu sayt ayarlarınızdan 10/11-ni dəstəkləyir”; sayt sahibi üçün `?mu-check` yoxlaması.
 - Server cavab verməsə sayt bloklanmır (fail-open), sinxronizasiya (tab-a qayıdanda, digər tab-larda).
 
-### Mobil SDK
-- **Android** (Kotlin/Compose): yığılır, APK hazırdır (`dist/dedio-demo-android.apk`, canlı ünvana bağlı). Cihazda hələ sınanmayıb.
-- **iOS** (Swift/SwiftUI): kod yazılıb, Mac olmadığı üçün yığılmayıb.
+### Davranış və qoruma
+- **Action Guard:** sayt kritik düyməni `data-mu-guard="payment|submit|delete|subscribe"` ilə işarələyir, istifadəçi aydın təsdiq ekranı görür. Yoxlama brauzerdə aparılır, əməliyyat məlumatı serverə getmir.
+- **Təhlükəsiz rejim:** böyük düymə “Kimsə zəng edib kod və ya pul istəyir”. Dərhal izah, 24 saatlıq `guardLevel: strict`, etibarlı şəxsə zəng/WhatsApp/SMS (SMTP qurulsa e-poçt avtomatik), AI ilə “Yoxla”. Qoşulmuş saytlarda ödəniş 2 sual və 10 saniyə gözləmə ilə olur; “bəli” cavabında dayandırılır. Ən azı 1 dəqiqə söndürülə bilmir, ayarlardan isə ümumiyyətlə.
+- **Form Guide:** 3+ sahəli formalar addım-addım, hər sahədə sadə izah və irəliləyiş.
+- Qoruma yalnız qoşulmuş saytlarda işləyir; fırıldaqçının saxta saytında SDK olmur.
+
+### Mobil SDK (P2, MVP-dən kənar)
+- Android və iOS kodu `sdk/` qovluğunda saxlanılır, məhsulda və sənədlərdə göstərilmir.
 
 ### Demo sayt (DEMO Market) və ssenarilər — `docs/ssenariler.md`
-- `/` mağaza · `/bank` **Əli baba – köçürmə** · `/arayis` **Südabə xanım – arayış** · `/xestexana` **demensiya – həkimə yazılma** · `/xeber` **uzun xəbər**.
-- Bank ssenarisi: 12 menyudan yalnız “Köçürmələr”, reklam gizli, 3 addım, sessiya 90 san → 30 dəq, sadə dildə təsdiq (“50 manat Nicat Əliyevə… son 4 rəqəm 4 4 1 7”).
+- `/` mağaza · `/aptek` **Əli baba – dərman sifarişi** · `/xestexana` **poliklinika qeydiyyatı** · `/arayis` **Südabə xanım – arayış** · `/xeber` **uzun xəbər**.
+- Bank demosu çıxarılıb.
 
 ### Testlər (hamısı keçir)
 - `tests/e2e-web.sh` — 7/7 **canlıda** (giriş → qeydiyyat → sayta qoşulma → uyğunlaşma → sinxron → ayırma)
-- `tests/e2e-scenarios.sh` — bank ssenarisi **canlıda** keçir
-- `tests/engine-settings.mjs` — 58 yeni ayar real brauzerdə tək-tək ölçülür, 58/58
+- `tests/e2e-scenarios.sh` — aptek, fırıldaq anı, Təhlükəsiz rejim, Form Guide **canlıda** keçir
+- `tests/engine-settings.mjs` — 60 yeni ayar real brauzerdə tək-tək ölçülür, 60/60
 - `tests/api-test.sh` — 41/41, yalnız yerli (sınaq AI serveri ilə); Vercel üçün dəyişikliklərdən sonra yenidən işlədilməyib
 - Real Groq açarı ilə canlıda: səsli köməkçinin ayar seçimi, aydınlaşdırıcı sual, səhifə izahı (“Sadə dildə”), səs → mətn hattı
 

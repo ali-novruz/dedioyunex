@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" }).end(fs.readFileSync(path.join(here, "demo.js")));
     return;
   }
-  const pages = { "/": "index.html", "/xeber": "xeber.html", "/bank": "bank.html", "/arayis": "arayis.html", "/xestexana": "xestexana.html" };
+  const pages = { "/": "index.html", "/xeber": "xeber.html", "/aptek": "aptek.html", "/arayis": "arayis.html", "/xestexana": "xestexana.html" };
   const file = pages[url.pathname.replace(/\.html$|\/$/, "") || "/"] ?? pages[url.pathname];
   if (!file) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Not found");

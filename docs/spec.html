@@ -250,6 +250,15 @@ ContentView().meneUygun()</pre>
 </table>
 <div class="note"><b>Məxfilik:</b> form dəyərləri və <code>data-mu-private</code> bölmələri AI-a göndərilmir. Sayt <code>data-ai="off"</code> ilə funksiyanı tam bağlaya bilər.</div>
 
+<h3>Davranış və qoruma qatı</h3>
+<table>
+  <tr><th style="width:26%">Funksiya</th><th>Nə edir</th></tr>
+  <tr><td>Action Guard</td><td>Sayt kritik düyməni <code>data-mu-guard</code> ilə işarələyir. İstifadəçi aydın təsdiq ekranı görür. Qiymətləndirmə brauzerdə aparılır, əməliyyat məlumatı serverə getmir.</td></tr>
+  <tr><td>Təhlükəsiz rejim</td><td>“Kimsə zəng edib kod və ya pul istəyir” düyməsi: dərhal izah, etibarlı şəxsə xəbər, 24 saatlıq <code>guardLevel: strict</code>. Qoşulmuş saytlarda ödəniş əlavə suallar və gözləmə ilə olur.</td></tr>
+  <tr><td>Form Guide</td><td>Bir ekranda bir sahə, yanında sadə izah, irəliləyiş çubuğu.</td></tr>
+</table>
+<div class="note">Qoruma yalnız qoşulmuş saytlarda işləyir. Fırıldaqçının saxta saytında SDK olmayacaq.</div>
+
 <h2 class="page-break">5. Məxfilik və təhlükəsizlik</h2>
 <ul>
   <li><b>Xidmətlərə yalnız interfeys ayarları gedir.</b> Ad, e-poçt və ehtiyac kateqoriyaları ötürülmür; yalnız istifadəçinin gördüyü və təsdiqlədiyi ayarlar. (Qeyd: “ekran oxuyucu” kimi bəzi ayarlar dolayı məlumat verə bilər — buna görə hər xidmət üçün ayrıca icazə və ayrıca anonim ID istifadə olunur.)</li>
@@ -285,7 +294,7 @@ ContentView().meneUygun()</pre>
   <tr><td><span class="tag P0">P0</span></td><td>API</td><td>OAuth + PKCE, <code>/v1/preferences</code>, partnyor qeydiyyatı, hər sayt üçün anonim ID</td></tr>
   <tr><td><span class="tag P0">P0</span></td><td>Web SDK</td><td>Düymə, icazə axını, şrift, aralıq, kontrast, sadə rejim, diqqəti yayındıranları gizlət, böyük düymələr, animasiyanı azalt, səsli oxunuş</td></tr>
   <tr><td><span class="tag P0">P0</span></td><td>Startup inteqrasiyası + demo</td><td>Partnyor sayta Web SDK, əvvəl/sonra video ssenarisi</td></tr>
-  <tr><td><span class="tag P1">P1</span></td><td>Android SDK</td><td>Kotlin kitabxanası, icazə axını, <code>MeneUygunTheme</code>, kiçik demo tətbiq (emulatorda test)</td></tr>
+  <tr><td><span class="tag P2">P2</span></td><td>Android SDK</td><td>Kotlin kitabxanası, icazə axını, <code>MeneUygunTheme</code>, kiçik demo tətbiq (emulatorda test)</td></tr>
   <tr><td><span class="tag P1">P1</span></td><td>Qalan A növ ayarlar</td><td>Rəng korluğu filtri, disleksiya şrifti, oxuma xətti, böyük kursor, linkləri vurğula, fokus çərçivəsi</td></tr>
   <tr><td><span class="tag P1">P1</span></td><td>Bağlı xidmətlər + tərtibatçı səhifəsi</td><td>Bağlantını ləğv etmə, inteqrasiya bələdçisi</td></tr>
   <tr><td><span class="tag P2">P2</span></td><td>iOS SDK</td><td>Swift kitabxanası və <code>.meneUygun()</code>. Mac olmadan kod yazılır, amma test edilə bilmir</td></tr>
@@ -341,7 +350,7 @@ ContentView().meneUygun()</pre>
 <p class="muted">Demo səhifələri DEMO Market saytındadır. Hamısı nümunədir, real qurum deyil.</p>
 <table>
   <tr><th style="width:24%">Kim</th><th style="width:34%">İndi</th><th>MƏNƏ UYĞUN ilə</th></tr>
-  <tr><td><b>Əli baba</b>, 72 yaş, görməsi zəif — bank köçürməsi (<code>/bank</code>)</td><td>Xırda yazı, 12 bölməli menyu, SMS kodunu görmək üçün çıxanda sessiya bitir, səhv rəqəm riski</td><td>Yazılar 1,5× böyük, yalnız “Köçürmələr” qalır, reklam gizlənir, 3 addım, sessiya 90 saniyədən 30 dəqiqəyə, səsli sadə təsdiq: “50 manat Nicat Əliyevə göndərilir…”</td></tr>
+  <tr><td><b>Əli baba</b>, 72 yaş, görməsi zəif — dərman sifarişi (<code>/aptek</code>)</td><td>Xırda yazı, qarışıq menyu; “kuryer” zəng edib kart kodunu istəyir</td><td>Yazılar böyük, reklam gizli; Action Guard: “Siz 45 AZN ödəyirsiniz”; Təhlükəsiz rejim: “Bu fırıldaqdır”, qızına xəbər, ödəniş dayandırılır</td></tr>
   <tr><td><b>Südabə xanım</b>, 65 yaş, oxumaq çətindir — dövlət arayışı (<code>/arayis</code>)</td><td>Reklam banneri, 5 menyu, uzun hüquqi mətn</td><td>Yayındırıcılar gizlənir, mətn sadə dildə 2 cümlə, ikonların yanında ad, səsli oxu, oxunaqlı şrift, oxuma xətti</td></tr>
   <tr><td><b>Aytən</b>, 38 yaş, anası rayondadır — uzaqdan kömək</td><td>Telefonla addım-addım izah və ya anasının telefonunu alıb özü edir</td><td>Profili bir dəfə qurur, QR kodla anasının telefonuna ötürür; anasının e-poçtu olmasa belə işləyir</td></tr>
   <tr><td>Unutqanlığı başlayan yaşlı — həkimə yazılma (<code>/xestexana</code>)</td><td>10 rəngli düymə, sürüşən reklam, niyə girdiyini unudur</td><td>Yalnız “Həkimə yazılmaq” qalır, reklam dayanır, daimi “📍 Siz buradasınız” zolağı, təsdiqdən əvvəl səsli təkrar</td></tr>

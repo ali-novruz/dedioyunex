@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DEMO Klinika — Həkimə yazıl</title>
+<title>DEMO Poliklinika — Həkimə yazıl</title>
 <script src="/demo.js"></script>
 <script src="{{PLATFORM_URL}}/sdk.js" data-client-id="demo-partner" data-ai="auto" data-supports="confirmActions,extendedTimeouts,plainLanguage,visualAlerts" async></script>
 <style>
@@ -25,7 +25,7 @@
 </style>
 </head>
 <body>
-  <header><b>DEMO Klinika</b><span>Onlayn qeydiyyat</span></header>
+  <header><b>DEMO Poliklinika</b><span>Onlayn qeydiyyat</span></header>
   <marquee data-mu-distraction>🔥 Check-up paketlərinə 40% endirim! · Yeni stomatologiya şöbəsi açıldı! · Mobil tətbiqi yükləyin!</marquee>
   <div class="grid" data-mu-simple="hide">
     <button style="background:#ef4444">Analizlər</button><button style="background:#f97316">Nəticələr</button><button style="background:#eab308">Reseptlər</button>
@@ -35,29 +35,27 @@
   </div>
   <main>
     <h1>Həkimə yazılmaq</h1>
-    <label for="doc">Həkim</label>
-    <select id="doc"><option>Terapevt — Dr. Leyla Məmmədova</option><option>Kardioloq — Dr. Rauf Həsənov</option><option>Nevroloq — Dr. Aysel Quliyeva</option></select>
-    <div class="slots" id="slots">
-      <button>10 noyabr, 09:30</button><button>10 noyabr, 11:00</button><button>11 noyabr, 14:30</button><button>12 noyabr, 10:00</button>
-    </div>
-    <button class="book" id="book" data-mu-simple="primary">Qeydiyyatı təsdiqlə</button><span class="timer" id="timer"></span>
+    <form id="reg">
+      <div><label for="who">Xəstənin adı</label> <input id="who" name="patient" required autocomplete="name" value="Əli Məmmədov"></div>
+      <div><label for="tel">Telefon</label> <input id="tel" name="phone" type="tel" required value="+994501112233"></div>
+      <div><label for="doc">Həkim</label>
+      <select id="doc" name="doctor"><option>Terapevt — Dr. Leyla Məmmədova</option><option>Kardioloq — Dr. Rauf Həsənov</option><option>Nevroloq — Dr. Aysel Quliyeva</option></select></div>
+      <div><label for="slot">Vaxt</label>
+      <select id="slot" name="slot"><option>10 noyabr, 09:30</option><option>10 noyabr, 11:00</option><option>11 noyabr, 14:30</option><option>12 noyabr, 10:00</option></select></div>
+      <button class="book" id="book" type="submit" data-mu-simple="primary" data-mu-guard="submit">Qeydiyyatı təsdiqlə</button><span class="timer" id="timer"></span>
+    </form>
   </main>
 <script>
-  var chosen = null;
-  document.querySelectorAll("#slots button").forEach(function (b) {
-    b.onclick = function () {
-      document.querySelectorAll("#slots button").forEach(function (x) { x.classList.remove("sel"); });
-      b.classList.add("sel"); chosen = b.textContent;
-      Demo.say(Demo.t("Seçdiniz: ", "You chose: ") + chosen);
-    };
+  var form = document.getElementById("reg"), book = document.getElementById("book"), doc = document.getElementById("doc"), slot = document.getElementById("slot");
+  function describe() {
+    book.setAttribute("data-mu-guard-text", Demo.t(doc.value + " ilə " + slot.value + " tarixinə yazılırsınız.", "You are booking " + doc.value + " for " + slot.value + "."));
+  }
+  doc.onchange = slot.onchange = describe;
+  window.addEventListener("load", describe);
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    Demo.notify(Demo.t("Siz " + slot.value + " tarixinə yazıldınız. Bir gün əvvəl xatırladacağıq (demo).", "You are booked for " + slot.value + ". We will remind you one day before (demo)."));
   });
-  document.getElementById("book").onclick = function () {
-    if (!chosen) { Demo.notify(Demo.t("Əvvəlcə vaxt seçin.", "Please choose a time first.")); return; }
-    var doc = document.getElementById("doc").value;
-    Demo.confirm(Demo.t(doc + " ilə " + chosen + " tarixinə yazılırsınız.", "You are booking " + doc + " for " + chosen + "."), function () {
-      Demo.notify(Demo.t("Siz " + chosen + " tarixinə yazıldınız. Bir gün əvvəl xatırladacağıq (demo).", "You are booked for " + chosen + ". We will remind you one day before (demo)."));
-    });
-  };
   Demo.session(document.getElementById("timer"), 120);
 </script>
 </body>

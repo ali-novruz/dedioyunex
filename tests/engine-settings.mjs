@@ -82,6 +82,8 @@ const CASES = {
   readOnHover: [true, () => attr("read-on-hover")],
   warnExternalLinks: [true, () => { window.confirm = () => false; const e = new MouseEvent("click", { bubbles: true, cancelable: true }); $("ext").dispatchEvent(e); return e.defaultPrevented; }],
   breakReminder: [20, () => attr("break-reminder")],
+  guardLevel: ["strict", () => document.documentElement.getAttribute("data-mu-guard-level") === "strict"],
+  formGuide: [true, () => attr("form-guide")],
   readerMode: [true, () => cs("hdr").display === "none" && cs("f").display === "none" && cs("p").display !== "none" && $("mainbox").hasAttribute("data-mu-rd-main")],
   singleColumn: [true, () => cs("cols").display === "block"],
   collapseMenus: [true, () => [...document.querySelectorAll("#nav a")].filter((a) => getComputedStyle(a).display !== "none").length === 5 && !!document.querySelector("#nav [data-mu-ui=more]")],
