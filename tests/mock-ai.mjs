@@ -33,6 +33,18 @@ http
       }
       if (req.url === "/v1/chat/completions") {
         const j = JSON.parse(body);
+        if (j.messages[0].content.includes("MENE_UYGUN_PAGE_HELP")) {
+          const user = j.messages[1].content;
+          const ids = [...user.matchAll(/^(a\d+) \| (\w+) \| ([^|\n]*)/gm)].map((m) => ({ id: m[1], kind: m[2], label: m[3].trim() }));
+          const help = {
+            headline: "Gündəlik məhsullar satan onlayn mağaza",
+            summary: "Bu səhifədə süd, çörək kimi məhsulları seçib səbətə ata bilərsiniz. Sonra ödəniş edirsiniz.",
+            points: ["Səbətdə 3 məhsul var", "Cəmi 15.30 AZN"],
+            actions: ids.slice(0, 12).map((a) => ({ id: a.id, explain: a.label.includes("Ödə") ? "Basanda kartınızdan pul çıxılır." : `"${a.label || a.kind}" düyməsi — mock izah.` })).concat([{ id: "zzz", explain: "fake" }]),
+          };
+          res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ choices: [{ message: { role: "assistant", content: JSON.stringify(help) } }] }));
+          return;
+        }
         const last = j.messages[j.messages.length - 1].content;
         const content = JSON.stringify(answer(last));
         res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ choices: [{ message: { role: "assistant", content } }] }));

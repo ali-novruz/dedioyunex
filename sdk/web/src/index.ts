@@ -90,6 +90,8 @@ const T = {
   close: "Bağla",
   noExplain: "Bu düymə üçün izah tapılmadı.",
   plain: "Sadə dildə",
+  youAreHere: "Siz buradasınız",
+  whatToDo: "Nə edim?",
 };
 
 const WIDGET_CSS = `
@@ -415,6 +417,7 @@ class MeneUygunSDK {
     this.stopExplaining();
     this.closePanel();
     document.querySelector("[data-mu-ui='plain-summary']")?.remove();
+    document.querySelector("[data-mu-ui='reminder']")?.remove();
     this.help = null;
     this.renderTts();
     this.menuOpen = false;
@@ -626,7 +629,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
         m.textContent = this.helpError;
         root.append(m);
       }
-      if (this.cfg?.ai === "auto" && this.prefs?.plainLanguage) void this.autoSummary();
+      if (this.cfg?.ai === "auto" && (this.prefs?.plainLanguage || this.prefs?.simpleMode)) void this.autoSummary();
     }
     if (!tts) return;
     const row = document.createElement("div");
@@ -697,6 +700,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       if (!r.ok) throw new Error(body.error_description || T.failed);
       this.help = { headline: body.headline, summary: body.summary, points: body.points ?? [], actions: body.actions ?? [] };
       this.helpFor = sig;
+      this.showReminder(this.help);
       return this.help;
     } catch (e) {
       this.helpError = e instanceof Error ? e.message : T.failed;
@@ -705,6 +709,24 @@ html[data-mu-listening] body *{cursor:help!important}`;
       this.helpLoading = false;
       this.renderTts();
     }
+  }
+
+  /** Memory aid (simple mode): a sticky "You are here: …" bar so the user does not lose track of the task. */
+  private showReminder(help: PageHelp): void {
+    document.querySelector("[data-mu-ui='reminder']")?.remove();
+    if (!this.prefs?.simpleMode) return;
+    const bar = document.createElement("div");
+    bar.setAttribute("data-mu-ui", "reminder");
+    bar.setAttribute("role", "note");
+    bar.style.cssText = "position:sticky;top:0;z-index:2147483640;display:flex;gap:.8em;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.6em 1em;background:#4b2a86;color:#fff;font:600 1.05em/1.4 system-ui,sans-serif";
+    const t = document.createElement("span");
+    t.textContent = `📍 ${T.youAreHere}: ${help.headline}`;
+    const b = document.createElement("button");
+    b.textContent = T.whatToDo;
+    b.style.cssText = "min-height:2.4em;padding:.3em 1em;border:0;border-radius:999px;background:#ffbf00;color:#111;font:inherit;cursor:pointer";
+    b.addEventListener("click", () => void this.openPanel());
+    bar.append(t, b);
+    document.body.prepend(bar);
   }
 
   private closePanel(): void {

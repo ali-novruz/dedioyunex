@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEMO e-Xidmət — Arayış sifarişi</title>
+<script src="/demo.js"></script>
+<script src="{{PLATFORM_URL}}/sdk.js" data-client-id="demo-partner" data-supports="confirmActions,extendedTimeouts,stepByStep,plainLanguage,visualAlerts" async></script>
+<style>
+  body { margin: 0; font-family: Tahoma, Verdana, sans-serif; font-size: 12px; color: #777; background: #f5f5f0; }
+  header { background: #3a5a40; color: #e8efe9; padding: 10px 16px; }
+  header b { font-size: 17px; color: #fff; }
+  .menus { display: flex; gap: 6px; padding: 8px 16px; background: #dde5dd; flex-wrap: wrap; }
+  .menus a { color: #556; font-size: 11px; padding: 4px 8px; background: #fff; border-radius: 3px; text-decoration: none; }
+  .banner { margin: 10px 16px; padding: 12px; background: #fff3c4; color: #8a6d00; border: 1px dashed #e0b400; }
+  main { max-width: 820px; margin: 12px auto; background: #fff; padding: 18px 22px; border: 1px solid #e3e3dc; }
+  h1 { font-size: 16px; color: #333; }
+  .legal { font-size: 10.5px; color: #999; line-height: 1.35; max-height: 120px; overflow: auto; border: 1px solid #eee; padding: 8px; }
+  .plain { display: none; font-size: 14px; color: #222; background: #f2f7f2; padding: 10px; border-radius: 6px; }
+  html[data-mu-plain-language] .legal { display: none; }
+  html[data-mu-plain-language] .plain { display: block; }
+  .tools { display: flex; gap: 6px; margin: 12px 0; }
+  .tools button { width: 32px; height: 32px; border: 1px solid #ccc; background: #fafafa; border-radius: 4px; cursor: pointer; }
+  select, input { height: 28px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; padding: 0 6px; }
+  .go { height: 30px; padding: 0 16px; background: #3a5a40; color: #fff; border: 0; border-radius: 3px; cursor: pointer; }
+  .timer { color: #b42318; font-size: 11px; margin-left: 8px; }
+</style>
+</head>
+<body>
+  <header><b>DEMO e-Xidmət</b> · Dövlət xidmətləri portalı (nümunə)</header>
+  <div class="menus" data-mu-simple="hide">
+    <a href="#">Vergilər</a><a href="#">Sosial</a><a href="#">Nəqliyyat</a><a href="#">Təhsil</a><a href="#">Səhiyyə</a>
+  </div>
+  <div class="banner" data-mu-distraction>📢 Yeni! Mobil tətbiqimizi yükləyin və bonus qazanın! Sorğumuzda iştirak edin!</div>
+  <main>
+    <h1>Yaşayış yerindən arayış</h1>
+    <div class="legal">“Elektron xidmətlər haqqında” Əsasnamənin 4.2.1-ci bəndinə və müvafiq normativ hüquqi aktlara uyğun olaraq, arayış elektron formada tərtib edilir, gücləndirilmiş elektron imza ilə təsdiqlənir və sorğu verən şəxsin şəxsi kabinetinə yerləşdirilir. Arayışın hüquqi qüvvəsi kağız daşıyıcıda olan sənədin hüquqi qüvvəsinə bərabərdir. Məlumatların düzgünlüyünə görə məsuliyyət sorğu verən şəxsin üzərinə düşür. Sorğunun icra müddəti 3 (üç) iş günüdür, bu müddət qanunvericilikdə nəzərdə tutulmuş hallarda uzadıla bilər.</div>
+    <div class="plain">Bu arayış harada yaşadığınızı göstərir. 3 iş günü ərzində hazır olur və kabinetinizə gəlir. Kağız arayışla eyni qüvvəyə malikdir.</div>
+    <div class="tools">
+      <button aria-label="Nümunə arayışı yüklə" title="Nümunə arayışı yüklə">⬇</button>
+      <button aria-label="Çap et" title="Çap et">⎙</button>
+      <button aria-label="E-poçta göndər" title="E-poçta göndər">✉</button>
+      <button aria-label="Kömək" title="Kömək">?</button>
+    </div>
+    <label for="where">Arayış hara təqdim olunur?</label>
+    <select id="where"><option>Bank</option><option>Məktəb</option><option>Xəstəxana</option><option>Digər</option></select>
+    <p><button class="go" id="order" data-mu-simple="primary">Arayış sifariş et</button><span class="timer" id="timer"></span></p>
+  </main>
+<script>
+  document.getElementById("order").onclick = function () {
+    var where = document.getElementById("where").value;
+    Demo.confirm("Yaşayış yerindən arayış sifariş edirsiniz. Arayış " + where + " üçündür.", function () {
+      Demo.notify("✓ Sifariş qəbul edildi. Arayış 3 iş günü ərzində kabinetinizdə olacaq (demo).");
+    });
+  };
+  Demo.session(document.getElementById("timer"), 120);
+</script>
+</body>
+</html>

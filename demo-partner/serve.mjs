@@ -11,11 +11,17 @@ const port = Number(process.env.PORT ?? 4000);
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://x");
-  if (url.pathname !== "/" && url.pathname !== "/index.html") {
+  if (url.pathname === "/demo.js") {
+    res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" }).end(fs.readFileSync(path.join(here, "demo.js")));
+    return;
+  }
+  const pages = { "/": "index.html", "/xeber": "xeber.html", "/bank": "bank.html", "/arayis": "arayis.html", "/xestexana": "xestexana.html" };
+  const file = pages[url.pathname.replace(/\.html$|\/$/, "") || "/"] ?? pages[url.pathname];
+  if (!file) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("Not found");
     return;
   }
-  const html = fs.readFileSync(path.join(here, "index.html"), "utf8").replaceAll("{{PLATFORM_URL}}", platform);
+  const html = fs.readFileSync(path.join(here, file), "utf8").replaceAll("{{PLATFORM_URL}}", platform);
   res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }).end(html);
 });
 

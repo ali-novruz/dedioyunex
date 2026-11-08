@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEMO Klinika — Həkimə yazıl</title>
+<script src="/demo.js"></script>
+<script src="{{PLATFORM_URL}}/sdk.js" data-client-id="demo-partner" data-ai="auto" data-supports="confirmActions,extendedTimeouts,plainLanguage,visualAlerts" async></script>
+<style>
+  body { margin: 0; font-family: "Trebuchet MS", sans-serif; font-size: 12px; color: #666; background: #f0f7fb; }
+  header { background: linear-gradient(90deg, #06b6d4, #8b5cf6); color: #fff; padding: 10px 14px; display: flex; gap: 10px; align-items: center; }
+  header b { font-size: 17px; }
+  marquee { background: #fde68a; color: #92400e; padding: 4px 0; font-size: 11px; }
+  .grid { max-width: 900px; margin: 14px auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 0 14px; }
+  .grid button { height: 64px; border: 0; border-radius: 10px; color: #fff; font-size: 11px; cursor: pointer; }
+  main { max-width: 900px; margin: 0 auto 30px; background: #fff; padding: 16px 20px; border-radius: 10px; }
+  h1 { font-size: 16px; color: #333; margin: 0 0 8px; }
+  select { height: 28px; font-size: 12px; }
+  .slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .slots button { padding: 6px 10px; border: 1px solid #a5b4fc; background: #eef2ff; border-radius: 6px; cursor: pointer; font-size: 11px; }
+  .slots button.sel { background: #4f46e5; color: #fff; }
+  .book { height: 32px; padding: 0 16px; border: 0; border-radius: 6px; background: #16a34a; color: #fff; cursor: pointer; }
+  .timer { color: #dc2626; font-size: 11px; margin-left: 8px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+  <header><b>DEMO Klinika</b><span>Onlayn qeydiyyat</span></header>
+  <marquee data-mu-distraction>🔥 Check-up paketlərinə 40% endirim! · Yeni stomatologiya şöbəsi açıldı! · Mobil tətbiqi yükləyin!</marquee>
+  <div class="grid" data-mu-simple="hide">
+    <button style="background:#ef4444">Analizlər</button><button style="background:#f97316">Nəticələr</button><button style="background:#eab308">Reseptlər</button>
+    <button style="background:#22c55e">Sığorta</button><button style="background:#14b8a6">Endirimlər</button><button style="background:#3b82f6">Həkimlər</button>
+    <button style="background:#6366f1">Ödənişlər</button><button style="background:#a855f7">Xəbərlər</button><button style="background:#ec4899">Rəylər</button>
+    <button style="background:#64748b">Əlaqə</button>
+  </div>
+  <main>
+    <h1>Həkimə yazılmaq</h1>
+    <label for="doc">Həkim</label>
+    <select id="doc"><option>Terapevt — Dr. Leyla Məmmədova</option><option>Kardioloq — Dr. Rauf Həsənov</option><option>Nevroloq — Dr. Aysel Quliyeva</option></select>
+    <div class="slots" id="slots">
+      <button>10 noyabr, 09:30</button><button>10 noyabr, 11:00</button><button>11 noyabr, 14:30</button><button>12 noyabr, 10:00</button>
+    </div>
+    <button class="book" id="book" data-mu-simple="primary">Qeydiyyatı təsdiqlə</button><span class="timer" id="timer"></span>
+  </main>
+<script>
+  var chosen = null;
+  document.querySelectorAll("#slots button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll("#slots button").forEach(function (x) { x.classList.remove("sel"); });
+      b.classList.add("sel"); chosen = b.textContent;
+      Demo.say("Seçdiniz: " + chosen);
+    };
+  });
+  document.getElementById("book").onclick = function () {
+    if (!chosen) { Demo.notify("Əvvəlcə vaxt seçin."); return; }
+    var doc = document.getElementById("doc").value;
+    Demo.confirm(doc + " ilə " + chosen + " tarixinə yazılırsınız.", function () {
+      Demo.notify("✓ Siz " + chosen + " tarixinə yazıldınız. Bir gün əvvəl xatırladacağıq (demo).");
+    });
+  };
+  Demo.session(document.getElementById("timer"), 120);
+</script>
+</body>
+</html>
