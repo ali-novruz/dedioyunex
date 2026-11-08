@@ -1,15 +1,22 @@
-# For Hostinger Docker Manager (VPS API): images are built by GitHub Actions (.github/workflows/docker.yml)
-# and pulled from GHCR, so no files need to be copied to the server. Environment comes from the project's .env.
-# DATABASE_URL: Supabase (preferred) — or the bundled "db" service below (postgres://dedio:${DB_PASSWORD}@db:5432/dedio, DATABASE_SSL=disable)
-# as an interim database until the Supabase connection string is set.
+# Hostinger Docker Manager (VPS API). No registry and no file copy needed: each container clones the public
+# GitHub repo and runs deploy/start-from-git.sh (the platform build is cached per commit in a volume).
+# Redeploy a new commit: restart the project. Environment comes from the project's .env (see .env.example).
+# DATABASE_URL: Supabase (preferred) — or the bundled "db" service (postgres://dedio:${DB_PASSWORD}@db:5432/dedio, DATABASE_SSL=disable).
+x-from-git: &from-git
+  image: node:24-alpine
+  restart: unless-stopped
+  working_dir: /app
+  entrypoint: ["sh", "-c", "apk add --no-cache git >/dev/null && rm -rf /tmp/boot && git clone --depth 1 https://github.com/ali-novruz/dedioyunex /tmp/boot && exec sh /tmp/boot/deploy/start-from-git.sh \"$$0\""]
+
 services:
   platform:
-    image: ghcr.io/ali-novruz/dedioyunex-platform:latest
+    <<: *from-git
     container_name: dedio-platform
-    restart: unless-stopped
+    command: ["platform"]
     env_file: .env
     environment:
       DEMO_PARTNER_ORIGIN: https://${DEMO_DOMAIN}
+    volumes: [dedio-platform-build:/app]
     depends_on: [db]
     labels:
       - traefik.enable=true
@@ -29,11 +36,13 @@ services:
     volumes: [dedio-db:/var/lib/postgresql/data]
 
   demo-partner:
-    image: ghcr.io/ali-novruz/dedioyunex-demo:latest
+    <<: *from-git
     container_name: dedio-demo
-    restart: unless-stopped
+    command: ["demo"]
     environment:
       PLATFORM_URL: ${APP_URL}
+      PORT: "4000"
+    volumes: [dedio-demo-src:/app]
     labels:
       - traefik.enable=true
       - traefik.http.routers.dedio-demo.rule=Host(`${DEMO_DOMAIN}`)
@@ -43,3 +52,5 @@ services:
 
 volumes:
   dedio-db:
+  dedio-platform-build:
+  dedio-demo-src:
