@@ -19,7 +19,7 @@ const UI = "data-mu-ui"; // marks elements created by the SDK; never scanned or 
 const BOOL_ATTRS: (keyof Preferences)[] = [
   "highlightLinks", "largeCursor", "strongFocus", "screenReader", "captions", "visualAlerts", "transcripts",
   "signLanguage", "largeTargets", "extendedTimeouts", "noDrag", "reduceMotion", "simpleMode", "hideDistractions",
-  "plainLanguage", "stepByStep", "confirmActions", "iconLabels", "dyslexiaFont", "readingRuler", "tts",
+  "plainLanguage", "stepByStep", "confirmActions", "iconLabels", "dyslexiaFont", "readingRuler", "tts", "aiHelp",
 ];
 
 const kebab = (s: string) => s.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());

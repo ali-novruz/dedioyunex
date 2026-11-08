@@ -5,6 +5,7 @@
 import { PreferenceEngine, type Mode } from "./apply";
 import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, type Preferences, type PreferenceKey } from "./schema";
 import { runCheck, type CheckReport } from "./check";
+import { snapshot, controlFor, aidOf, elementsFor, type PageHelp } from "./assist";
 import { speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
 
 const VERSION = "1.0.0";
@@ -16,6 +17,8 @@ interface Config {
   floating: boolean;
   /** Type-B settings the site implements itself (data-supports). */
   supports: PreferenceKey[];
+  /** Page explainer: "on" = on demand (default), "auto" = also show a short summary under the main heading, "off". */
+  ai: "on" | "auto" | "off";
 }
 
 type EventName = "preferences" | "connect" | "disconnect" | "error";
@@ -75,6 +78,18 @@ const T = {
   readPage: "Səhifəni oxu",
   noVoice: "Bu brauzerdə səsli oxunuş yoxdur.",
   substitute: "Azərbaycan səsi tapılmadı — türk səsi ilə oxunur.",
+  whatPage: "Bu səhifə nədir?",
+  whatIsThis: "Bu nədir?",
+  whatIsThisOn: "Haqqında bilmək istədiyiniz düyməyə toxunun",
+  thinking: "Səhifəni oxuyuram…",
+  short: "Qısaca",
+  keyPoints: "Əsas məqamlar",
+  canDo: "Bu səhifədə nə edə bilərsiniz",
+  show: "Göstər",
+  readAloud: "Oxu",
+  close: "Bağla",
+  noExplain: "Bu düymə üçün izah tapılmadı.",
+  plain: "Sadə dildə",
 };
 
 const WIDGET_CSS = `
@@ -94,6 +109,17 @@ button:focus-visible{outline:4px solid #ffbf00;outline-offset:3px}
 .menu{margin-top:.5em;background:#fff;border:2px solid #0b6e4f;border-radius:1em;padding:.5em;display:flex;flex-direction:column;gap:.4em;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .tts{background:#111;color:#fff}
 .tts.on{background:#ffbf00;color:#111}
+.ai{background:#4b2a86;color:#fff}
+.ai.on{background:#ffbf00;color:#111}
+.sheet{background:#fff;color:#111;border:3px solid #4b2a86;border-radius:1.2em;padding:1em 1.1em;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:82vh;overflow:auto;width:min(27em,92vw);line-height:1.45}
+.sheet h2{font-size:1.25em;margin:.1em 0 .5em;font-weight:800}
+.sheet h3{font-size:1em;margin:1em 0 .35em;font-weight:800;color:#4b2a86}
+.sheet ul{margin:0;padding-left:1.2em}
+.sheet li{margin:.25em 0}
+.act{display:flex;gap:.6em;align-items:flex-start;justify-content:space-between;border-top:1px solid #e6e1f0;padding:.55em 0}
+.act b{display:block}
+.bubble{background:#4b2a86;color:#fff;border-radius:1em;padding:.7em .9em;max-width:min(22em,88vw);box-shadow:0 8px 30px rgba(0,0,0,.35);line-height:1.4}
+.bubble b{display:block;margin-bottom:.2em}
 `;
 
 class MeneUygunSDK {
@@ -109,6 +135,14 @@ class MeneUygunSDK {
   private ttsHost: HTMLElement | null = null;
   private ttsRoot: HTMLElement | null = null;
   private listening = false;
+  private help: PageHelp | null = null;
+  private helpFor = "";
+  private helpLoading = false;
+  private helpError: string | null = null;
+  private panelHost: HTMLElement | null = null;
+  private bubbleHost: HTMLElement | null = null;
+  private explaining = false;
+  private autoShown = "";
   private lastFetch = 0;
 
   get preferences(): Preferences | null {
@@ -129,7 +163,7 @@ class MeneUygunSDK {
       console.warn(`[MeneUygun] data-supports: unknown setting "${k}" ignored`);
       return false;
     });
-    this.cfg = { clientId: config.clientId, baseUrl, mode: config.mode ?? "auto", floating: config.floating ?? true, supports };
+    this.cfg = { clientId: config.clientId, baseUrl, mode: config.mode ?? "auto", floating: config.floating ?? true, supports, ai: config.ai ?? "on" };
     this.engine = new PreferenceEngine(document, { mode: this.cfg.mode, assetBase: baseUrl });
     this.injectGlobalStyle();
 
@@ -378,6 +412,10 @@ class MeneUygunSDK {
     this.prefs = null;
     this.engine?.reset();
     this.stopListening();
+    this.stopExplaining();
+    this.closePanel();
+    document.querySelector("[data-mu-ui='plain-summary']")?.remove();
+    this.help = null;
     this.renderTts();
     this.menuOpen = false;
     this.renderButtons();
@@ -550,10 +588,13 @@ html[data-mu-listening] body *{cursor:help!important}`;
   // ---------- text-to-speech widget ----------
   private renderTts(): void {
     if (!document.body) return;
-    const on = !!this.prefs?.tts;
-    if (!on) {
+    const tts = !!this.prefs?.tts;
+    const ai = this.aiEnabled();
+    if (!tts && !ai) {
       this.ttsHost?.remove();
       this.ttsHost = this.ttsRoot = null;
+      this.closePanel();
+      this.stopExplaining();
       return;
     }
     if (!this.ttsHost) {
@@ -563,6 +604,31 @@ html[data-mu-listening] body *{cursor:help!important}`;
     }
     const root = this.ttsRoot!;
     root.textContent = "";
+    if (ai) {
+      const arow = document.createElement("div");
+      arow.className = "row";
+      arow.style.marginBottom = ".45em";
+      const what = document.createElement("button");
+      what.className = "ai";
+      what.textContent = "🧠 " + (this.helpLoading ? T.thinking : T.whatPage);
+      what.disabled = this.helpLoading;
+      what.addEventListener("click", () => void this.openPanel());
+      const expl = document.createElement("button");
+      expl.className = "ai" + (this.explaining ? " on" : "");
+      expl.textContent = "❓ " + (this.explaining ? T.whatIsThisOn : T.whatIsThis);
+      expl.setAttribute("aria-pressed", String(this.explaining));
+      expl.addEventListener("click", () => (this.explaining ? this.stopExplaining() : this.startExplaining()));
+      arow.append(what, expl);
+      root.append(arow);
+      if (this.helpError) {
+        const m = document.createElement("div");
+        m.className = "msg";
+        m.textContent = this.helpError;
+        root.append(m);
+      }
+      if (this.cfg?.ai === "auto" && this.prefs?.plainLanguage) void this.autoSummary();
+    }
+    if (!tts) return;
     const row = document.createElement("div");
     row.className = "row";
     const listen = document.createElement("button");
@@ -599,6 +665,215 @@ html[data-mu-listening] body *{cursor:help!important}`;
         root.append(n);
       }
     });
+  }
+
+  // ---------- page explainer (AI) ----------
+  private aiEnabled(): boolean {
+    return !!this.prefs?.aiHelp && !!this.cfg && this.cfg.ai !== "off" && this.isConnected;
+  }
+
+  /** Explains the current page. Cached per URL; the server also caches identical pages. */
+  async explainPage(): Promise<PageHelp> {
+    const cfg = this.need();
+    const token = store.get(this.key("token"));
+    if (!token) throw new Error("not connected");
+    const snap = snapshot(document);
+    const sig = snap.url + "|" + snap.text.length + "|" + snap.actions.length;
+    if (this.help && this.helpFor === sig) return this.help;
+    this.helpLoading = true;
+    this.helpError = null;
+    this.renderTts();
+    try {
+      const r = await fetch(`${cfg.baseUrl}/v1/assist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(snap),
+      });
+      const body = await r.json().catch(() => ({}));
+      if (r.status === 401) {
+        this.clearLocal(true);
+        throw new Error(T.failed);
+      }
+      if (!r.ok) throw new Error(body.error_description || T.failed);
+      this.help = { headline: body.headline, summary: body.summary, points: body.points ?? [], actions: body.actions ?? [] };
+      this.helpFor = sig;
+      return this.help;
+    } catch (e) {
+      this.helpError = e instanceof Error ? e.message : T.failed;
+      throw e;
+    } finally {
+      this.helpLoading = false;
+      this.renderTts();
+    }
+  }
+
+  private closePanel(): void {
+    this.panelHost?.remove();
+    this.panelHost = null;
+  }
+
+  private async openPanel(): Promise<void> {
+    let help: PageHelp;
+    try {
+      help = await this.explainPage();
+    } catch (e) {
+      console.warn("[MeneUygun] page explainer failed", e);
+      return;
+    }
+    this.closePanel();
+    const { host, root } = this.shadowHost(null, null);
+    host.style.cssText = "position:fixed;right:12px;top:12px;z-index:2147483647";
+    host.setAttribute("role", "dialog");
+    host.setAttribute("aria-label", T.whatPage);
+    this.panelHost = host;
+    const sheet = document.createElement("div");
+    sheet.className = "sheet";
+    const h = (tag: string, text: string) => {
+      const e = document.createElement(tag);
+      e.textContent = text;
+      return e;
+    };
+    sheet.append(h("h2", help.headline), h("h3", T.short), h("p", help.summary));
+    if (help.points.length) {
+      sheet.append(h("h3", T.keyPoints));
+      const ul = document.createElement("ul");
+      help.points.forEach((p) => ul.append(h("li", p)));
+      sheet.append(ul);
+    }
+    const labels = new Map(snapshotLabels());
+    if (help.actions.length) {
+      sheet.append(h("h3", T.canDo));
+      for (const a of help.actions) {
+        const row = document.createElement("div");
+        row.className = "act";
+        const txt = document.createElement("div");
+        txt.append(h("b", labels.get(a.id) || "•"), h("span", a.explain));
+        const go = document.createElement("button");
+        go.className = "ghost";
+        go.textContent = T.show;
+        go.addEventListener("click", () => this.showControl(a.id));
+        row.append(txt, go);
+        sheet.append(row);
+      }
+    }
+    const bar = document.createElement("div");
+    bar.className = "row";
+    bar.style.marginTop = ".8em";
+    const read = document.createElement("button");
+    read.className = "ai";
+    read.textContent = "🔊 " + T.readAloud;
+    read.addEventListener("click", () => void this.speak(`${help.headline}. ${help.summary} ${help.points.join(". ")}`).catch((e) => console.warn(e)));
+    const close = document.createElement("button");
+    close.className = "ghost";
+    close.textContent = T.close;
+    close.addEventListener("click", () => this.closePanel());
+    bar.append(read, close);
+    sheet.append(bar);
+    root.append(sheet);
+    close.focus();
+    function snapshotLabels(): [string, string][] {
+      return Array.from(document.querySelectorAll("[data-mu-aid]")).map((el) => [el.getAttribute("data-mu-aid")!, (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || ""]);
+    }
+  }
+
+  private showControl(id: string): void {
+    const el = elementsFor(document, id)[0] as HTMLElement | undefined;
+    if (!el) return;
+    this.closePanel();
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.setAttribute("data-mu-reading", "");
+    setTimeout(() => el.removeAttribute("data-mu-reading"), 3500);
+    if (typeof el.focus === "function") el.focus({ preventScroll: true });
+  }
+
+  private onExplainClick = (e: MouseEvent) => {
+    const target = e.target as Element | null;
+    if (!target || target.closest("[data-mu-ui]")) return;
+    const ctl = controlFor(target);
+    if (!ctl) return;
+    e.preventDefault();
+    e.stopPropagation();
+    void this.explainControl(ctl);
+  };
+
+  private async explainControl(el: Element): Promise<void> {
+    let help = this.help;
+    if (!help || !aidOf(el)) {
+      try {
+        help = await this.explainPage();
+      } catch {
+        return;
+      }
+    }
+    const id = aidOf(el);
+    const found = help.actions.find((a) => a.id === id);
+    const label = (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || "";
+    this.showBubble(el, label, found ? found.explain : T.noExplain);
+    if (found && this.prefs?.tts) void this.speak(`${label}. ${found.explain}`).catch(() => {});
+  }
+
+  private showBubble(el: Element, title: string, text: string): void {
+    this.bubbleHost?.remove();
+    const { host, root } = this.shadowHost(null, null);
+    this.bubbleHost = host;
+    const r = el.getBoundingClientRect();
+    const top = Math.min(window.innerHeight - 120, r.bottom + 8);
+    const left = Math.max(8, Math.min(window.innerWidth - 320, r.left));
+    host.style.cssText = `position:fixed;top:${top}px;left:${left}px;z-index:2147483647`;
+    host.setAttribute("role", "status");
+    const b = document.createElement("div");
+    b.className = "bubble";
+    const t = document.createElement("b");
+    t.textContent = title || "❓";
+    const p = document.createElement("span");
+    p.textContent = text;
+    b.append(t, p);
+    root.append(b);
+    setTimeout(() => {
+      if (this.bubbleHost === host) {
+        host.remove();
+        this.bubbleHost = null;
+      }
+    }, 7000);
+  }
+
+  private startExplaining(): void {
+    this.explaining = true;
+    document.addEventListener("click", this.onExplainClick, true);
+    this.renderTts();
+    void this.explainPage().catch(() => {});
+  }
+
+  private stopExplaining(): void {
+    if (!this.explaining) return;
+    this.explaining = false;
+    document.removeEventListener("click", this.onExplainClick, true);
+    this.bubbleHost?.remove();
+    this.bubbleHost = null;
+    this.renderTts();
+  }
+
+  /** data-ai="auto" + plain language: a short "Sadə dildə" box under the main heading. */
+  private async autoSummary(): Promise<void> {
+    const url = location.href.split("#")[0];
+    if (this.autoShown === url) return;
+    this.autoShown = url;
+    try {
+      const help = await this.explainPage();
+      const h1 = document.querySelector("main h1, article h1, h1");
+      if (!h1 || document.querySelector("[data-mu-ui='plain-summary']")) return;
+      const box = document.createElement("div");
+      box.setAttribute("data-mu-ui", "plain-summary");
+      box.style.cssText = "margin:.6em 0 1em;padding:.8em 1em;border-left:6px solid #4b2a86;background:#f4effc;color:#111;border-radius:.6em;font:inherit;line-height:1.5";
+      const b = document.createElement("b");
+      b.textContent = `${T.plain}: ${help.headline}`;
+      const p = document.createElement("div");
+      p.textContent = help.summary;
+      box.append(b, p);
+      h1.insertAdjacentElement("afterend", box);
+    } catch (e) {
+      console.warn("[MeneUygun] auto summary failed", e);
+    }
   }
 
   private onListenClick = (e: MouseEvent) => {
@@ -674,6 +949,7 @@ if (script?.dataset.clientId) {
     mode: script.dataset.mode === "tokens" ? "tokens" : "auto",
     floating: script.dataset.floating !== "false",
     supports: (script.dataset.supports ?? "").split(",").map((s) => s.trim()).filter(Boolean) as PreferenceKey[],
+    ai: script.dataset.ai === "off" ? "off" : script.dataset.ai === "auto" ? "auto" : "on",
   });
 }
 

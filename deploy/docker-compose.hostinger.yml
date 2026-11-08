@@ -3,10 +3,10 @@
 # Redeploy a new commit: restart the project. Environment comes from the project's .env (see .env.example).
 # DATABASE_URL: Supabase (preferred) — or the bundled "db" service (postgres://dedio:${DB_PASSWORD}@db:5432/dedio, DATABASE_SSL=disable).
 x-from-git: &from-git
-  image: node:24-alpine
+  image: node:24-bookworm   # includes git
   restart: unless-stopped
   working_dir: /app
-  entrypoint: ["sh", "-c", "apk add --no-cache git >/dev/null && rm -rf /tmp/boot && git clone --depth 1 https://github.com/ali-novruz/dedioyunex /tmp/boot && exec sh /tmp/boot/deploy/start-from-git.sh \"$$0\""]
+  entrypoint: ["sh", "-c", "rm -rf /tmp/boot && git clone --depth 1 https://github.com/ali-novruz/dedioyunex /tmp/boot && exec sh /tmp/boot/deploy/start-from-git.sh \"$$0\""]
 
 services:
   platform:

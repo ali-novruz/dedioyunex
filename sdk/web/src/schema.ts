@@ -52,6 +52,7 @@ export interface Preferences {
   readingRuler: boolean;
   tts: boolean;
   ttsRate: number; // 0.6 | 0.8 | 1 | 1.2
+  aiHelp: boolean; // page explainer: summary, simple headline, what each control does
   // general
   language: Language;
 }
@@ -87,6 +88,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   readingRuler: false,
   tts: false,
   ttsRate: 1,
+  aiHelp: false,
   language: "az",
 };
 
@@ -137,6 +139,8 @@ export const SETTINGS: SettingDef[] = [
   { key: "tts", kind: "A", categories: ["vision", "reading", "tech", "cognitive"], label: "Səsli oxunuş", help: "Mətnləri səslə oxuyur", control: "toggle" },
   { key: "ttsRate", kind: "A", categories: ["vision", "reading", "tech", "cognitive"], label: "Oxunuş sürəti", help: "Səsli oxunuşun sürəti", control: "choice",
     options: [{ value: 0.6, label: "Çox yavaş" }, { value: 0.8, label: "Yavaş" }, { value: 1, label: "Normal" }, { value: 1.2, label: "Sürətli" }] },
+
+  { key: "aiHelp", kind: "A", categories: ["cognitive", "tech", "reading", "vision"], label: "Səhifəni izah et (AI)", help: "Saytda “Bu səhifə nədir?” düyməsi: qısa xülasə və hər düymənin nə etdiyi", control: "toggle" },
 
   { key: "language", kind: "B", categories: ["vision", "hearing", "motor", "cognitive", "reading", "tech"], label: "Dil", help: "Xidmətin dili", control: "choice",
     options: [{ value: "az", label: "Azərbaycan" }, { value: "ru", label: "Русский" }, { value: "en", label: "English" }] },
@@ -217,9 +221,9 @@ export const PRESETS: Record<Category, Partial<Omit<Preferences, "version">>> = 
   vision: { fontScale: 1.5, contrast: "high", strongFocus: true, largeTargets: true, highlightLinks: true },
   hearing: { captions: true, visualAlerts: true, transcripts: true },
   motor: { largeTargets: true, extendedTimeouts: true, noDrag: true, reduceMotion: true, largeCursor: true },
-  cognitive: { simpleMode: true, hideDistractions: true, confirmActions: true, iconLabels: true, stepByStep: true, plainLanguage: true },
+  cognitive: { simpleMode: true, hideDistractions: true, confirmActions: true, iconLabels: true, stepByStep: true, plainLanguage: true, aiHelp: true },
   reading: { lineSpacing: 1.5, readingRuler: true, tts: true, ttsRate: 0.8 },
-  tech: { fontScale: 1.25, simpleMode: true, largeTargets: true, confirmActions: true, extendedTimeouts: true, iconLabels: true },
+  tech: { fontScale: 1.25, simpleMode: true, largeTargets: true, confirmActions: true, extendedTimeouts: true, iconLabels: true, aiHelp: true },
 };
 
 /** Merges presets of several categories; numeric values take the larger one. */

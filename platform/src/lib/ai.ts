@@ -136,3 +136,89 @@ export function parseInterpretation(content: string): Interpretation {
   if (!summary) throw new AiError("AI did not return a summary");
   return { patch: patch as Interpretation["patch"], categories, summary, question: null, ignored };
 }
+
+// ---------------------------------------------------------------------------
+// Page explainer: makes any partner page understandable (summary, simple headline, what each control does).
+
+export interface PageAction {
+  id: string;
+  label: string;
+  kind: string; // "button" | "link" | "input" | ...
+  hint?: string; // title / aria-label / href path, to help guess hidden functions
+}
+
+export interface PageInput {
+  url: string;
+  title: string;
+  headings: string[];
+  text: string;
+  actions: PageAction[];
+  language: string;
+}
+
+export interface PageHelp {
+  headline: string;
+  summary: string;
+  points: string[];
+  actions: { id: string; explain: string }[];
+}
+
+const LANG_NAME: Record<string, string> = { az: "Azerbaijani", ru: "Russian", en: "English" };
+
+const ASSIST_SYSTEM = (lang: string) => `MENE_UYGUN_PAGE_HELP
+You explain a web page to an elderly person or a person with cognitive or reading difficulties.
+Write ONLY in ${LANG_NAME[lang] ?? "Azerbaijani"}, with very simple everyday words, short sentences, no jargon, address the user politely.
+From the page title, headings, text and list of interactive controls, return ONLY a JSON object:
+{"headline": "<what this page is about, max 12 words>",
+ "summary": "<2-3 short sentences: the main message / what the user can do here>",
+ "points": ["<max 4 key facts, each max 12 words>"],
+ "actions": [{"id": "<id from the list>", "explain": "<what happens if the user presses/uses it, max 15 words>"}]}
+Rules: explain at most 12 of the most useful actions, most important first; include controls whose purpose is not obvious from their label (icons, symbols, abbreviations).
+Do not invent facts that are not on the page. Never ask for or repeat passwords, card numbers or personal data.`;
+
+export async function assistPage(input: PageInput): Promise<PageHelp> {
+  const c = config();
+  if (!c.chatModel) throw new AiError("AI_CHAT_MODEL is not set", 503);
+  const actions = input.actions.map((a) => `${a.id} | ${a.kind} | ${a.label}${a.hint ? ` | ${a.hint}` : ""}`).join("\n");
+  const user = `URL: ${input.url}\nTitle: ${input.title}\nHeadings:\n${input.headings.join("\n")}\n\nText:\n${input.text}\n\nControls (id | kind | label | hint):\n${actions}`;
+  const r = await fetch(`${c.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${c.apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: c.chatModel,
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: ASSIST_SYSTEM(input.language) },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  if (!r.ok) throw new AiError(`AI request failed (${r.status}): ${(await r.text()).slice(0, 300)}`);
+  const body = (await r.json()) as { choices?: { message?: { content?: string } }[] };
+  const content = body.choices?.[0]?.message?.content;
+  if (!content) throw new AiError("AI returned an empty answer");
+  return parsePageHelp(content, new Set(input.actions.map((a) => a.id)));
+}
+
+const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+export function parsePageHelp(content: string, knownIds: Set<string>): PageHelp {
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    throw new AiError(`AI returned invalid JSON: ${content.slice(0, 200)}`);
+  }
+  const headline = str(raw.headline, 200);
+  const summary = str(raw.summary, 800);
+  if (!headline || !summary) throw new AiError("AI answer is missing headline or summary");
+  const points = Array.isArray(raw.points) ? raw.points.map((p) => str(p, 200)).filter(Boolean).slice(0, 4) : [];
+  const actions = Array.isArray(raw.actions)
+    ? (raw.actions as Record<string, unknown>[])
+        .map((a) => ({ id: str(a?.id, 20), explain: str(a?.explain, 200) }))
+        .filter((a) => knownIds.has(a.id) && a.explain) // only ids that exist on the page
+        .slice(0, 12)
+    : [];
+  return { headline, summary, points, actions };
+}

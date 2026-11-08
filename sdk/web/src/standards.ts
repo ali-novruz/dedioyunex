@@ -36,5 +36,6 @@ export const STANDARDS: Record<PreferenceKey, StandardRefs> = {
   readingRuler: { iso24751: "display: reading guide (approx)" },
   tts: { iso24751: "text-to-speech (approx)" },
   ttsRate: { iso24751: "text-to-speech: speech rate (approx)" },
+  aiHelp: { wcag: ["3.1.5 Reading Level", "3.3.5 Help", "2.4.6 Headings and Labels"], iso24751: "content: simplification / help (approx)" },
   language: { wcag: ["3.1.1 Language of Page"], iso24751: "language (approx)" },
 };

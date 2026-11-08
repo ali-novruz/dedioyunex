@@ -1,6 +1,6 @@
 #!/bin/sh
-# Runs inside node:24-alpine on the VPS: fetch the repo, build once per commit (cached in /app volume), start.
-# Usage (compose): command: ["sh", "-c", "apk add --no-cache git >/dev/null && git clone ... "] — see docker-compose.hostinger.yml
+# Runs inside node:24-bookworm on the VPS: fetch the repo, build once per commit (cached in /app volume), start.
+# Started by the entrypoint in deploy/docker-compose.hostinger.yml.
 set -eu
 REPO="${GIT_REPO:-https://github.com/ali-novruz/dedioyunex}"
 REF="${GIT_REF:-main}"
