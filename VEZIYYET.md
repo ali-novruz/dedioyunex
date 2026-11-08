@@ -62,9 +62,14 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 ## 🔄 İndi edilən
 
 - **Hostinger VPS deploy** (`dedio` layihəsi): 3 konteyner işləyir — platforma (yığıldı, “Ready”), demo sayt, müvəqqəti Postgres. Firewall 80/443 açıqdır.
-  - Bu kompüterin komanda mühiti VPS IP-sinə çıxış vermir və brauzer paneli yeni sayta icazə istəyir, ona görə canlı ünvanı **mən yoxlaya bilmədim** — sizin açıb baxmağınız lazımdır.
+  - **Problem tapıldı:** VPS-ə internetdən 80/443 portu ilə qoşulmaq mümkün deyil. Traefik loqlarında Let's Encrypt **4 noyabrdan bəri** bütün domenlər üçün “Timeout during connect (likely firewall problem)” yazır — təkcə dedio yox, filmicroll, novus, prospect, api saytlarının da sertifikat yenilənməsi alınmır (~20 gün sonra sertifikatlar bitəcək). Hostinger firewall qrupu 3 noyabrda dəyişdirilib; 80/443 qaydaları orada “accept” görünür, deməli bloklama ya serverin özündə (ufw/iptables), ya da Hostinger tərəfdədir. Bu təhlükəsizlik ayarı olduğu üçün mən dəyişmirəm — sizin yoxlamanız lazımdır.
   - Backend: `https://dedio.89-116-236-208.sslip.io`
   - Demo: `https://demo.89-116-236-208.sslip.io`
+
+## 🔀 Seçim
+
+- **A — VPS-i düzəltmək:** Hostinger panel → VPS → Firewall və serverdə `ufw status` yoxlanmalıdır (80/443). Bu, digər saytlarınız üçün də vacibdir.
+- **B — Platformanı birbaşa Vercel-də (`dedio.vercel.app`) + Supabase ilə yerləşdirmək:** VPS problemi asılı olmadan bu gün işləyir. Lazımdır: Supabase ünvanı + Vercel icazəsi. Demo sayt ikinci Vercel layihəsi kimi.
 
 ## ⏭ Növbəti addımlar (mən edəcəyəm)
 
