@@ -36,6 +36,11 @@ export async function getUser(id: string): Promise<User | null> {
   return r ? toUser(r) : null;
 }
 
+export async function userBySession(tokenHash: string, at: number): Promise<User | null> {
+  const r = await one<Row>("SELECT u.* FROM users u JOIN sessions s ON s.user_id = u.id WHERE s.token_hash = $1 AND s.expires_at >= $2", [tokenHash, at]);
+  return r ? toUser(r) : null;
+}
+
 export async function findUserByEmail(email: string): Promise<User | null> {
   const r = await one<Row>("SELECT * FROM users WHERE email = $1", [email]);
   return r ? toUser(r) : null;

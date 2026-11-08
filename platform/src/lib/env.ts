@@ -55,16 +55,24 @@ export const env = {
   get mailFrom() {
     return process.env.MAIL_FROM || "MƏNƏ UYĞUN <no-reply@localhost>";
   },
-  get sttMode(): "server" | "browser" {
-    const m = process.env.STT_MODE ?? "browser";
-    if (m !== "server" && m !== "browser") throw new Error(`STT_MODE must be "server" or "browser", got "${m}"`);
+  /** auto: the browser's recogniser when it has one (far better for Azerbaijani), otherwise Whisper on the server. */
+  get sttMode(): "server" | "browser" | "auto" {
+    const m = process.env.STT_MODE ?? "auto";
+    if (m !== "server" && m !== "browser" && m !== "auto") throw new Error(`STT_MODE must be "server", "browser" or "auto", got "${m}"`);
     return m;
+  },
+  /** Azure neural voices; the only real Azerbaijani speech available. */
+  get speech(): { key: string; region: string } | null {
+    const key = process.env.AZURE_SPEECH_KEY, region = process.env.AZURE_SPEECH_REGION;
+    return key && region ? { key, region } : null;
   },
   get ai() {
     return {
       baseUrl: (process.env.AI_BASE_URL ?? "").replace(/\/+$/, ""),
       apiKey: process.env.AI_API_KEY ?? "",
       chatModel: process.env.AI_CHAT_MODEL ?? "",
+      /** Used when the main model is rate limited, overloaded or returns a broken answer. Every use is logged. */
+      backupModel: process.env.AI_CHAT_MODEL_BACKUP ?? "",
       sttModel: process.env.AI_STT_MODEL ?? "",
     };
   },

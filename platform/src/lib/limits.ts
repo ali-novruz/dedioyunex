@@ -24,14 +24,17 @@ export function takeIpQuota(bucket: string, ip: string, limit: number, windowMs:
   if (windows.size > 50_000) windows.clear();
 }
 const MINUTE_LIMIT = 8;
+const LIGHT_MINUTE_LIMIT = 30;
 
 /** Per-user AI limits: a short burst limit (memory) and a daily limit (database). Throws 429 when exceeded. */
-export async function takeAiQuota(userId: string): Promise<void> {
+export async function takeAiQuota(userId: string, opts: { light?: boolean } = {}): Promise<void> {
   const nowMs = Date.now();
-  const recent = (perMinute.get(userId) ?? []).filter((t) => nowMs - t < 60_000);
-  if (recent.length >= MINUTE_LIMIT) throw new AuthError(bi("Çox tez-tez sorğu. Bir dəqiqə gözləyin.", "Too many requests. Please wait a minute."), 429);
+  const bucket = opts.light ? `${userId}:light` : userId;
+  const recent = (perMinute.get(bucket) ?? []).filter((t) => nowMs - t < 60_000);
+  if (recent.length >= (opts.light ? LIGHT_MINUTE_LIMIT : MINUTE_LIMIT)) throw new AuthError(bi("Çox tez-tez sorğu. Bir dəqiqə gözləyin.", "Too many requests. Please wait a minute."), 429);
   recent.push(nowMs);
-  perMinute.set(userId, recent);
+  perMinute.set(bucket, recent);
+  if (opts.light) return; // one-sentence answers do not count against the daily limit
   const day = new Date(nowMs).toISOString().slice(0, 10);
   const row = await one<{ count: number }>(
     `INSERT INTO ai_usage (user_id, day, count) VALUES ($1, $2, 1)

@@ -72,6 +72,11 @@ const MIGRATIONS: string[] = [
      count INT NOT NULL DEFAULT 0,
      PRIMARY KEY (user_id, day)
    );`,
+  `CREATE TABLE ai_cache (
+     key TEXT PRIMARY KEY,
+     value TEXT NOT NULL,
+     created_at BIGINT NOT NULL
+   );`,
 ];
 
 const g = globalThis as unknown as { __muPool?: Pool; __muReady?: Promise<void> };
@@ -127,8 +132,22 @@ async function migrate(): Promise<void> {
   await seedDemoClients();
 }
 
+/** One query on cold start. The full migration takes several round trips and is needed only after a schema or origin change. */
+async function isCurrent(): Promise<boolean> {
+  try {
+    const { rows } = await pool().query<{ n: number; o: string | null }>(
+      `SELECT (SELECT count(*)::int FROM ${SCHEMA}.schema_migrations) n, (SELECT allowed_origins::text FROM ${SCHEMA}.clients WHERE id = 'demo-partner') o`,
+    );
+    return rows[0].n >= MIGRATIONS.length && rows[0].o === JSON.stringify(env.demoPartnerOrigins);
+  } catch (e) {
+    const code = (e as { code?: string }).code;
+    if (code === "42P01" || code === "3F000") return false; // first run: the schema or table does not exist yet
+    throw e;
+  }
+}
+
 function ready(): Promise<void> {
-  g.__muReady ??= migrate().catch((e) => {
+  g.__muReady ??= isCurrent().then((current) => (current ? undefined : migrate())).catch((e) => {
     g.__muReady = undefined; // retry on the next request instead of caching the failure forever
     throw e;
   });

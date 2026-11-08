@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { PreferenceEngine } from "@sdk/apply";
 import { DEFAULT_PREFERENCES, type Preferences } from "@sdk/schema";
-import { speak, stopSpeaking } from "@sdk/tts";
+import { setCloudVoice, speak, stopSpeaking } from "@sdk/tts";
 import { LANG_COOKIE, tr, type Lang } from "@/lib/lang";
 
 interface Ctx {
@@ -57,6 +57,9 @@ export function PrefsProvider({ initial, lang, children }: { initial: Preference
   const engine = useRef<PreferenceEngine | null>(null);
   const shown = preview ?? saved;
   const signedIn = initial !== null;
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const saveTurn = useRef(0);
 
   useEffect(() => {
     engine.current ??= new PreferenceEngine(document, { mode: "auto", assetBase: "" });
@@ -65,17 +68,37 @@ export function PrefsProvider({ initial, lang, children }: { initial: Preference
 
   useEffect(() => () => engine.current?.reset(), []);
 
+  useEffect(() => {
+    setCloudVoice({
+      check: async () => ((await (await fetch("/v1/tts")).json()) as { available: boolean }).available,
+      speak: async (text, rate) => {
+        const r = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, rate }) });
+        if (!r.ok) throw new Error(`Speech request failed (${r.status})`);
+        return r.blob();
+      },
+    });
+  }, []);
+
   // Server error messages read this cookie, so it must follow the account's language.
   useEffect(() => writeLangCookie(lang), [lang]);
 
+  // The screen changes on press; the server catches up. A failed save puts the old value back and reports the error.
   const save = useCallback(async (patch: Partial<Preferences>) => {
-    const { preferences } = await api<{ preferences: Preferences }>("/api/me/preferences", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
-    setSaved(preferences);
-    return preferences;
+    const before = savedRef.current;
+    const turn = ++saveTurn.current;
+    setSaved({ ...before, ...patch });
+    try {
+      const { preferences } = await api<{ preferences: Preferences }>("/api/me/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (turn === saveTurn.current) setSaved(preferences);
+      return preferences;
+    } catch (e) {
+      if (turn === saveTurn.current) setSaved(before);
+      throw e;
+    }
   }, []);
 
   const setLanguage = useCallback(

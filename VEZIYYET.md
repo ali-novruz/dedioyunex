@@ -13,7 +13,9 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - **E-poçtsuz başla:** hesab yalnız bu cihazda; sonra e-poçt əlavə etmək olur.
 - **Ehtiyaca görə qeydiyyat:** Görmə · Eşitmə · Hərəkət · Anlama/yaddaş · Oxuma · Texnologiya → yalnız uyğun ayarlar görünür + başlanğıc ayarları avtomatik tətbiq olunur.
 - **Səsli / yazılı AI köməkçi:** “Yazılar xırdadır” deyirsən → ayarları özü qurur, ekran dərhal dəyişir, səsli izah edir, “Bəli, saxla / Yenidən de / Özüm dəyişim”. Qeyri-müəyyən cümlədə aydınlaşdırıcı sual verir. Saxladıqdan sonra “Əvvəlki ayarlara qayıt”.
-- **Əl ilə ayarlar:** 6 kateqoriyada 29 ayar, hər dəyişiklik dərhal görünür və saxlanılır.
+- **Əl ilə ayarlar:** 12 bölmədə 87 ayar (yazı, rənglər, ekran, şəkil/video/səs, səhifə quruluşu, kursor, oxuma, toxunma, altyazı, səsli oxunuş, sadələşdirmə), axtarışla. Hər dəyişiklik dərhal görünür və saxlanılır.
+- **18 ehtiyac:** 6 əsas + rəng korluğu, işığa həssaslıq/miqren, epilepsiya, DEHB, autizm/tinnitus, Parkinson, bir əllə istifadə, demensiya, disleksiya, diskalkuliya, afaziya, xroniki yorğunluq. Hər biri uyğun ayarları və başlanğıc dəstini açır.
+- **Mürəkkəb saytları sadələşdirmə:** oxuma görünüşü, AI ilə düymələri azaltma, abzası sadə dilə çevirmə, uzun menyuları qısaltma, tək sütun, yan panel/açılan pəncərə/şərh/paylaşım gizlətmə.
 - **Bağlı xidmətlər:** hansı saytların ayarlarını gördüyü, bir toxunuşla ayırmaq.
 - **Başqa cihaza ötür (QR):** nəvə/qızı profili qurur, QR ilə yaşlının telefonuna köçürür (tək istifadəlik, 15 dəq).
 - Məlumatları yüklə (JSON), hesabı sil.
@@ -52,6 +54,7 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 ### Testlər (hamısı keçir)
 - `tests/e2e-web.sh` — 7/7 **canlıda** (giriş → qeydiyyat → sayta qoşulma → uyğunlaşma → sinxron → ayırma)
 - `tests/e2e-scenarios.sh` — bank ssenarisi **canlıda** keçir
+- `tests/engine-settings.mjs` — 58 yeni ayar real brauzerdə tək-tək ölçülür, 58/58
 - `tests/api-test.sh` — 41/41, yalnız yerli (sınaq AI serveri ilə); Vercel üçün dəyişikliklərdən sonra yenidən işlədilməyib
 - Real Groq açarı ilə canlıda: səsli köməkçinin ayar seçimi, aydınlaşdırıcı sual, səhifə izahı (“Sadə dildə”), səs → mətn hattı
 
@@ -68,9 +71,15 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - **Köməkçi:** danışmaq və yazmaq yan-yanadır. Təklif ekranda olanda yazaraq düzəliş etmək olur, AI əvvəlki təklifin üstündən davam edir.
 - Landing səhifəsində “Özünüz sınayın”: düyməyə basan kimi səhifənin özü dəyişir.
 
+## 🎙 Səs və AI
+
+- **Səs tanıma:** Chrome/Edge-də brauzerin tanıyıcısı (Azərbaycan dilində daha yaxşıdır), olmayanda Whisper. Whisper sükutda “İzlədiyiniz üçün təşəkkürlər” uydurur: mikrofon səviyyəsi ölçülür və belə mətnlər atılır.
+- **Səsli cavab:** `AZURE_SPEECH_KEY` və `AZURE_SPEECH_REGION` verilsə həqiqi Azərbaycan səsi (Banu). Verilməsə türk səsi, Azərbaycan hərfləri ona uyğunlaşdırılır.
+- **AI etibarlılığı:** əsas model qwen, məşğul olanda `AI_CHAT_MODEL_BACKUP` (loqa yazılır), cavablar bazada keşlənir. Hər düymə ayrıca izah olunur.
+
 ## 🚀 Yerləşdirmə
 
-- **Vercel** (`alinovruz29s-projects`): `mene-uygun` (Root Directory = `platform`, region `sin1`) və `mene-uygun-demo`.
+- **Vercel** (`alinovruz29s-projects`): `mene-uygun` (Root Directory = `platform`, region `sin1`, layihə ayarında; bazanın yanında olmalıdır) və `mene-uygun-demo`.
 - **Supabase:** Session pooler (limit 15 bağlantı), ayrıca `dedio` sxemi; `DATABASE_POOL_MAX=1` və `attachDatabasePool` (serverless).
 - **AI:** Groq — `qwen/qwen3.8-27b` (`llama-3.3-70b-versatile` Groq-dan çıxarılıb) + `whisper-large-v3`.
 - Sirlər `deploy/.env`-dədir (git-ə düşmür) və Vercel env-ə yüklənib.
@@ -90,7 +99,7 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 
 ## ⚠️ Qalan / yoxlanılmayanlar
 
-- Azərbaycan dilində Whisper keyfiyyəti real yaşlı nitqi ilə yoxlanmalıdır (səs hattı işləyir; sınaq süni səslə edilib, keyfiyyət haqqında nəticə vermir).
+- Mikrofonla real danışıq brauzerdə hələ yoxlanmayıb; Azərbaycan dilində Whisper keyfiyyəti real yaşlı nitqi ilə yoxlanmalıdır (səs hattı işləyir; sınaq süni səslə edilib, keyfiyyət haqqında nəticə vermir).
 - Groq pulsuz planı: dəqiqədə 8000 token, təxminən 2–3 köməkçi sorğusu. Canlı demoda ardıcıl çox sorğu göndərməyin; bir dəfə müvəqqəti “over capacity” xətası görülüb (istifadəçiyə “yenidən cəhd edin” deyilir).
 - IP limitləri yaddaşdadır: Vercel-də hər instansiya üçün ayrıca sayılır, ona görə tək serverdəkindən zəifdir. Gündəlik AI limiti bazadadır və dəqiqdir.
 - SDK-nın sabit düymələri böyük şriftdə başlığın bir hissəsini örtə bilir.

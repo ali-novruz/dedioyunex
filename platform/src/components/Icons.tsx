@@ -24,6 +24,14 @@ const PATHS = {
   cognitive: <><path d="M12 3a7 7 0 0 0-4.5 12.400V19h9v-3.600A7 7 0 0 0 12 3z" /><path d="M9.5 22h5M12 8v4M10 10h4" /></>,
   reading: <><path d="M12 6.500C10 5 7 4.5 3.5 4.500v14c3.5 0 6.5.5 8.5 2 2-1.5 5-2 8.5-2v-14C17 4.5 14 5 12 6.500z" /><path d="M12 6.500v14" /></>,
   tech: <><rect x="4" y="4" width="16" height="11" rx="1.5" /><path d="M9 20h6M12 15v5" /></>,
+  droplet: <path d="M12 3s6.5 6.5 6.5 11a6.5 6.5 0 0 1-13 0C5.5 9.5 12 3 12 3z" />,
+  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2.500M12 19v2.500M2.500 12H5M19 12h2.500M5.300 5.300l1.800 1.800M16.900 16.900l1.800 1.800M5.300 18.700l1.800-1.800M16.900 7.100l1.800-1.800" /></>,
+  bolt: <path d="M13 2.500L5 13.500h6l-1 8 8-11h-6z" />,
+  target: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.500" /><path d="M12 12h.01" /></>,
+  wave: <path d="M3 12h2l2-6 3 13 3-16 3 12 2-3h3" />,
+  hash: <path d="M9 3.500L7.500 20.500M16.500 3.500L15 20.500M4 9h17M3 15h17" />,
+  chat: <path d="M4 5h16v11H10l-4.500 4v-4H4z" />,
+  battery: <><rect x="2.500" y="8" width="17" height="9" rx="1.500" /><path d="M22 11v3M6 11v3" /></>,
 } as const;
 
 export type IconName = keyof typeof PATHS;
@@ -43,4 +51,16 @@ export const CATEGORY_ICON: Record<Category, IconName> = {
   cognitive: "cognitive",
   reading: "reading",
   tech: "tech",
+  color: "droplet",
+  light: "sun",
+  seizure: "bolt",
+  attention: "target",
+  sensory: "wave",
+  tremor: "motor",
+  oneHand: "motor",
+  memory: "cognitive",
+  dyslexia: "reading",
+  numbers: "hash",
+  speech: "chat",
+  fatigue: "battery",
 };

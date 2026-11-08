@@ -3,6 +3,7 @@
 // "tokens" mode only exposes CSS variables, data attributes and events; the site styles itself.
 
 import { DEFAULT_PREFERENCES, type Preferences } from "./schema";
+import { Behaviors } from "./behaviors";
 
 export type Mode = "auto" | "tokens";
 
@@ -20,7 +21,19 @@ const BOOL_ATTRS: (keyof Preferences)[] = [
   "highlightLinks", "largeCursor", "strongFocus", "screenReader", "captions", "visualAlerts", "transcripts",
   "signLanguage", "largeTargets", "extendedTimeouts", "noDrag", "reduceMotion", "simpleMode", "hideDistractions",
   "plainLanguage", "stepByStep", "confirmActions", "iconLabels", "dyslexiaFont", "readingRuler", "tts", "aiHelp",
+  "noItalics", "noUppercase", "emphasizeHeadings", "clearNumbers", "flatDesign", "outlineControls", "hideImages", "hoverZoom", "hideVideos", "hideBackgroundImages",
+  "flashGuard", "stopAutoplay", "muteAudio", "unstickHeaders", "hideFooter", "skipLink", "hoverHighlight", "readingGuide", "focusMode", "clickGuard", "readOnSelect", "readOnHover", "warnExternalLinks",
+  "readerMode", "singleColumn", "collapseMenus", "hideSidebars", "hidePopups", "hideComments", "hideSocial", "aiSimplify", "simplifyParagraphs",
 ];
+
+// Settings with a value: exposed as data-mu-* and --mu-* when they differ from the default.
+const VALUE_KEYS: (keyof Preferences)[] = [
+  "fontFamily", "fontWeight", "wordSpacing", "paragraphSpacing", "textAlign", "maxLineWidth", "textColor", "backgroundColor", "linkColor", "headingColor", "buttonColor", "buttonTextColor", "borderColor", "focusColor",
+  "brightness", "saturation", "warmth", "pageZoom", "cursorColor", "dwellClick", "handedness", "captionSize", "captionStyle", "ttsPitch", "ttsVolume", "breakReminder",
+];
+
+// Only these need the page re-scanned. Everything else is applied by attributes and CSS, without touching layout.
+const DOM_KEYS: (keyof Preferences)[] = ["fontScale", "lineSpacing", "letterSpacing", "contrast", "iconLabels", "captions", "readingRuler", "readingGuide"];
 
 const kebab = (s: string) => s.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
 
@@ -57,6 +70,16 @@ const CURSOR =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M6 4 L6 40 L15 31 L21 45 L28 42 L22 28 L35 28 Z' fill='%23000' stroke='%23fff' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E\") 6 4, auto";
 const CURSOR_POINTER =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M6 4 L6 40 L15 31 L21 45 L28 42 L22 28 L35 28 Z' fill='%230b6e4f' stroke='%23fff' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E\") 6 4, pointer";
+
+const CURSOR_FILL: Record<string, string> = { black: "%23000", white: "%23fff", yellow: "%23ffd600", red: "%23d50000", blue: "%230d47a1" };
+const colouredCursor = (fill: string, kind: string) => `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M6 4 L6 40 L15 31 L21 45 L28 42 L22 28 L35 28 Z' fill='${fill}' stroke='${fill === "%23000" ? "%23fff" : "%23000"}' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E") 6 4, ${kind}`;
+
+const FONT_STACK: Record<string, string> = {
+  sans: 'Verdana, Tahoma, Arial, sans-serif',
+  serif: 'Georgia, "Times New Roman", serif',
+  mono: 'Consolas, "Courier New", monospace',
+  rounded: 'ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", sans-serif',
+};
 
 function buildCss(assetBase: string): string {
   const A = "html.mu-auto";
@@ -99,10 +122,90 @@ function buildCss(assetBase: string): string {
     // icon labels inserted by the scanner
     `${A} [data-mu-labeled]{width:auto!important;min-width:max-content!important;padding-inline:.5em!important;display:inline-flex!important;align-items:center!important}`,
     `${A} [${UI}='icon-label']{display:inline-block!important;margin-inline-start:.35em!important;font-size:.85em!important;font-weight:700!important;line-height:1.2!important;vertical-align:middle!important;white-space:nowrap!important}`,
+    ...extraCss(A, notIcon),
     // reading ruler
     `[${UI}='ruler']{position:fixed;left:0;right:0;pointer-events:none;z-index:2147483646;background:rgba(0,0,0,.45);transition:none}`,
     `[${UI}='ruler-band']{position:fixed;left:0;right:0;pointer-events:none;z-index:2147483646;border-top:3px solid #ffbf00;border-bottom:3px solid #ffbf00;background:rgba(255,230,0,.12)}`,
   ].join("\n");
+}
+
+/** Everything the user can change about how a page looks. Page content only: the SDK's own UI is excluded. */
+function extraCss(A: string, notIcon: string): string[] {
+  const mine = `:not([${UI}]):not([${UI}] *)`;
+  const all = `body *${mine}`;
+  const block = `:is(p,li,h1,h2,h3,h4,td,blockquote,dd)${mine}`;
+  const headings = `:is(h1,h2,h3,h4,h5,h6)${mine}`;
+  const buttons = `:is(button,[role=button],input[type=submit],input[type=button],.btn)${mine}`;
+  const controls = `:is(a[href],button,[role=button],input,select,textarea,summary)${mine}`;
+  const media = "img,picture,video,canvas,svg,iframe";
+  return [
+    // text
+    ...Object.entries(FONT_STACK).map(([v, stack]) => `${A}[data-mu-font-family='${v}'] body *${notIcon}${mine}{font-family:${stack}!important}`),
+    `${A}[data-mu-font-weight='medium'] ${all}${notIcon}{font-weight:500!important}`,
+    `${A}[data-mu-font-weight='bold'] ${all}${notIcon}{font-weight:700!important}`,
+    `${A}[data-mu-word-spacing] ${all}{word-spacing:calc(var(--mu-word-spacing)*1em)!important}`,
+    `${A}[data-mu-paragraph-spacing] :is(p,li)${mine}{margin-bottom:calc(var(--mu-paragraph-spacing)*1em)!important}`,
+    `${A}[data-mu-text-align='left'] ${block}{text-align:left!important}`,
+    `${A}[data-mu-max-line-width] ${block}{max-width:var(--mu-max-line-width)!important}`,
+    `${A}[data-mu-no-italics] ${all}${notIcon}{font-style:normal!important}`,
+    `${A}[data-mu-no-uppercase] ${all}{text-transform:none!important;font-variant-caps:normal!important}`,
+    `${A}[data-mu-emphasize-headings] ${headings}{font-weight:800!important;border-bottom:3px solid currentColor!important;padding-bottom:.15em!important}`,
+    `${A}[data-mu-clear-numbers] ${all}{font-variant-numeric:tabular-nums lining-nums slashed-zero!important}`,
+    // colours
+    `${A}[data-mu-background-color],${A}[data-mu-background-color] body{background:var(--mu-background-color)!important}`,
+    `${A}[data-mu-background-color] :is(div,section,article,main,header,footer,nav,aside,ul,ol,li,p,table,tr,td,th,form,fieldset)${mine}{background-color:var(--mu-background-color)!important;background-image:none!important}`,
+    `${A}[data-mu-text-color] body,${A}[data-mu-text-color] ${all}:not(a):not(button):not(svg):not(svg *){color:var(--mu-text-color)!important;-webkit-text-fill-color:var(--mu-text-color)!important}`,
+    `${A}[data-mu-heading-color] ${headings}{color:var(--mu-heading-color)!important;-webkit-text-fill-color:var(--mu-heading-color)!important}`,
+    `${A}[data-mu-link-color] a[href]${mine},${A}[data-mu-link-color] a[href]${mine} *{color:var(--mu-link-color)!important;-webkit-text-fill-color:var(--mu-link-color)!important}`,
+    `${A}[data-mu-button-color] ${buttons}{background-color:var(--mu-button-color)!important;background-image:none!important}`,
+    `${A}[data-mu-button-text-color] ${buttons},${A}[data-mu-button-text-color] ${buttons} *{color:var(--mu-button-text-color)!important;-webkit-text-fill-color:var(--mu-button-text-color)!important}`,
+    `${A}[data-mu-border-color] ${all}{border-color:var(--mu-border-color)!important}`,
+    `${A}[data-mu-focus-color] :is(:focus-visible,input:focus,select:focus,textarea:focus){outline:4px solid var(--mu-focus-color)!important;outline-offset:3px!important}`,
+    // display
+    `${A}[data-mu-page-zoom]{zoom:var(--mu-page-zoom)!important}`,
+    `${A}[data-mu-flat-design] ${all}{box-shadow:none!important;text-shadow:none!important;border-radius:0!important}`,
+    `${A}[data-mu-outline-controls] ${controls}{outline:2px solid currentColor!important;outline-offset:1px!important}`,
+    // images and media
+    `${A}[data-mu-hide-images] :is(img,picture,[role=img]:not(svg))${mine}{display:none!important}`,
+    `${A}[data-mu-hover-zoom] img${mine}{transition:transform .15s ease-out!important}`,
+    `${A}[data-mu-hover-zoom] img${mine}:hover{transform:scale(1.8)!important;position:relative!important;z-index:2147483000!important}`,
+    `${A}[data-mu-hide-videos] :is(video,iframe[src*='youtube'],iframe[src*='youtu.be'],iframe[src*='vimeo'],iframe[src*='tiktok'])${mine}{display:none!important}`,
+    `${A}[data-mu-hide-background-images] body,${A}[data-mu-hide-background-images] ${all}{background-image:none!important}`,
+    `${A}[data-mu-flash-guard] *,${A}[data-mu-flash-guard] *::before,${A}[data-mu-flash-guard] *::after{animation:none!important;transition:none!important}`,
+    `${A}[data-mu-flash-guard] marquee${mine}{display:none!important}`,
+    // page structure
+    `${A} [data-mu-unstick]{position:static!important}`,
+    `${A}[data-mu-hide-footer] :is(footer,[role=contentinfo])${mine}{display:none!important}`,
+    // pointer
+    ...Object.entries(CURSOR_FILL).flatMap(([v, fill]) => [
+      `${A}[data-mu-cursor-color='${v}'],${A}[data-mu-cursor-color='${v}'] *{cursor:${colouredCursor(fill, "auto")}!important}`,
+      `${A}[data-mu-cursor-color='${v}'] :is(a[href],button,[role=button],label,summary,select){cursor:${colouredCursor(fill, "pointer")}!important}`,
+    ]),
+    `${A}[data-mu-hover-highlight] :is(a[href],button,[role=button],input,select,textarea,summary,p,li,h1,h2,h3)${mine}:hover{outline:3px solid var(--mu-focus-color,#ffbf00)!important;outline-offset:2px!important}`,
+    `${A}[data-mu-focus-mode] ${block}{opacity:.35!important}`,
+    `${A}[data-mu-focus-mode] ${block}:hover,${A}[data-mu-focus-mode] ${block}:focus-within{opacity:1!important}`,
+    `${A}[data-mu-reading-guide]:not([data-mu-reading-ruler]) [${UI}='ruler']{background:transparent!important}`,
+    `${A} [data-mu-dwell]{outline:4px dashed currentColor!important;outline-offset:2px!important}`,
+    // simplifying complicated sites
+    `${A} [data-mu-rd-hide]{display:none!important}`,
+    `${A} [data-mu-rd-main]{max-width:72ch!important;margin-inline:auto!important;float:none!important}`,
+    `${A} [data-mu-collapsed]{display:none!important}`,
+    `${A} [data-mu-ai-hidden]{display:none!important}`,
+    `${A}[data-mu-single-column] :is(main,section,[class*='grid' i],[class*='row' i],[class*='columns' i],[class*='flex' i])${mine}{display:block!important}`,
+    `${A}[data-mu-single-column] :is(main,article,section,div)${mine}{float:none!important;width:auto!important;max-width:100%!important}`,
+    `${A}[data-mu-hide-sidebars] :is(aside,[role=complementary],[class*='sidebar' i],[id*='sidebar' i])${mine}:not([data-mu-simple='keep']){display:none!important}`,
+    `${A}[data-mu-hide-popups] :is([class*='cookie' i],[id*='cookie' i],[class*='newsletter' i],[class*='gdpr' i],[id*='onetrust' i],[class*='modal-backdrop' i],[class*='popup' i],[id*='popup' i])${mine}{display:none!important}`,
+    `${A}[data-mu-hide-comments] :is([id*='comment' i],[class*='comment' i],[id*='disqus' i])${mine}{display:none!important}`,
+    `${A}[data-mu-hide-social] :is([class*='social' i],[class*='share' i],[id*='share' i],a[href*='facebook.com/sharer'],a[href*='twitter.com/intent'],a[href*='wa.me'])${mine}{display:none!important}`,
+    // captions
+    `${A}[data-mu-caption-size] video::cue{font-size:calc(var(--mu-caption-size)*1em)!important}`,
+    `${A}[data-mu-caption-style='yellow'] video::cue{color:#ffeb3b!important;background:#000!important}`,
+    `${A}[data-mu-caption-style='white'] video::cue{color:#000!important;background:#fff!important}`,
+    // our own small page elements
+    `[${UI}='skip']{position:fixed;left:8px;top:-80px;z-index:2147483647;padding:.7em 1em;background:#262626;color:#f5bc4a;font:700 16px system-ui,sans-serif}`,
+    `[${UI}='skip']:focus{top:8px}`,
+    `[${UI}='break']{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;padding:.8em 1.2em;background:#262626;color:#f3f3f3;border-radius:3px;font:600 17px system-ui,sans-serif}`,
+  ];
 }
 
 function filterFor(p: Preferences): string {
@@ -111,6 +214,9 @@ function filterFor(p: Preferences): string {
   if (p.contrast === "dark") parts.push("invert(1) hue-rotate(180deg)");
   if (p.colorFilter === "grayscale") parts.push("grayscale(1)");
   else if (p.colorFilter !== "none") parts.push(`url("#mu-cf-${p.colorFilter}")`);
+  if (p.brightness !== 1) parts.push(`brightness(${p.brightness})`);
+  if (p.saturation !== 1) parts.push(`saturate(${p.saturation})`);
+  if (p.warmth !== 0) parts.push(`sepia(${p.warmth})`);
   return parts.join(" ");
 }
 
@@ -173,11 +279,14 @@ export class PreferenceEngine {
   private marked = new Set<HTMLElement>();
   private labels = new Set<HTMLElement>();
   private rulerEls: HTMLElement[] = [];
+  private applied = false;
+  private behaviors: Behaviors;
   private onPointer = (e: PointerEvent | MouseEvent | TouchEvent) => this.moveRuler(e);
   private readonly html: HTMLElement;
 
   constructor(private readonly doc: Document, private readonly opts: EngineOptions) {
     this.html = doc.documentElement;
+    this.behaviors = new Behaviors(doc);
   }
 
   get current(): Preferences {
@@ -186,6 +295,7 @@ export class PreferenceEngine {
 
   /** Apply preferences. Safe to call before <body> exists (scanner starts on DOMContentLoaded). */
   apply(prefs: Preferences): void {
+    const previous = this.prefs;
     this.prefs = prefs;
     this.writeRootState();
     if (this.opts.mode !== "auto") return;
@@ -193,16 +303,19 @@ export class PreferenceEngine {
     this.ensureFilters();
     if (this.doc.readyState === "loading") {
       this.doc.addEventListener("DOMContentLoaded", () => this.applyDom(), { once: true });
-    } else {
+    } else if (!this.applied || DOM_KEYS.some((k) => previous[k] !== prefs[k])) {
       this.applyDom();
     }
+    this.behaviors.apply(prefs);
   }
 
   /** Remove everything the engine added. */
   reset(): void {
     this.prefs = DEFAULT_PREFERENCES;
+    this.applied = false;
     this.writeRootState();
     this.clearDom();
+    this.behaviors.clear();
     this.stopObserver();
   }
 
@@ -224,6 +337,16 @@ export class PreferenceEngine {
     setOrRemove("data-mu-line-spacing", p.lineSpacing === 1 ? null : String(p.lineSpacing));
     setOrRemove("data-mu-letter-spacing", p.letterSpacing === 0 ? null : String(p.letterSpacing));
     h.setAttribute("data-mu-language", p.language);
+    for (const k of VALUE_KEYS) {
+      const name = kebab(k);
+      if (p[k] === DEFAULT_PREFERENCES[k]) {
+        h.removeAttribute("data-mu-" + name);
+        s.removeProperty("--mu-" + name);
+      } else {
+        h.setAttribute("data-mu-" + name, String(p[k]));
+        s.setProperty("--mu-" + name, String(p[k]));
+      }
+    }
     const filter = filterFor(p);
     if (this.opts.mode === "auto" && filter) {
       s.setProperty("--mu-filter", filter);
@@ -276,6 +399,7 @@ export class PreferenceEngine {
 
   private applyDom(): void {
     if (!this.doc.body) return;
+    this.applied = true;
     this.clearDom();
     const p = this.prefs;
     if (this.needsTextScan()) {
@@ -284,7 +408,7 @@ export class PreferenceEngine {
     }
     if (p.iconLabels) this.addIconLabels(this.doc.body);
     if (p.captions) this.enableCaptions(this.doc.body);
-    if (p.readingRuler) this.startRuler();
+    if (p.readingRuler || p.readingGuide) this.startRuler();
     if (this.needsTextScan() || p.iconLabels || p.captions) this.startObserver();
   }
 

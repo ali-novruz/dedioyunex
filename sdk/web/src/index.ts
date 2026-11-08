@@ -6,7 +6,7 @@ import { PreferenceEngine, type Mode } from "./apply";
 import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, settingLabel, type Language, type Preferences, type PreferenceKey } from "./schema";
 import { runCheck, type CheckReport } from "./check";
 import { snapshot, controlFor, aidOf, elementsFor, type PageHelp } from "./assist";
-import { speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
+import { setCloudVoice, speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
 
 const VERSION = "1.0.0";
 
@@ -92,6 +92,7 @@ const AZ = {
   plain: "Sadə dildə",
   youAreHere: "Siz buradasınız",
   whatToDo: "Nə edim?",
+  showAll: "Bütün düymələri göstər",
   supports: "Bu sayt aktiv ayarlarınızdan {a}/{b}-ni dəstəkləyir.",
   unsupported: "Dəstəklənmir",
   checkTitle: "MƏNƏ UYĞUN yoxlama",
@@ -136,6 +137,7 @@ const EN: Texts = {
   plain: "In plain words",
   youAreHere: "You are here",
   whatToDo: "What do I do?",
+  showAll: "Show all buttons",
   supports: "This site supports {a} of your {b} active settings.",
   unsupported: "Not supported",
   checkTitle: "MƏNƏ UYĞUN check",
@@ -172,7 +174,7 @@ const WIDGET_CSS = `
 :host{all:initial;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(17px * min(var(--mu-font-scale,1),1.5));color:${INK}}
 *{box-sizing:border-box;font:inherit}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.6em}
-button{cursor:pointer;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:.55em;min-height:2.9em;padding:.55em 1em;font-weight:600;line-height:1.2;display:inline-flex;align-items:center;gap:.5em;box-shadow:4px 4px 0 ${INK};transition:transform .11s cubic-bezier(.16,1,.3,1),box-shadow .11s cubic-bezier(.16,1,.3,1)}
+button{cursor:pointer;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:.55em;min-height:2.9em;padding:.55em 1em;font-weight:600;line-height:1.2;display:inline-flex;align-items:center;gap:.5em;box-shadow:4px 4px 0 ${INK};touch-action:manipulation;transition:transform .07s cubic-bezier(.16,1,.3,1),box-shadow .07s cubic-bezier(.16,1,.3,1)}
 button:hover:not(:disabled){transform:translate(1px,1px);box-shadow:3px 3px 0 ${INK}}
 button:active:not(:disabled){transform:translate(4px,4px);box-shadow:0 0 0 ${INK}}
 button:focus-visible{outline:3px solid ${INK};outline-offset:2px;box-shadow:0 0 0 2px ${PAPER},4px 4px 0 2px ${INK}}
@@ -218,6 +220,12 @@ class MeneUygunSDK {
   private help: PageHelp | null = null;
   private helpFor = "";
   private helpLoading = false;
+  private helpPromise: Promise<PageHelp> | null = null;
+  private helpPending = "";
+  private controlHelp = new Map<string, string>();
+  private bubbleTurn = 0;
+  private autoRetried = "";
+  private ttsError: string | null = null;
   private helpError: string | null = null;
   private panelHost: HTMLElement | null = null;
   private bubbleHost: HTMLElement | null = null;
@@ -246,6 +254,16 @@ class MeneUygunSDK {
     this.cfg = { clientId: config.clientId, baseUrl, mode: config.mode ?? "auto", floating: config.floating ?? true, supports, ai: config.ai ?? "on" };
     this.engine = new PreferenceEngine(document, { mode: this.cfg.mode, assetBase: baseUrl });
     this.injectGlobalStyle();
+    setCloudVoice({
+      check: async () => ((await (await fetch(`${baseUrl}/v1/tts`)).json()) as { available: boolean }).available,
+      speak: async (text, rate) => {
+        const token = store.get(this.key("token"));
+        if (!token) throw new Error("not connected");
+        const r = await fetch(`${baseUrl}/v1/tts`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ text, rate }) });
+        if (!r.ok) throw new Error(`Speech request failed (${r.status})`);
+        return r.blob();
+      },
+    });
     new MutationObserver(() => {
       this.renderButtons();
       this.renderTts();
@@ -397,7 +415,7 @@ class MeneUygunSDK {
   /** Read a text aloud with the user's voice settings. */
   async speak(text: string): Promise<void> {
     const p = this.prefs;
-    await speak(text, { language: this.lang(), rate: p?.ttsRate ?? 1 });
+    await speak(text, { language: this.lang(), rate: p?.ttsRate ?? 1, pitch: p?.ttsPitch, volume: p?.ttsVolume });
   }
 
   /**
@@ -490,6 +508,8 @@ class MeneUygunSDK {
     this.prefs = prefs;
     if (persist) store.set(this.key("prefs"), JSON.stringify(prefs));
     this.engine!.apply(prefs);
+    this.syncAutoReading();
+    void this.syncSimplify();
     this.renderTts();
     this.renderButtons();
     this.emit("preferences", prefs);
@@ -500,6 +520,7 @@ class MeneUygunSDK {
     store.del(this.key("prefs"));
     this.prefs = null;
     this.engine?.reset();
+    this.syncAutoReading();
     this.stopListening();
     this.stopExplaining();
     this.closePanel();
@@ -624,6 +645,18 @@ html[data-mu-listening] body *{cursor:help!important}`;
       else if (this.cfg.floating) this.buttons.push({ root: this.shadowHost(null, "right").root, floating: true });
     }
     for (const b of this.buttons) this.paintButton(b.root, b.floating);
+    this.placeFloating();
+  }
+
+  /** One-handed use: the floating buttons move to the side of the hand in use. */
+  private placeFloating(): void {
+    const left = this.prefs?.handedness === "left";
+    const side = (host: HTMLElement, onLeft: boolean) => {
+      host.style.left = onLeft ? "16px" : "auto";
+      host.style.right = onLeft ? "auto" : "16px";
+    };
+    for (const b of this.buttons) if (b.floating) side((b.root.getRootNode() as ShadowRoot).host as HTMLElement, left);
+    if (this.ttsHost) side(this.ttsHost, !left);
   }
 
   private paintButton(root: HTMLElement, floating: boolean): void {
@@ -681,7 +714,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     if (!document.body) return;
     const tts = !!this.prefs?.tts;
     const ai = this.aiEnabled();
-    if (!tts && !ai) {
+    if (!tts && !ai && !this.simplifyShown) {
       this.ttsHost?.remove();
       this.ttsHost = this.ttsRoot = null;
       this.closePanel();
@@ -692,6 +725,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       const { host, root } = this.shadowHost(null, "left");
       this.ttsHost = host;
       this.ttsRoot = root;
+      this.placeFloating();
     }
     const root = this.ttsRoot!;
     root.textContent = "";
@@ -718,6 +752,17 @@ html[data-mu-listening] body *{cursor:help!important}`;
       }
       if (this.cfg?.ai === "auto" && (this.prefs?.plainLanguage || this.prefs?.simpleMode)) void this.autoSummary();
     }
+    if (this.simplifyShown) {
+      const all = document.createElement("button");
+      all.textContent = T.showAll;
+      all.style.marginBottom = ".45em";
+      all.addEventListener("click", () => {
+        document.querySelectorAll("[data-mu-ai-hidden]").forEach((el) => el.removeAttribute("data-mu-ai-hidden"));
+        this.simplifyShown = false;
+        this.renderTts();
+      });
+      root.append(all);
+    }
     if (!tts) return;
     const row = document.createElement("div");
     row.className = "row";
@@ -737,6 +782,12 @@ html[data-mu-listening] body *{cursor:help!important}`;
     });
     row.append(listen, page, stop);
     root.append(row);
+    if (this.ttsError) {
+      const m = document.createElement("div");
+      m.className = "msg";
+      m.textContent = this.ttsError;
+      root.append(m);
+    }
     if (!isSpeechSupported()) {
       const n = document.createElement("div");
       n.className = "note";
@@ -760,40 +811,56 @@ html[data-mu-listening] body *{cursor:help!important}`;
     return !!this.prefs?.aiHelp && !!this.cfg && this.cfg.ai !== "off" && this.isConnected;
   }
 
-  /** Explains the current page. Cached per URL; the server also caches identical pages. */
-  async explainPage(): Promise<PageHelp> {
+  private async assistFetch(payload: unknown): Promise<Record<string, unknown>> {
     const cfg = this.need();
     const token = store.get(this.key("token"));
-    if (!token) throw new Error("not connected");
+    if (!token) throw new Error(T.failed);
+    const r = await fetch(`${cfg.baseUrl}/v1/assist`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    const body = await r.json().catch(() => ({}));
+    if (r.status === 401) {
+      this.clearLocal(true);
+      throw new Error(T.failed);
+    }
+    if (!r.ok) throw new Error(body.error_description || T.failed);
+    return body;
+  }
+
+  private signature(snap: ReturnType<typeof snapshot>): string {
+    return `${this.lang()}|${snap.url}|${snap.text.length}|${snap.actions.length}`;
+  }
+
+  /** Explains the current page. One request at a time; the server caches identical pages. */
+  async explainPage(): Promise<PageHelp> {
     const snap = snapshot(document);
-    const sig = snap.url + "|" + snap.text.length + "|" + snap.actions.length;
+    const sig = this.signature(snap);
     if (this.help && this.helpFor === sig) return this.help;
+    if (this.helpPromise && this.helpPending === sig) return this.helpPromise;
     this.helpLoading = true;
     this.helpError = null;
+    this.helpPending = sig;
     this.renderTts();
-    try {
-      const r = await fetch(`${cfg.baseUrl}/v1/assist`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(snap),
+    this.helpPromise = this.assistFetch(snap)
+      .then((body) => {
+        const help = body as unknown as PageHelp;
+        this.help = { headline: help.headline, summary: help.summary, points: help.points ?? [], actions: help.actions ?? [] };
+        this.helpFor = sig;
+        this.showReminder(this.help);
+        return this.help;
+      })
+      .catch((e) => {
+        this.helpError = e instanceof Error ? e.message : T.failed;
+        throw e;
+      })
+      .finally(() => {
+        this.helpPromise = null;
+        this.helpLoading = false;
+        this.renderTts();
       });
-      const body = await r.json().catch(() => ({}));
-      if (r.status === 401) {
-        this.clearLocal(true);
-        throw new Error(T.failed);
-      }
-      if (!r.ok) throw new Error(body.error_description || T.failed);
-      this.help = { headline: body.headline, summary: body.summary, points: body.points ?? [], actions: body.actions ?? [] };
-      this.helpFor = sig;
-      this.showReminder(this.help);
-      return this.help;
-    } catch (e) {
-      this.helpError = e instanceof Error ? e.message : T.failed;
-      throw e;
-    } finally {
-      this.helpLoading = false;
-      this.renderTts();
-    }
+    return this.helpPromise;
   }
 
   /** Memory aid (simple mode): a sticky "You are here: …" bar so the user does not lose track of the task. */
@@ -909,20 +976,34 @@ html[data-mu-listening] body *{cursor:help!important}`;
     void this.explainControl(ctl);
   };
 
+  /** Every control can be explained: from the page answer when it has it, otherwise with its own small request. */
   private async explainControl(el: Element): Promise<void> {
-    let help = this.help;
-    if (!help || !aidOf(el)) {
-      try {
-        help = await this.explainPage();
-      } catch {
-        return;
-      }
-    }
+    const turn = ++this.bubbleTurn;
+    const snap = snapshot(document);
     const id = aidOf(el);
-    const found = help.actions.find((a) => a.id === id);
+    const action = snap.actions.find((a) => a.id === id);
     const label = (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || "";
-    this.showBubble(el, label, found ? found.explain : T.noExplain);
-    if (found && this.prefs?.tts) void this.speak(`${label}. ${found.explain}`).catch(() => {});
+    const finish = (text: string) => {
+      if (turn !== this.bubbleTurn) return;
+      this.showBubble(el, label, text);
+      if (this.prefs?.tts) void this.speak(`${label}. ${text}`).catch((e) => console.warn("[MeneUygun]", e));
+    };
+    const fromPage = this.help && this.helpFor === this.signature(snap) ? this.help.actions.find((a) => a.id === id) : undefined;
+    if (fromPage) return finish(fromPage.explain);
+    if (!action) return finish(T.noExplain);
+    const key = `${this.lang()}|${snap.url}|${action.kind}|${action.label}|${action.hint ?? ""}`;
+    const known = this.controlHelp.get(key);
+    if (known) return finish(known);
+    this.showBubble(el, label, T.thinking);
+    try {
+      const body = await this.assistFetch({ title: snap.title, headings: snap.headings, text: snap.text.slice(0, 600), focus: action });
+      const explain = String(body.explain);
+      this.controlHelp.set(key, explain);
+      finish(explain);
+    } catch (e) {
+      console.warn("[MeneUygun] control explainer failed", e);
+      if (turn === this.bubbleTurn) this.showBubble(el, label, e instanceof Error ? e.message : T.failed);
+    }
   }
 
   private showBubble(el: Element, title: string, text: string): void {
@@ -954,7 +1035,6 @@ html[data-mu-listening] body *{cursor:help!important}`;
     this.explaining = true;
     document.addEventListener("click", this.onExplainClick, true);
     this.renderTts();
-    void this.explainPage().catch(() => {});
   }
 
   private stopExplaining(): void {
@@ -986,7 +1066,114 @@ html[data-mu-listening] body *{cursor:help!important}`;
       h1.insertAdjacentElement("afterend", box);
     } catch (e) {
       console.warn("[MeneUygun] auto summary failed", e);
+      if (this.autoRetried !== url) {
+        this.autoRetried = url;
+        setTimeout(() => {
+          this.autoShown = "";
+          void this.autoSummary();
+        }, 10_000);
+      }
     }
+  }
+
+  private onSelectRead = () => {
+    const sel = window.getSelection()?.toString().trim();
+    if (sel && sel.length > 1) void this.say(sel, null);
+  };
+
+  private hoverTimer = 0;
+  private onHoverRead = (e: MouseEvent) => {
+    clearTimeout(this.hoverTimer);
+    const target = e.target as Element | null;
+    if (!target || target.closest("[data-mu-ui]")) return;
+    const block = target.closest("p,li,h1,h2,h3,h4,h5,h6,td,th,label,button,a,blockquote,figcaption,dd,dt,summary");
+    if (!block || block.hasAttribute("data-mu-reading")) return;
+    this.hoverTimer = window.setTimeout(() => this.readElement(block as HTMLElement), 700);
+  };
+
+  private simplifiedFor = "";
+  private simplifyShown = false;
+
+  /** AI keeps only the controls needed here. Anything uncertain or failing leaves the page as it was. */
+  private async syncSimplify(): Promise<void> {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => void this.syncSimplify(), { once: true });
+      return;
+    }
+    const wanted = !!this.prefs?.aiSimplify && this.isConnected && this.cfg?.ai !== "off" && this.cfg?.mode === "auto";
+    this.syncParagraphs();
+    if (!wanted) return this.undoSimplify();
+    const snap = snapshot(document);
+    const sig = this.signature(snap);
+    if (this.simplifiedFor === sig || snap.actions.length <= 6) return;
+    this.simplifiedFor = sig;
+    try {
+      const body = await this.assistFetch({ ...snap, simplify: true });
+      const keep = new Set(body.keep as string[]);
+      document.querySelectorAll<HTMLElement>("[data-mu-aid]").forEach((el) => {
+        if (keep.has(el.getAttribute("data-mu-aid")!) || el.matches("[data-mu-simple='primary'],[data-mu-simple='keep'],[type=submit]") || el.closest("form")) return;
+        el.setAttribute("data-mu-ai-hidden", "");
+      });
+      this.simplifyShown = true;
+      this.renderTts();
+    } catch (e) {
+      console.warn("[MeneUygun] AI simplification failed, leaving the page unchanged", e);
+    }
+  }
+
+  private undoSimplify(): void {
+    document.querySelectorAll("[data-mu-ai-hidden]").forEach((el) => el.removeAttribute("data-mu-ai-hidden"));
+    this.simplifyShown = false;
+    this.simplifiedFor = "";
+  }
+
+  /** A "plain words" button under long paragraphs. Each one asks the AI only when pressed. */
+  private syncParagraphs(): void {
+    const wanted = !!this.prefs?.simplifyParagraphs && this.isConnected && this.cfg?.ai !== "off";
+    document.querySelectorAll("[data-mu-ui='plain-para']").forEach((e) => e.remove());
+    if (!wanted) return;
+    const root = document.querySelector("main,[role=main],article") ?? document.body;
+    root.querySelectorAll<HTMLElement>("p").forEach((p) => {
+      const text = (p.innerText ?? "").trim();
+      if (text.length < 180 || p.closest("[data-mu-ui]") || p.offsetParent === null) return;
+      const wrap = document.createElement("div");
+      wrap.setAttribute("data-mu-ui", "plain-para");
+      wrap.style.cssText = "margin:.4em 0 1em;font:600 15px/1.45 system-ui,sans-serif;color:#262626";
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = T.plain;
+      b.style.cssText = "min-height:40px;padding:.3em .9em;border:2px solid #262626;border-radius:.45em;background:#f5bc4a;color:#262626;font:inherit;cursor:pointer";
+      b.addEventListener("click", () => {
+        b.disabled = true;
+        b.textContent = T.thinking;
+        this.assistFetch({ rewrite: text })
+          .then((body) => {
+            const box = document.createElement("div");
+            box.style.cssText = "padding:.7em .9em;background:#f3f3f3;border:2px solid #262626;border-radius:3px;font-weight:500";
+            box.textContent = String(body.plain);
+            wrap.replaceChildren(box);
+            if (this.prefs?.tts) void this.speak(String(body.plain)).catch((e) => console.warn("[MeneUygun]", e));
+          })
+          .catch((e) => {
+            b.disabled = false;
+            b.textContent = e instanceof Error ? e.message : T.failed;
+          });
+      });
+      wrap.append(b);
+      p.insertAdjacentElement("afterend", wrap);
+    });
+  }
+
+  private syncAutoReading(): void {
+    document.removeEventListener("mouseup", this.onSelectRead);
+    document.removeEventListener("keyup", this.onSelectRead);
+    document.removeEventListener("mouseover", this.onHoverRead);
+    clearTimeout(this.hoverTimer);
+    if (this.prefs?.readOnSelect) {
+      document.addEventListener("mouseup", this.onSelectRead);
+      document.addEventListener("keyup", this.onSelectRead);
+    }
+    if (this.prefs?.readOnHover) document.addEventListener("mouseover", this.onHoverRead);
   }
 
   private onListenClick = (e: MouseEvent) => {
@@ -1029,11 +1216,17 @@ html[data-mu-listening] body *{cursor:help!important}`;
   private async say(text: string, el: HTMLElement | null): Promise<void> {
     this.clearReading();
     if (el) el.setAttribute("data-mu-reading", "");
-    try {
-      await speak(text, { language: this.lang(), rate: this.prefs?.ttsRate ?? 1, onEnd: () => this.clearReading() });
-    } catch (e) {
-      console.error("[MeneUygun]", e);
+    const failed = (e: unknown) => {
+      console.error("[MeneUygun] reading aloud failed", e);
       this.clearReading();
+      this.ttsError = T.noVoice;
+      this.renderTts();
+    };
+    try {
+      this.ttsError = null;
+      await speak(text, { language: this.lang(), rate: this.prefs?.ttsRate ?? 1, pitch: this.prefs?.ttsPitch, volume: this.prefs?.ttsVolume, onEnd: () => this.clearReading(), onError: failed });
+    } catch (e) {
+      failed(e);
     }
   }
 

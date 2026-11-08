@@ -79,10 +79,20 @@ export function snapshot(doc: Document): PageSnapshot {
 
   let text = "";
   for (const el of Array.from(root.querySelectorAll("h1,h2,h3,h4,p,li,dt,dd,td,th,blockquote,figcaption,label"))) {
-    if (text.length > 6000) break;
+    if (text.length > 4000) break;
     if (!visible(el)) continue;
     const t = clean((el as HTMLElement).innerText);
     if (t && !text.includes(t)) text += t + "\n";
+  }
+
+  // Many sites put their text in plain <div>/<span> blocks instead of paragraphs.
+  if (text.length < 200) {
+    for (const el of Array.from(root.querySelectorAll("div,span,b,strong,em,section"))) {
+      if (text.length > 4000) break;
+      if (el.querySelector("div,p,section,ul,ol,table,h1,h2,h3") || el.closest(CONTROLS) || !visible(el)) continue;
+      const t = clean((el as HTMLElement).innerText);
+      if (t.length >= 3 && !text.includes(t)) text += t + "\n";
+    }
   }
 
   const byKey = new Map<string, string>();
@@ -105,7 +115,7 @@ export function snapshot(doc: Document): PageSnapshot {
     el.setAttribute(AID, id);
   }
 
-  return { url: location.origin + location.pathname, title: clean(doc.title), headings, text: text.slice(0, 6000), actions };
+  return { url: location.origin + location.pathname, title: clean(doc.title), headings, text: text.slice(0, 4000), actions };
 }
 
 export function controlFor(target: Element | null): Element | null {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIES, categoryHelp, categoryLabel, presetFor, changedKeys, type Category } from "@sdk/schema";
+import { CATEGORIES, MAIN_CATEGORIES, categoryHelp, categoryLabel, presetFor, changedKeys, type Category } from "@sdk/schema";
 import { api, usePrefs } from "@/components/PrefsProvider";
 import { CATEGORY_ICON, Icon } from "@/components/Icons";
 
@@ -11,6 +11,8 @@ export function CategoryPicker({ initial, firstTime, next }: { initial: Category
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<null | { preset: boolean }>(null);
+  const [more, setMore] = useState(initial.some((c) => !MAIN_CATEGORIES.includes(c)));
+  const shown = more ? CATEGORIES : CATEGORIES.filter((c) => MAIN_CATEGORIES.includes(c.id));
 
   const toggle = (c: Category) => setSelected((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
 
@@ -52,7 +54,7 @@ export function CategoryPicker({ initial, firstTime, next }: { initial: Category
   return (
     <div className="stack">
       <div className="grid gap-4 sm:grid-cols-2" role="group" aria-label={l("Çətinliklər", "Difficulties")}>
-        {CATEGORIES.map((c) => {
+        {shown.map((c) => {
           const on = selected.includes(c.id);
           return (
             <button key={c.id} type="button" aria-pressed={on} onClick={() => toggle(c.id)} className="need">
@@ -67,6 +69,11 @@ export function CategoryPicker({ initial, firstTime, next }: { initial: Category
           );
         })}
       </div>
+      {!more && (
+        <button type="button" className="btn btn-secondary btn-block" onClick={() => setMore(true)}>
+          {l(`Başqa çətinliklər (${CATEGORIES.length - MAIN_CATEGORIES.length})`, `Other difficulties (${CATEGORIES.length - MAIN_CATEGORIES.length})`)}
+        </button>
+      )}
       {error && <p className="error" role="alert">{error}</p>}
       <div className="pt-3">
         <button className="btn btn-primary btn-block text-[1.2rem]" disabled={busy || selected.length === 0} onClick={() => submit(selected)}>

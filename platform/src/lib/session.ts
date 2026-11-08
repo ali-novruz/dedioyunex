@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { exec, now, one } from "./db";
@@ -6,6 +7,7 @@ import { env } from "./env";
 import { randomToken, sha256, sixDigitCode, safeEqual } from "./crypto";
 import { attachEmail, createAnonymousUser, findOrCreateUser, findUserByEmail, getUser, type User } from "./users";
 import { sendLoginCode } from "./mail";
+import { userBySession } from "./users";
 import { bi, type Bi, type Lang } from "./lang";
 
 const COOKIE = "mu_session";
@@ -128,13 +130,12 @@ async function startSession(userId: string): Promise<void> {
   });
 }
 
-export async function currentUser(): Promise<User | null> {
+/** One query, and at most once per page render even though layout, metadata and page all ask. */
+export const currentUser = cache(async (): Promise<User | null> => {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
-  const row = await one<{ user_id: string; expires_at: number }>("SELECT user_id, expires_at FROM sessions WHERE token_hash = $1", [sha256(token)]);
-  if (!row || row.expires_at < now()) return null;
-  return getUser(row.user_id);
-}
+  return userBySession(sha256(token), now());
+});
 
 /** For pages: redirect to login (keeping the return path) when there is no session. */
 export async function requireUser(returnTo: string): Promise<User> {

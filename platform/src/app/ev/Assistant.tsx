@@ -35,7 +35,7 @@ function recognitionCtor(): (new () => Recognition) | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" | "browser"; aiReady: boolean; autoStart: boolean }) {
+export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" | "browser" | "auto"; aiReady: boolean; autoStart: boolean }) {
   const { saved, setPreview, save, say, setSaved, l, lang } = usePrefs();
   const [phase, setPhase] = useState<Phase>("idle");
   const [heard, setHeard] = useState("");
@@ -49,6 +49,7 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
   const media = useRef<MediaRecorder | null>(null);
   const finalText = useRef("");
   const started = useRef(false);
+  const silence = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => setPreview(null), [setPreview]);
 
@@ -60,7 +61,7 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
 
   async function understand(text: string, viaVoice: boolean) {
     const t = text.trim();
-    if (!t) return fail(l("Heç nə eşitmədim. Yenidən cəhd edin və bir az ucadan danışın.", "I didn’t hear anything. Please try again and speak a little louder."));
+    if (!t) return fail(l("Səsiniz aydın eşidilmədi. Mikrofona yaxın, bir az ucadan danışın və ya yazın.", "Your voice was not clear. Please speak a little louder, close to the microphone, or type."));
     // Typing while a suggestion is on screen steers that suggestion instead of starting over.
     const steering = phase === "proposal" ? proposal : null;
     setUsedVoice(viaVoice);
@@ -74,11 +75,12 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
         body: JSON.stringify({ text: t, previous: pendingQuestion, draft: steering?.patch }),
       });
       setTyped("");
-      if (r.question) {
-        // Too vague: ask one clarifying question instead of guessing.
-        setPendingQuestion({ said: pendingQuestion ? `${pendingQuestion.said} / ${t}` : t, question: r.question });
+      const question = r.question ?? (!steering && Object.keys(r.patch).length === 0 ? r.summary : null);
+      if (question) {
+        // Too vague or not about settings: ask one clarifying question instead of showing an empty suggestion.
+        setPendingQuestion({ said: pendingQuestion ? `${pendingQuestion.said} / ${t}` : t, question });
         setPhase(steering ? "proposal" : "idle");
-        if (viaVoice || saved.tts) say(r.question).catch(() => {});
+        if (viaVoice || saved.tts) say(question).catch(() => {});
         return;
       }
       setPendingQuestion(null);
@@ -97,55 +99,92 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
     }
   }
 
-  async function startListening() {
-    setError(null);
-    setHeard("");
-    setProposal(null);
-    setPreview(null);
-    const denied = l("Mikrofona icazə verilmədi. Brauzerdə mikrofon icazəsini açın.", "Microphone access was refused. Please allow the microphone in your browser.");
-    if (sttMode === "browser") {
-      const Ctor = recognitionCtor();
-      if (!Ctor) return fail(l("Bu brauzer səsli yazmanı dəstəkləmir. Chrome və ya Edge istifadə edin, ya da aşağıda yazın.", "This browser does not support voice input. Use Chrome or Edge, or type below."));
-      const r = new Ctor();
-      r.lang = SPEECH_LANG[lang];
-      r.interimResults = true;
-      r.continuous = false;
-      finalText.current = "";
-      r.onresult = (e) => {
-        let text = "";
-        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        finalText.current = text;
-        setHeard(text);
-      };
-      r.onerror = (e) => {
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") fail(denied);
-        else if (e.error === "no-speech") fail(l("Heç nə eşitmədim. Yenidən cəhd edin.", "I didn’t hear anything. Please try again."));
-        else if (e.error !== "aborted") fail(l(`Səs tanınmadı (${e.error}). Yenidən cəhd edin və ya yazın.`, `Could not recognise the speech (${e.error}). Try again or type.`));
-      };
-      r.onend = () => {
-        rec.current = null;
-        if (finalText.current) void understand(finalText.current, true);
-        else setPhase((p) => (p === "listening" ? "idle" : p));
-      };
-      rec.current = r;
-      setPhase("listening");
-      r.start();
-      return;
-    }
-    // server mode: record and upload to the speech-to-text service
+  const denied = l("Mikrofona icazə verilmədi. Brauzerdə mikrofon icazəsini açın.", "Microphone access was refused. Please allow the microphone in your browser.");
+
+  function clearSilence() {
+    if (silence.current) clearTimeout(silence.current);
+    silence.current = null;
+  }
+
+  /** The browser's own recogniser. Stops by itself after a pause, so nobody has to find the button again. */
+  function listenInBrowser(Ctor: new () => Recognition) {
+    const r = new Ctor();
+    r.lang = SPEECH_LANG[lang];
+    r.interimResults = true;
+    r.continuous = !/Android/i.test(navigator.userAgent); // Android repeats words in continuous mode
+    finalText.current = "";
+    let switched = false;
+    r.onresult = (e) => {
+      let text = "";
+      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      finalText.current = text;
+      setHeard(text);
+      clearSilence();
+      silence.current = setTimeout(() => r.stop(), 2800);
+    };
+    r.onerror = (e) => {
+      clearSilence();
+      if (e.error === "not-allowed") fail(denied);
+      else if (e.error === "no-speech") fail(l("Heç nə eşitmədim. Mikrofona yaxın, bir az ucadan danışın.", "I didn’t hear anything. Please speak a little louder, close to the microphone."));
+      else if (e.error !== "aborted") {
+        if (sttMode === "auto") {
+          console.warn("[assistant] browser speech recognition failed, recording for the server instead:", e.error);
+          switched = true;
+          void recordForServer();
+        } else {
+          fail(l(`Səs tanınmadı (${e.error}). Yenidən cəhd edin və ya yazın.`, `Could not recognise the speech (${e.error}). Try again or type.`));
+        }
+      }
+    };
+    r.onend = () => {
+      clearSilence();
+      rec.current = null;
+      if (switched) return;
+      if (finalText.current) void understand(finalText.current, true);
+      else setPhase((p) => (p === "listening" ? "idle" : p));
+    };
+    rec.current = r;
+    setPhase("listening");
+    r.start();
+  }
+
+  /** Records for Whisper. Measures the microphone so that silence is reported, never sent. */
+  async function recordForServer() {
     if (!navigator.mediaDevices?.getUserMedia) return fail(l("Bu brauzer mikrofonu dəstəkləmir. Aşağıda yazın.", "This browser does not support the microphone. Please type below."));
     let stream: MediaStream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
     } catch {
       return fail(denied);
     }
+    const audioCtx = new AudioContext();
+    await audioCtx.resume();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    const samples = new Float32Array(analyser.fftSize);
+    const startedAt = Date.now();
+    let lastLoud = startedAt;
+    let spoke = false;
     const chunks: Blob[] = [];
     const mr = new MediaRecorder(stream);
+    const meter = setInterval(() => {
+      analyser.getFloatTimeDomainData(samples);
+      const level = Math.sqrt(samples.reduce((sum, v) => sum + v * v, 0) / samples.length);
+      const t = Date.now();
+      if (level > 0.012) {
+        spoke = true;
+        lastLoud = t;
+      }
+      if (mr.state === "recording" && ((spoke && t - lastLoud > 2500) || (!spoke && t - startedAt > 8000) || t - startedAt > 45_000)) mr.stop();
+    }, 120);
     mr.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     mr.onstop = async () => {
+      clearInterval(meter);
+      void audioCtx.close();
       stream.getTracks().forEach((t) => t.stop());
       media.current = null;
+      if (!spoke) return fail(l("Mikrofondan səs gəlmir. Mikrofonun açıq olduğunu yoxlayın və ya aşağıda yazın.", "No sound is coming from the microphone. Check that it is on, or type below."));
       setPhase("thinking");
       const form = new FormData();
       const type = mr.mimeType || "audio/webm";
@@ -160,6 +199,17 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
     media.current = mr;
     mr.start();
     setPhase("listening");
+  }
+
+  async function startListening() {
+    setError(null);
+    setHeard("");
+    setProposal(null);
+    setPreview(null);
+    const Ctor = sttMode === "server" ? null : recognitionCtor();
+    if (Ctor) return listenInBrowser(Ctor);
+    if (sttMode === "browser") return fail(l("Bu brauzer səsli yazmanı dəstəkləmir. Chrome və ya Edge istifadə edin, ya da aşağıda yazın.", "This browser does not support voice input. Use Chrome or Edge, or type below."));
+    await recordForServer();
   }
 
   function stopListening() {
