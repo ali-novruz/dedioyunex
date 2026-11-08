@@ -1,8 +1,0 @@
-**/node_modules
-**/.next
-**/data
-sdk/android
-sdk/ios
-docs
-tests
-.git

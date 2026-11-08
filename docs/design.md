@@ -1,6 +1,6 @@
 # Design
 
-Source: the user's Canva reference "Yellow Colorful UI Health and Wellness Bio-Link Website". Style only; no content or name is reused.
+Source: a Canva reference "Yellow Colorful UI Health and Wellness Bio-Link Website". Style only; no content or name is reused.
 
 Idea: every action is a physical key on a yellow desk. Press it and it goes down.
 

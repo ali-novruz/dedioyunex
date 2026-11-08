@@ -1,4 +1,4 @@
-// Best-effort mapping of MƏNƏ UYĞUN settings to existing standards and platform features.
+// Best-effort mapping of Cizzy settings to existing standards and platform features.
 // "approx" = close equivalent, not an exact one-to-one term of the standard.
 import type { PreferenceKey } from "./schema";
 

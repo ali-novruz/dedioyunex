@@ -46,7 +46,7 @@ export function runCheck(doc: Document, fontScale: number, lang: "az" | "en" = "
   const view = doc.defaultView!;
   const horizontalOverflow = doc.documentElement.scrollWidth > view.innerWidth + 2;
 
-  doc.querySelectorAll<HTMLElement>("[data-mu-t]").forEach((el) => {
+  doc.querySelectorAll<HTMLElement>("[data-cz-t]").forEach((el) => {
     const cs = getComputedStyle(el);
     if (cs.display === "none" || cs.visibility === "hidden") return;
     const hidden = (v: string) => v === "hidden" || v === "clip";
@@ -62,7 +62,7 @@ export function runCheck(doc: Document, fontScale: number, lang: "az" | "en" = "
   });
 
   doc.querySelectorAll<HTMLElement>("button,a[href],[role=button],input:not([type=hidden]),select").forEach((el) => {
-    if (el.closest("[data-mu-ui]")) return;
+    if (el.closest("[data-cz-ui]")) return;
     const r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return;
     if (el.tagName !== "A" && (r.width < 44 || r.height < 44)) {

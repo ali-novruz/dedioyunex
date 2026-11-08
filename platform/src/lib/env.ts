@@ -53,7 +53,7 @@ export const env = {
     return process.env.SMTP_URL || null;
   },
   get mailFrom() {
-    return process.env.MAIL_FROM || "MƏNƏ UYĞUN <no-reply@localhost>";
+    return process.env.MAIL_FROM || "Cizzy <no-reply@localhost>";
   },
   /** auto: the browser's recogniser when it has one (far better for Azerbaijani), otherwise Whisper on the server. */
   get sttMode(): "server" | "browser" | "auto" {

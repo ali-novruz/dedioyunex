@@ -26,8 +26,8 @@
 </head>
 <body>
   <header><b>DEMO Poliklinika</b><span>Onlayn qeydiyyat</span></header>
-  <marquee data-mu-distraction>🔥 Check-up paketlərinə 40% endirim! · Yeni stomatologiya şöbəsi açıldı! · Mobil tətbiqi yükləyin!</marquee>
-  <div class="grid" data-mu-simple="hide">
+  <marquee data-cz-distraction>🔥 Check-up paketlərinə 40% endirim! · Yeni stomatologiya şöbəsi açıldı! · Mobil tətbiqi yükləyin!</marquee>
+  <div class="grid" data-cz-simple="hide">
     <button style="background:#ef4444">Analizlər</button><button style="background:#f97316">Nəticələr</button><button style="background:#eab308">Reseptlər</button>
     <button style="background:#22c55e">Sığorta</button><button style="background:#14b8a6">Endirimlər</button><button style="background:#3b82f6">Həkimlər</button>
     <button style="background:#6366f1">Ödənişlər</button><button style="background:#a855f7">Xəbərlər</button><button style="background:#ec4899">Rəylər</button>
@@ -42,13 +42,13 @@
       <select id="doc" name="doctor"><option>Terapevt — Dr. Leyla Məmmədova</option><option>Kardioloq — Dr. Rauf Həsənov</option><option>Nevroloq — Dr. Aysel Quliyeva</option></select></div>
       <div><label for="slot">Vaxt</label>
       <select id="slot" name="slot"><option>10 noyabr, 09:30</option><option>10 noyabr, 11:00</option><option>11 noyabr, 14:30</option><option>12 noyabr, 10:00</option></select></div>
-      <button class="book" id="book" type="submit" data-mu-simple="primary" data-mu-guard="submit">Qeydiyyatı təsdiqlə</button><span class="timer" id="timer"></span>
+      <button class="book" id="book" type="submit" data-cz-simple="primary" data-cz-guard="submit">Qeydiyyatı təsdiqlə</button><span class="timer" id="timer"></span>
     </form>
   </main>
 <script>
   var form = document.getElementById("reg"), book = document.getElementById("book"), doc = document.getElementById("doc"), slot = document.getElementById("slot");
   function describe() {
-    book.setAttribute("data-mu-guard-text", Demo.t(doc.value + " ilə " + slot.value + " tarixinə yazılırsınız.", "You are booking " + doc.value + " for " + slot.value + "."));
+    book.setAttribute("data-cz-guard-text", Demo.t(doc.value + " ilə " + slot.value + " tarixinə yazılırsınız.", "You are booking " + doc.value + " for " + slot.value + "."));
   }
   doc.onchange = slot.onchange = describe;
   window.addEventListener("load", describe);

@@ -1,4 +1,4 @@
-// MƏNƏ UYĞUN Web SDK entry. Usage:
+// Cizzy Web SDK entry. Usage:
 //   <script src="https://PLATFORM/sdk.js" data-client-id="YOUR_CLIENT_ID"></script>
 // Optional attributes: data-mode="auto|tokens", data-floating="false", data-base-url="https://PLATFORM"
 
@@ -43,7 +43,7 @@ const store = {
 function warnStorage() {
   if (storageWarned) return;
   storageWarned = true;
-  console.warn("[MeneUygun] localStorage is blocked; the connection will not survive a page reload.");
+  console.warn("[Cizzy] localStorage is blocked; the connection will not survive a page reload.");
 }
 
 // ---------- PKCE ----------
@@ -58,16 +58,16 @@ function randomString(len = 32): string {
   return b64url(a);
 }
 async function challengeFor(verifier: string): Promise<string> {
-  if (!crypto.subtle) throw new Error("MƏNƏ UYĞUN requires a secure context (HTTPS or localhost).");
+  if (!crypto.subtle) throw new Error("Cizzy requires a secure context (HTTPS or localhost).");
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
   return b64url(new Uint8Array(digest));
 }
 
 // ---------- texts ----------
 const AZ = {
-  connect: "MƏNƏ UYĞUN-dan ayarları gətir",
+  connect: "Cizzy-dən ayarları gətir",
   waiting: "Gözləyin…",
-  active: "Mənə uyğun ayarlar aktiv",
+  active: "Cizzy ayarları aktiv",
   refresh: "Yenilə",
   edit: "Ayarları dəyiş",
   disconnect: "Ayır",
@@ -97,7 +97,7 @@ const AZ = {
   showAll: "Bütün düymələri göstər",
   supports: "Bu sayt aktiv ayarlarınızdan {a}/{b}-ni dəstəkləyir.",
   unsupported: "Dəstəklənmir",
-  checkTitle: "MƏNƏ UYĞUN yoxlama",
+  checkTitle: "Cizzy yoxlama",
   overflow: "Üfüqi sürüşmə",
   overflowYes: "var",
   overflowNo: "yoxdur",
@@ -110,7 +110,7 @@ const AZ = {
 type Texts = Record<keyof typeof AZ, string>;
 
 const EN: Texts = {
-  connect: "Bring my MƏNƏ UYĞUN settings",
+  connect: "Bring my Cizzy settings",
   waiting: "Please wait…",
   active: "My settings are on",
   refresh: "Refresh",
@@ -142,7 +142,7 @@ const EN: Texts = {
   showAll: "Show all buttons",
   supports: "This site supports {a} of your {b} active settings.",
   unsupported: "Not supported",
-  checkTitle: "MƏNƏ UYĞUN check",
+  checkTitle: "Cizzy check",
   overflow: "Sideways scrolling",
   overflowYes: "yes",
   overflowNo: "no",
@@ -170,10 +170,13 @@ function setLabel(btn: HTMLElement, icon: keyof typeof ICON, text: string): void
   btn.append(text);
 }
 
+// The Cizzy mark: the letter c drawn as a dial with its knob.
+const MARK = '<svg viewBox="0 0 40 40" width="1.5em" height="1.5em" aria-hidden="true"><path d="M28.68 9.66A13.5 13.5 0 1 0 28.68 30.34" fill="none" stroke="#262626" stroke-width="7.5" stroke-linecap="round"/><circle cx="28.68" cy="9.66" r="6" fill="#f5bc4a" stroke="#262626" stroke-width="3"/></svg>';
+
 const INK = "#262626", PAPER = "#f3f3f3", FIELD = "#f5bc4a";
 
 const WIDGET_CSS = `
-:host{all:initial;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(17px * min(var(--mu-font-scale,1),1.5));color:${INK}}
+:host{all:initial;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(17px * min(var(--cz-font-scale,1),1.5));color:${INK}}
 *{box-sizing:border-box;font:inherit}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.6em}
 button{cursor:pointer;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:.55em;min-height:2.9em;padding:.55em 1em;font-weight:600;line-height:1.2;display:inline-flex;align-items:center;gap:.5em;box-shadow:4px 4px 0 ${INK};touch-action:manipulation;transition:transform .07s cubic-bezier(.16,1,.3,1),box-shadow .07s cubic-bezier(.16,1,.3,1)}
@@ -185,7 +188,7 @@ button:disabled{cursor:progress}
 .chip{background:${PAPER}}
 .ghost{background:transparent;box-shadow:none;min-height:2.5em;padding:.35em .85em}
 .ghost:hover:not(:disabled){background:${INK};color:${PAPER};transform:none;box-shadow:none}
-.logo{width:1.75em;height:1.75em;border-radius:3px;background:${INK};color:${FIELD};display:grid;place-items:center;font-weight:800;font-size:.72em;flex:none}
+.logo{display:inline-flex;flex:none}
 .msg{margin-top:.5em;font-size:.88em;color:#8f1d14;background:${PAPER};border:2px solid #8f1d14;border-radius:3px;padding:.3em .55em}
 .note{margin-top:.5em;font-size:.82em;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:3px;padding:.3em .55em;max-width:22em}
 .menu{margin-top:.6em;background:${PAPER};border:2px solid ${INK};border-radius:3px;padding:.6em;display:flex;flex-direction:column;gap:.45em;box-shadow:6px 6px 0 ${INK}}
@@ -206,7 +209,7 @@ button:disabled{cursor:progress}
 @media (prefers-reduced-motion:reduce){button{transition:none}}
 `;
 
-class MeneUygunSDK {
+class CizzySDK {
   readonly version = VERSION;
   private cfg: Config | null = null;
   private engine: PreferenceEngine | null = null;
@@ -243,14 +246,14 @@ class MeneUygunSDK {
   }
 
   init(config: Partial<Config> & { clientId: string }): void {
-    if (this.cfg) throw new Error("MeneUygun.init() was already called");
-    if (!config.clientId) throw new Error("MeneUygun: clientId is required");
+    if (this.cfg) throw new Error("Cizzy.init() was already called");
+    if (!config.clientId) throw new Error("Cizzy: clientId is required");
     const baseUrl = (config.baseUrl ?? "").replace(/\/+$/, "");
-    if (!baseUrl) throw new Error("MeneUygun: baseUrl is required");
+    if (!baseUrl) throw new Error("Cizzy: baseUrl is required");
     const known = new Set(SETTINGS.map((s) => s.key));
     const supports = (config.supports ?? []).filter((k) => {
       if (known.has(k)) return true;
-      console.warn(`[MeneUygun] data-supports: unknown setting "${k}" ignored`);
+      console.warn(`[Cizzy] data-supports: unknown setting "${k}" ignored`);
       return false;
     });
     this.cfg = { clientId: config.clientId, baseUrl, mode: config.mode ?? "auto", floating: config.floating ?? true, supports, ai: config.ai ?? "on" };
@@ -267,7 +270,7 @@ class MeneUygunSDK {
       },
     });
     const sayIfWanted = (text: string) => {
-      if (this.prefs?.tts) void this.speak(text).catch((e) => console.warn("[MeneUygun]", e));
+      if (this.prefs?.tts) void this.speak(text).catch((e) => console.warn("[Cizzy]", e));
     };
     this.guard = new ActionGuard(document, () => this.lang(), sayIfWanted);
     this.forms = new FormGuide(
@@ -290,7 +293,7 @@ class MeneUygunSDK {
       try {
         this.setPrefs(readPreferences(JSON.parse(cached)), false);
       } catch (e) {
-        console.warn("[MeneUygun] cached preferences invalid, ignoring", e);
+        console.warn("[Cizzy] cached preferences invalid, ignoring", e);
         store.del(this.key("prefs"));
       }
     }
@@ -299,7 +302,7 @@ class MeneUygunSDK {
       this.renderButtons();
       this.renderTts();
       if (!this.completeRedirect()) this.safeRefresh();
-      if (new URLSearchParams(location.search).has("mu-check")) void this.check().then((r) => this.showCheck(r));
+      if (new URLSearchParams(location.search).has("cz-check")) void this.check().then((r) => this.showCheck(r));
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", onReady, { once: true });
     else onReady();
@@ -317,7 +320,7 @@ class MeneUygunSDK {
         // Another tab (e.g. a popup opened as a tab) finished connecting.
         if (e.key === this.key("token") && e.newValue && !this.prefs) this.safeRefresh();
       } catch (err) {
-        console.warn("[MeneUygun] ignoring malformed storage event", err);
+        console.warn("[Cizzy] ignoring malformed storage event", err);
       }
     });
   }
@@ -359,12 +362,12 @@ class MeneUygunSDK {
       store.set(this.key("pkce"), JSON.stringify({ verifier, state, redirectUri: "postmessage", at: Date.now() }));
       const w = 500, h = 760;
       const left = Math.max(0, (screen.width - w) / 2), top = Math.max(0, (screen.height - h) / 2);
-      const popup = window.open(`${cfg.baseUrl}/oauth/authorize?${params}`, "meneuygun_auth", `width=${w},height=${h},left=${left},top=${top}`);
+      const popup = window.open(`${cfg.baseUrl}/oauth/authorize?${params}`, "cizzy_auth", `width=${w},height=${h},left=${left},top=${top}`);
       if (!popup) {
         // Popup blocked: full-page redirect flow.
         store.set(this.key("pkce"), JSON.stringify({ verifier, state, redirectUri: page, at: Date.now() }));
         params.set("redirect_uri", page);
-        params.set("response_mode", "mu_fragment");
+        params.set("response_mode", "cz_fragment");
         params.delete("return_to");
         location.assign(`${cfg.baseUrl}/oauth/authorize?${params}`);
         return await new Promise<Preferences>(() => {});
@@ -401,7 +404,7 @@ class MeneUygunSDK {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token, client_id: cfg.clientId }),
         });
-        if (!r.ok) console.warn("[MeneUygun] revoke failed with", r.status);
+        if (!r.ok) console.warn("[Cizzy] revoke failed with", r.status);
       }
     } finally {
       // Always disconnect locally, even offline.
@@ -420,7 +423,7 @@ class MeneUygunSDK {
       this.clearLocal(true);
       return null;
     }
-    if (!r.ok) throw new Error(`MeneUygun: preferences request failed (${r.status})`);
+    if (!r.ok) throw new Error(`Cizzy: preferences request failed (${r.status})`);
     const body = await r.json();
     const prefs = readPreferences(body.preferences);
     this.setPrefs(prefs, true);
@@ -449,7 +452,7 @@ class MeneUygunSDK {
   /** Compatibility check for site owners: renders the page at the given text scale and reports problems. */
   async check(opts: { fontScale?: number } = {}): Promise<CheckReport> {
     const engine = this.engine;
-    if (!engine) throw new Error("MeneUygun is not initialised");
+    if (!engine) throw new Error("Cizzy is not initialised");
     const before = this.prefs;
     const scale = opts.fontScale ?? 2;
     engine.apply({ ...DEFAULT_PREFERENCES, fontScale: scale });
@@ -466,7 +469,7 @@ class MeneUygunSDK {
   // ---------- internals ----------
   /** Fail-open refresh: network/server errors keep the cached preferences and never break the page. */
   private safeRefresh(): void {
-    this.refresh().catch((e) => console.warn("[MeneUygun] could not refresh preferences, using cached ones", e));
+    this.refresh().catch((e) => console.warn("[Cizzy] could not refresh preferences, using cached ones", e));
   }
 
   private showCheck(r: CheckReport): void {
@@ -506,17 +509,17 @@ class MeneUygunSDK {
   }
 
   private need(): Config {
-    if (!this.cfg) throw new Error("MeneUygun is not initialised; add data-client-id to the script tag or call MeneUygun.init()");
+    if (!this.cfg) throw new Error("Cizzy is not initialised; add data-client-id to the script tag or call Cizzy.init()");
     return this.cfg;
   }
   private key(k: string): string {
-    return `meneuygun:${this.cfg?.clientId}:${k}`;
+    return `cizzy:${this.cfg?.clientId}:${k}`;
   }
   private emit(name: EventName, detail: unknown): void {
     this.listeners.get(name)?.forEach((cb) => {
-      try { cb(detail); } catch (e) { console.error("[MeneUygun] listener error", e); }
+      try { cb(detail); } catch (e) { console.error("[Cizzy] listener error", e); }
     });
-    document.dispatchEvent(new CustomEvent(`meneuygun:${name}`, { detail }));
+    document.dispatchEvent(new CustomEvent(`cizzy:${name}`, { detail }));
   }
 
   private setPrefs(prefs: Preferences, persist: boolean): void {
@@ -543,8 +546,8 @@ class MeneUygunSDK {
     this.stopListening();
     this.stopExplaining();
     this.closePanel();
-    document.querySelector("[data-mu-ui='plain-summary']")?.remove();
-    document.querySelector("[data-mu-ui='reminder']")?.remove();
+    document.querySelector("[data-cz-ui='plain-summary']")?.remove();
+    document.querySelector("[data-cz-ui='reminder']")?.remove();
     this.help = null;
     this.renderTts();
     this.menuOpen = false;
@@ -558,7 +561,7 @@ class MeneUygunSDK {
       const onMsg = (e: MessageEvent) => {
         if (e.origin !== origin || e.source !== popup) return;
         const d = e.data as { type?: string; code?: string; state?: string; error?: string };
-        if (!d || d.type !== "meneuygun:authorize") return;
+        if (!d || d.type !== "cizzy:authorize") return;
         cleanup();
         if (d.state !== state) return reject(new Error(T.failed));
         if (d.error) return reject(new Error(d.error === "access_denied" ? T.denied : T.failed));
@@ -598,12 +601,12 @@ class MeneUygunSDK {
   /** Handles the return leg of the popup-blocked redirect flow. Returns true if it took over. */
   private completeRedirect(): boolean {
     const hash = new URLSearchParams(location.hash.slice(1));
-    if (!hash.has("mu_code") && !hash.has("mu_error")) return false;
+    if (!hash.has("cz_code") && !hash.has("cz_error")) return false;
     const saved = store.get(this.key("pkce"));
     store.del(this.key("pkce"));
     history.replaceState(null, "", location.href.split("#")[0]);
     if (!saved) {
-      console.warn("[MeneUygun] authorization response without a pending request");
+      console.warn("[Cizzy] authorization response without a pending request");
       return false;
     }
     const { verifier, state, redirectUri, at } = JSON.parse(saved) as { verifier: string; state: string; redirectUri: string; at: number };
@@ -612,14 +615,14 @@ class MeneUygunSDK {
       this.renderButtons();
       return true;
     }
-    if (hash.get("mu_state") !== state || hash.has("mu_error")) {
-      this.error = hash.get("mu_error") === "access_denied" ? T.denied : T.failed;
+    if (hash.get("cz_state") !== state || hash.has("cz_error")) {
+      this.error = hash.get("cz_error") === "access_denied" ? T.denied : T.failed;
       this.renderButtons();
       return true;
     }
     this.busy = true;
     this.renderButtons();
-    this.exchange(hash.get("mu_code")!, verifier, redirectUri)
+    this.exchange(hash.get("cz_code")!, verifier, redirectUri)
       .then((p) => this.emit("connect", p))
       .catch((e) => {
         this.error = T.failed;
@@ -634,18 +637,18 @@ class MeneUygunSDK {
 
   // ---------- UI (rendered in shadow roots so site CSS cannot break it) ----------
   private injectGlobalStyle(): void {
-    if (document.getElementById("meneuygun-ui-style")) return;
+    if (document.getElementById("cizzy-ui-style")) return;
     const s = document.createElement("style");
-    s.id = "meneuygun-ui-style";
-    s.setAttribute("data-mu-ui", "style");
-    s.textContent = `[data-mu-reading]{outline:4px solid #ffbf00!important;outline-offset:4px!important;background-color:rgba(255,230,0,.28)!important}
-html[data-mu-listening] body *{cursor:help!important}`;
+    s.id = "cizzy-ui-style";
+    s.setAttribute("data-cz-ui", "style");
+    s.textContent = `[data-cz-reading]{outline:4px solid #ffbf00!important;outline-offset:4px!important;background-color:rgba(255,230,0,.28)!important}
+html[data-cz-listening] body *{cursor:help!important}`;
     (document.head ?? document.documentElement).appendChild(s);
   }
 
   private shadowHost(container: HTMLElement | null, floatingSide: "left" | "right" | null): { host: HTMLElement; root: HTMLElement } {
     const host = document.createElement("div");
-    host.setAttribute("data-mu-ui", "widget");
+    host.setAttribute("data-cz-ui", "widget");
     if (floatingSide) {
       host.style.cssText = `position:fixed;${floatingSide}:16px;bottom:16px;z-index:2147483647;`;
     }
@@ -659,7 +662,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     T = TEXTS[this.lang()];
     if (!this.cfg || !document.body) return;
     if (this.buttons.length === 0) {
-      const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-mu-button]"));
+      const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-cz-button]"));
       if (slots.length) slots.forEach((s) => this.buttons.push({ root: this.shadowHost(s, null).root, floating: false }));
       else if (this.cfg.floating) this.buttons.push({ root: this.shadowHost(null, "right").root, floating: true });
     }
@@ -687,7 +690,11 @@ html[data-mu-listening] body *{cursor:help!important}`;
       if (text) e.textContent = text;
       return e;
     };
-    const logo = () => el("span", "logo", "MU");
+    const logo = () => {
+      const mark = el("span", "logo");
+      mark.innerHTML = MARK;
+      return mark;
+    };
     if (!connected) {
       const btn = el("button", "primary") as HTMLButtonElement;
       btn.append(logo(), document.createTextNode(this.busy ? T.waiting : T.connect));
@@ -776,7 +783,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       all.textContent = T.showAll;
       all.style.marginBottom = ".45em";
       all.addEventListener("click", () => {
-        document.querySelectorAll("[data-mu-ai-hidden]").forEach((el) => el.removeAttribute("data-mu-ai-hidden"));
+        document.querySelectorAll("[data-cz-ai-hidden]").forEach((el) => el.removeAttribute("data-cz-ai-hidden"));
         this.simplifyShown = false;
         this.renderTts();
       });
@@ -884,10 +891,10 @@ html[data-mu-listening] body *{cursor:help!important}`;
 
   /** Memory aid (simple mode): a sticky "You are here: …" bar so the user does not lose track of the task. */
   private showReminder(help: PageHelp): void {
-    document.querySelector("[data-mu-ui='reminder']")?.remove();
+    document.querySelector("[data-cz-ui='reminder']")?.remove();
     if (!this.prefs?.simpleMode) return;
     const bar = document.createElement("div");
-    bar.setAttribute("data-mu-ui", "reminder");
+    bar.setAttribute("data-cz-ui", "reminder");
     bar.setAttribute("role", "note");
     bar.style.cssText = "position:sticky;top:0;z-index:2147483640;display:flex;gap:.8em;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.6em 1em;background:#262626;color:#f3f3f3;font:600 1.05em/1.4 system-ui,sans-serif";
     const t = document.createElement("span");
@@ -910,7 +917,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     try {
       help = await this.explainPage();
     } catch (e) {
-      console.warn("[MeneUygun] page explainer failed", e);
+      console.warn("[Cizzy] page explainer failed", e);
       return;
     }
     this.closePanel();
@@ -924,7 +931,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     const titleBar = document.createElement("div");
     titleBar.className = "bar";
     titleBar.innerHTML = '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>';
-    titleBar.append("MƏNƏ UYĞUN");
+    titleBar.append("Cizzy");
     const sheet = document.createElement("div");
     sheet.className = "sheet";
     win.append(titleBar, sheet);
@@ -971,7 +978,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     root.append(win);
     close.focus();
     function snapshotLabels(): [string, string][] {
-      return Array.from(document.querySelectorAll("[data-mu-aid]")).map((el) => [el.getAttribute("data-mu-aid")!, (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || ""]);
+      return Array.from(document.querySelectorAll("[data-cz-aid]")).map((el) => [el.getAttribute("data-cz-aid")!, (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || ""]);
     }
   }
 
@@ -980,14 +987,14 @@ html[data-mu-listening] body *{cursor:help!important}`;
     if (!el) return;
     this.closePanel();
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.setAttribute("data-mu-reading", "");
-    setTimeout(() => el.removeAttribute("data-mu-reading"), 3500);
+    el.setAttribute("data-cz-reading", "");
+    setTimeout(() => el.removeAttribute("data-cz-reading"), 3500);
     if (typeof el.focus === "function") el.focus({ preventScroll: true });
   }
 
   private onExplainClick = (e: MouseEvent) => {
     const target = e.target as Element | null;
-    if (!target || target.closest("[data-mu-ui]")) return;
+    if (!target || target.closest("[data-cz-ui]")) return;
     const ctl = controlFor(target);
     if (!ctl) return;
     e.preventDefault();
@@ -1005,7 +1012,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     const finish = (text: string) => {
       if (turn !== this.bubbleTurn) return;
       this.showBubble(el, label, text);
-      if (this.prefs?.tts) void this.speak(`${label}. ${text}`).catch((e) => console.warn("[MeneUygun]", e));
+      if (this.prefs?.tts) void this.speak(`${label}. ${text}`).catch((e) => console.warn("[Cizzy]", e));
     };
     const fromPage = this.help && this.helpFor === this.signature(snap) ? this.help.actions.find((a) => a.id === id) : undefined;
     if (fromPage) return finish(fromPage.explain);
@@ -1020,7 +1027,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       this.controlHelp.set(key, explain);
       finish(explain);
     } catch (e) {
-      console.warn("[MeneUygun] control explainer failed", e);
+      console.warn("[Cizzy] control explainer failed", e);
       if (turn === this.bubbleTurn) this.showBubble(el, label, e instanceof Error ? e.message : T.failed);
     }
   }
@@ -1073,9 +1080,9 @@ html[data-mu-listening] body *{cursor:help!important}`;
     try {
       const help = await this.explainPage();
       const h1 = document.querySelector("main h1, article h1, h1");
-      if (!h1 || document.querySelector("[data-mu-ui='plain-summary']")) return;
+      if (!h1 || document.querySelector("[data-cz-ui='plain-summary']")) return;
       const box = document.createElement("div");
-      box.setAttribute("data-mu-ui", "plain-summary");
+      box.setAttribute("data-cz-ui", "plain-summary");
       box.style.cssText = "margin:.6em 0 1em;padding:.8em 1em;border:2px solid #262626;background:#f3f3f3;color:#262626;border-radius:3px;box-shadow:5px 5px 0 #262626;font:inherit;line-height:1.5";
       const b = document.createElement("b");
       b.textContent = `${T.plain}: ${help.headline}`;
@@ -1084,7 +1091,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       box.append(b, p);
       h1.insertAdjacentElement("afterend", box);
     } catch (e) {
-      console.warn("[MeneUygun] auto summary failed", e);
+      console.warn("[Cizzy] auto summary failed", e);
       if (this.autoRetried !== url) {
         this.autoRetried = url;
         setTimeout(() => {
@@ -1104,9 +1111,9 @@ html[data-mu-listening] body *{cursor:help!important}`;
   private onHoverRead = (e: MouseEvent) => {
     clearTimeout(this.hoverTimer);
     const target = e.target as Element | null;
-    if (!target || target.closest("[data-mu-ui]")) return;
+    if (!target || target.closest("[data-cz-ui]")) return;
     const block = target.closest("p,li,h1,h2,h3,h4,h5,h6,td,th,label,button,a,blockquote,figcaption,dd,dt,summary");
-    if (!block || block.hasAttribute("data-mu-reading")) return;
+    if (!block || block.hasAttribute("data-cz-reading")) return;
     this.hoverTimer = window.setTimeout(() => this.readElement(block as HTMLElement), 700);
   };
 
@@ -1131,19 +1138,19 @@ html[data-mu-listening] body *{cursor:help!important}`;
     try {
       const body = await this.assistFetch({ ...snap, simplify: true });
       const keep = new Set(body.keep as string[]);
-      document.querySelectorAll<HTMLElement>("[data-mu-aid]").forEach((el) => {
-        if (keep.has(el.getAttribute("data-mu-aid")!) || el.matches("[data-mu-simple='primary'],[data-mu-simple='keep'],[type=submit]") || el.closest("form")) return;
-        el.setAttribute("data-mu-ai-hidden", "");
+      document.querySelectorAll<HTMLElement>("[data-cz-aid]").forEach((el) => {
+        if (keep.has(el.getAttribute("data-cz-aid")!) || el.matches("[data-cz-simple='primary'],[data-cz-simple='keep'],[type=submit]") || el.closest("form")) return;
+        el.setAttribute("data-cz-ai-hidden", "");
       });
       this.simplifyShown = true;
       this.renderTts();
     } catch (e) {
-      console.warn("[MeneUygun] AI simplification failed, leaving the page unchanged", e);
+      console.warn("[Cizzy] AI simplification failed, leaving the page unchanged", e);
     }
   }
 
   private undoSimplify(): void {
-    document.querySelectorAll("[data-mu-ai-hidden]").forEach((el) => el.removeAttribute("data-mu-ai-hidden"));
+    document.querySelectorAll("[data-cz-ai-hidden]").forEach((el) => el.removeAttribute("data-cz-ai-hidden"));
     this.simplifyShown = false;
     this.simplifiedFor = "";
   }
@@ -1151,14 +1158,14 @@ html[data-mu-listening] body *{cursor:help!important}`;
   /** A "plain words" button under long paragraphs. Each one asks the AI only when pressed. */
   private syncParagraphs(): void {
     const wanted = !!this.prefs?.simplifyParagraphs && this.isConnected && this.cfg?.ai !== "off";
-    document.querySelectorAll("[data-mu-ui='plain-para']").forEach((e) => e.remove());
+    document.querySelectorAll("[data-cz-ui='plain-para']").forEach((e) => e.remove());
     if (!wanted) return;
     const root = document.querySelector("main,[role=main],article") ?? document.body;
     root.querySelectorAll<HTMLElement>("p").forEach((p) => {
       const text = (p.innerText ?? "").trim();
-      if (text.length < 180 || p.closest("[data-mu-ui]") || p.offsetParent === null) return;
+      if (text.length < 180 || p.closest("[data-cz-ui]") || p.offsetParent === null) return;
       const wrap = document.createElement("div");
-      wrap.setAttribute("data-mu-ui", "plain-para");
+      wrap.setAttribute("data-cz-ui", "plain-para");
       wrap.style.cssText = "margin:.4em 0 1em;font:600 15px/1.45 system-ui,sans-serif;color:#262626";
       const b = document.createElement("button");
       b.type = "button";
@@ -1173,7 +1180,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
             box.style.cssText = "padding:.7em .9em;background:#f3f3f3;border:2px solid #262626;border-radius:3px;font-weight:500";
             box.textContent = String(body.plain);
             wrap.replaceChildren(box);
-            if (this.prefs?.tts) void this.speak(String(body.plain)).catch((e) => console.warn("[MeneUygun]", e));
+            if (this.prefs?.tts) void this.speak(String(body.plain)).catch((e) => console.warn("[Cizzy]", e));
           })
           .catch((e) => {
             b.disabled = false;
@@ -1199,7 +1206,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
 
   private onListenClick = (e: MouseEvent) => {
     const target = e.target as Element | null;
-    if (!target || target.closest("[data-mu-ui]")) return;
+    if (!target || target.closest("[data-cz-ui]")) return;
     e.preventDefault();
     e.stopPropagation();
     const sel = window.getSelection()?.toString().trim();
@@ -1213,7 +1220,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
 
   private startListening(): void {
     this.listening = true;
-    document.documentElement.setAttribute("data-mu-listening", "");
+    document.documentElement.setAttribute("data-cz-listening", "");
     document.addEventListener("click", this.onListenClick, true);
     this.renderTts();
   }
@@ -1221,7 +1228,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
   private stopListening(): void {
     if (!this.listening) return;
     this.listening = false;
-    document.documentElement.removeAttribute("data-mu-listening");
+    document.documentElement.removeAttribute("data-cz-listening");
     document.removeEventListener("click", this.onListenClick, true);
     stopSpeaking();
     this.clearReading();
@@ -1236,9 +1243,9 @@ html[data-mu-listening] body *{cursor:help!important}`;
 
   private async say(text: string, el: HTMLElement | null): Promise<void> {
     this.clearReading();
-    if (el) el.setAttribute("data-mu-reading", "");
+    if (el) el.setAttribute("data-cz-reading", "");
     const failed = (e: unknown) => {
-      console.error("[MeneUygun] reading aloud failed", e);
+      console.error("[Cizzy] reading aloud failed", e);
       this.clearReading();
       this.ttsError = T.noVoice;
       this.renderTts();
@@ -1252,7 +1259,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
   }
 
   private clearReading(): void {
-    document.querySelectorAll("[data-mu-reading]").forEach((e) => e.removeAttribute("data-mu-reading"));
+    document.querySelectorAll("[data-cz-reading]").forEach((e) => e.removeAttribute("data-cz-reading"));
   }
 }
 
@@ -1260,12 +1267,12 @@ const REVERSE: Record<string, true> = Object.fromEntries([...Object.values(AZ), 
 
 declare global {
   interface Window {
-    MeneUygun: MeneUygunSDK;
+    Cizzy: CizzySDK;
   }
 }
 
-const sdk = new MeneUygunSDK();
-window.MeneUygun = sdk;
+const sdk = new CizzySDK();
+window.Cizzy = sdk;
 
 // Auto-init from the script tag.
 const script = document.currentScript as HTMLScriptElement | null;

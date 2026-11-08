@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DEMO Market — onlayn mağaza</title>
-<!-- MƏNƏ UYĞUN: one line integration. data-supports lists type-B settings this site implements itself. -->
+<!-- Cizzy: one line integration. data-supports lists type-B settings this site implements itself. -->
 <script src="/demo.js"></script>
 <script src="{{PLATFORM_URL}}/sdk.js" data-client-id="demo-partner" data-supports="confirmActions,extendedTimeouts,plainLanguage,visualAlerts" async></script>
 <style>
@@ -44,8 +44,8 @@
   .timer { font-size: 11px; color: #c62828; }
   .legal { font-size: 10px; color: #aaa; line-height: 1.3; }
   .plain { display: none; font-size: 13px; color: #333; }
-  html[data-mu-plain-language] .legal { display: none; }
-  html[data-mu-plain-language] .plain { display: block; }
+  html[data-cz-plain-language] .legal { display: none; }
+  html[data-cz-plain-language] .plain { display: block; }
   .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1b5e20; color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 16px; display: none; z-index: 10; }
   footer { text-align: center; color: #bbb; font-size: 10px; padding: 20px; }
   @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } }
@@ -60,11 +60,11 @@
       <button class="icon" aria-label="Sevimlilər" title="Sevimlilər">♡</button>
       <button class="icon" aria-label="Profil" title="Profil">👤</button>
     </div>
-    <nav class="menu" data-mu-simple="hide">
+    <nav class="menu" data-cz-simple="hide">
       <a href="#">Endirimlər</a><a href="#">Elektronika</a><a href="#">Ev</a><a href="#">Geyim</a><a href="#">Uşaq</a><a href="#">Kampaniyalar</a><a href="#">Hədiyyə kartı</a>
     </nav>
   </div>
-  <div class="promo" data-mu-distraction>🔥 MEGA ENDİRİM! Bu gün bütün məhsullara 50%-ə qədər! Tələsin! 🔥</div>
+  <div class="promo" data-cz-distraction>🔥 MEGA ENDİRİM! Bu gün bütün məhsullara 50%-ə qədər! Tələsin! 🔥</div>
 
   <div class="wrap">
     <main>
@@ -82,13 +82,13 @@
         <p class="legal">Ödəniş etməklə siz istifadə şərtlərini, məxfilik siyasətini, geri qaytarma qaydalarını və üçüncü tərəf ödəniş provayderinin şərtlərini qəbul etmiş olursunuz. Sifariş təsdiqləndikdən sonra ləğvetmə 24 saat ərzində mümkündür.</p>
         <p class="plain">Ödə düyməsinə basanda 15.30 AZN kartınızdan çıxılacaq. Fikrinizi dəyişsəniz, 1 gün ərzində ləğv edə bilərsiniz.</p>
         <div class="row">
-          <button class="pay" id="pay" data-mu-simple="primary">Ödə — 15.30 AZN</button>
+          <button class="pay" id="pay" data-cz-simple="primary">Ödə — 15.30 AZN</button>
           <span class="timer" id="timer"></span>
         </div>
       </div>
     </main>
     <aside>
-      <div class="box ad" data-mu-distraction>REKLAM<br>Kredit kartı ilə 0% faiz!</div>
+      <div class="box ad" data-cz-distraction>REKLAM<br>Kredit kartı ilə 0% faiz!</div>
       <div class="box">
         <h4>Ən çox satılanlar</h4>
         <ul><li>Qəhvə dənələri</li><li>Yuyucu toz 3 kq</li><li>Uşaq bezi</li><li>Zeytun yağı</li></ul>
@@ -100,7 +100,7 @@
   <footer>© DEMO Market — nümunə sayt (real mağaza deyil)<br>Ssenarilər: <a href="/aptek">Aptek sifarişi</a> · <a href="/arayis">Dövlət arayışı</a> · <a href="/xestexana">Həkimə yazılmaq</a> · <a href="/xeber">Xəbər</a></footer>
 
 <script>
-  // Type-B features implemented by the site itself, driven by MƏNƏ UYĞUN preferences.
+  // Type-B features implemented by the site itself, driven by Cizzy preferences.
   var prefs = null;
   var secondsLeft = 120;
   function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
@@ -116,11 +116,11 @@
     setTimeout(function () { t.style.display = "none"; }, 3500);
   }
 
-  document.addEventListener("meneuygun:preferences", function (e) {
+  document.addEventListener("cizzy:preferences", function (e) {
     prefs = e.detail;
     if (prefs.extendedTimeouts && secondsLeft < 30 * 60) secondsLeft = 30 * 60; // session extended to 30 min
   });
-  document.addEventListener("meneuygun:disconnect", function () { prefs = null; });
+  document.addEventListener("cizzy:disconnect", function () { prefs = null; });
 
   document.getElementById("pay").addEventListener("click", function () {
     if (prefs && prefs.confirmActions && !confirm(Demo.t("Əminsiniz? Kartınızdan 15.30 AZN çıxılacaq.", "Are you sure? 15.30 AZN will be taken from your card."))) return;

@@ -21,7 +21,7 @@ const cases = String.raw`
 const $ = (id) => document.getElementById(id);
 const cs = (id) => getComputedStyle($(id));
 const rule = (s) => [...document.styleSheets].some((x) => { try { return [...x.cssRules].some((r) => r.cssText.includes(s)); } catch { return false; } });
-const attr = (n) => document.documentElement.hasAttribute("data-mu-" + n);
+const attr = (n) => document.documentElement.hasAttribute("data-cz-" + n);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const px = (v) => parseFloat(v) || 0;
 const CASES = {
@@ -42,7 +42,7 @@ const CASES = {
   buttonColor: ["#123456", () => cs("b").backgroundColor === "rgb(18, 52, 86)"],
   buttonTextColor: ["#fedcba", () => cs("b").color === "rgb(254, 220, 186)"],
   borderColor: ["#123456", () => cs("box").borderTopColor === "rgb(18, 52, 86)"],
-  focusColor: ["#123456", () => attr("focus-color") && rule("--mu-focus-color")],
+  focusColor: ["#123456", () => attr("focus-color") && rule("--cz-focus-color")],
   brightness: [0.7, () => getComputedStyle(document.documentElement).filter.includes("brightness")],
   saturation: [0.5, () => getComputedStyle(document.documentElement).filter.includes("saturate")],
   warmth: [0.3, () => getComputedStyle(document.documentElement).filter.includes("sepia")],
@@ -58,10 +58,10 @@ const CASES = {
   muteAudio: [true, () => $("v").muted === true],
   unstickHeaders: [true, () => cs("hdr").position === "static"],
   hideFooter: [true, () => cs("f").display === "none"],
-  skipLink: [true, () => !!document.querySelector("[data-mu-ui=skip]")],
+  skipLink: [true, () => !!document.querySelector("[data-cz-ui=skip]")],
   cursorColor: ["red", () => cs("p").cursor.includes("svg")],
   hoverHighlight: [true, () => attr("hover-highlight") && rule("outline-offset: 2px")],
-  readingGuide: [true, () => { const r = document.querySelector("[data-mu-ui=ruler]"); return !!r && getComputedStyle(r).backgroundColor === "rgba(0, 0, 0, 0)"; }],
+  readingGuide: [true, () => { const r = document.querySelector("[data-cz-ui=ruler]"); return !!r && getComputedStyle(r).backgroundColor === "rgba(0, 0, 0, 0)"; }],
   focusMode: [true, () => cs("p").opacity === "0.35"],
   clickGuard: [true, () => { window.clicks = 0; $("b").click(); $("b").click(); return window.clicks === 1; }],
   dwellClick: [1000, async () => {
@@ -74,7 +74,7 @@ const CASES = {
     return window.clicks === 1 && window.paid === 0;
   }],
   handedness: ["left", () => attr("handedness")],
-  captionSize: [2, () => attr("caption-size") && rule("--mu-caption-size")],
+  captionSize: [2, () => attr("caption-size") && rule("--cz-caption-size")],
   captionStyle: ["yellow", () => attr("caption-style")],
   ttsPitch: [1.2, () => attr("tts-pitch")],
   ttsVolume: [0.5, () => attr("tts-volume")],
@@ -82,11 +82,11 @@ const CASES = {
   readOnHover: [true, () => attr("read-on-hover")],
   warnExternalLinks: [true, () => { window.confirm = () => false; const e = new MouseEvent("click", { bubbles: true, cancelable: true }); $("ext").dispatchEvent(e); return e.defaultPrevented; }],
   breakReminder: [20, () => attr("break-reminder")],
-  guardLevel: ["strict", () => document.documentElement.getAttribute("data-mu-guard-level") === "strict"],
+  guardLevel: ["strict", () => document.documentElement.getAttribute("data-cz-guard-level") === "strict"],
   formGuide: [true, () => attr("form-guide")],
-  readerMode: [true, () => cs("hdr").display === "none" && cs("f").display === "none" && cs("p").display !== "none" && $("mainbox").hasAttribute("data-mu-rd-main")],
+  readerMode: [true, () => cs("hdr").display === "none" && cs("f").display === "none" && cs("p").display !== "none" && $("mainbox").hasAttribute("data-cz-rd-main")],
   singleColumn: [true, () => cs("cols").display === "block"],
-  collapseMenus: [true, () => [...document.querySelectorAll("#nav a")].filter((a) => getComputedStyle(a).display !== "none").length === 5 && !!document.querySelector("#nav [data-mu-ui=more]")],
+  collapseMenus: [true, () => [...document.querySelectorAll("#nav a")].filter((a) => getComputedStyle(a).display !== "none").length === 5 && !!document.querySelector("#nav [data-cz-ui=more]")],
   hideSidebars: [true, () => cs("side").display === "none"],
   hidePopups: [true, () => cs("ck").display === "none"],
   hideComments: [true, () => cs("cmt").display === "none"],
@@ -109,7 +109,7 @@ window.runAll = async () => {
     await wait(10);
   }
   E.reset();
-  const left = [...document.documentElement.attributes].map((a) => a.name).filter((n) => n.startsWith("data-mu-") && n !== "data-mu-language");
+  const left = [...document.documentElement.attributes].map((a) => a.name).filter((n) => n.startsWith("data-cz-") && n !== "data-cz-language");
   if (left.length) out.failed.push("reset left: " + left.join(","));
   return JSON.stringify(out);
 };`;

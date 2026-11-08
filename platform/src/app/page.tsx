@@ -22,8 +22,8 @@ export default async function Home() {
     {
       title: l("Bir düymə basın", "Press one button"),
       text: l(
-        "Qoşulan saytda “MƏNƏ UYĞUN-dan ayarları gətir” düyməsinə basın və icazə verin.",
-        "On a connected site, press “Bring my MƏNƏ UYĞUN settings” and give permission.",
+        "Qoşulan saytda “Cizzy-dən ayarları gətir” düyməsinə basın və icazə verin.",
+        "On a connected site, press “Bring my Cizzy settings” and give permission.",
       ),
     },
     {
@@ -39,7 +39,7 @@ export default async function Home() {
     <div className="stack">
       <div className="hero">
         <Window title={l("Şəxsi əlçatanlıq profili", "Personal accessibility profile")} className="hero-window">
-          <h1 className="hero-name">MƏNƏ UYĞUN</h1>
+          <h1 className="hero-name"><img src="/logo-mark.svg" alt="" className="hero-mark" />cizzy</h1>
           <p className="tagline mt-3">{l("Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.", "Set it up once. Use every service your way.")}</p>
         </Window>
         <div className="hero-keys">
@@ -78,7 +78,7 @@ export default async function Home() {
       <Window title={l("Məxfilik", "Privacy")}>
         <div className="rows">
           <p>{l("Adınız, e-poçtunuz və seçdiyiniz çətinliklər heç bir sayta ötürülmür. Yalnız sizin təsdiqlədiyiniz interfeys ayarları ötürülür.", "Your name, e-mail and the difficulties you choose are never passed to any site. Only the interface settings you approve are shared.")}</p>
-          <p className="font-semibold">{l("MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "MƏNƏ UYĞUN never asks for a password, card details or money.")}</p>
+          <p className="font-semibold">{l("Cizzy heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "Cizzy never asks for a password, card details or money.")}</p>
         </div>
       </Window>
 

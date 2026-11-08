@@ -25,6 +25,7 @@ export function sixDigitCode(): string {
 
 let fieldKey: Buffer | null = null;
 function key(): Buffer {
+  // The salt keeps the original project name on purpose: changing it would make stored data unreadable.
   fieldKey ??= Buffer.from(crypto.hkdfSync("sha256", env.secret, "mene-uygun", "field-encryption-v1", 32));
   return fieldKey;
 }

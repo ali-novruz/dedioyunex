@@ -16,7 +16,7 @@ export function GET() {
       connections: (await connectionsOf(u.id)).map((c) => ({ service: c.name, connectedAt: new Date(c.connectedAt).toISOString() })),
     };
     return new NextResponse(JSON.stringify(data, null, 2), {
-      headers: { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": 'attachment; filename="mene-uygun-profil.json"' },
+      headers: { "Content-Type": "application/json; charset=utf-8", "Content-Disposition": 'attachment; filename="cizzy-profil.json"' },
     });
   });
 }

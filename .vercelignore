@@ -7,8 +7,6 @@ dist/
 docs/
 tests/
 demo-partner/
-sdk/android/
-sdk/ios/
 platform/data/
 *.apk
 *.pdf

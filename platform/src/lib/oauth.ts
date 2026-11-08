@@ -16,7 +16,7 @@ export class OAuthError extends Error {
   }
 }
 
-export type ResponseMode = "query" | "web_message" | "mu_fragment";
+export type ResponseMode = "query" | "web_message" | "cz_fragment";
 
 export interface AuthorizeRequest {
   client: Client;
@@ -49,7 +49,7 @@ export async function parseAuthorize(q: Record<string, string | undefined>): Pro
   if (q.code_challenge_method !== "S256") throw new OAuthError("invalid_request", "code_challenge_method must be S256");
   if (!q.state || q.state.length > 200) throw new OAuthError("invalid_request", "state is missing");
   const mode = (q.response_mode ?? "query") as ResponseMode;
-  if (!["query", "web_message", "mu_fragment"].includes(mode)) throw new OAuthError("invalid_request", "unsupported response_mode");
+  if (!["query", "web_message", "cz_fragment"].includes(mode)) throw new OAuthError("invalid_request", "unsupported response_mode");
   const redirectUri = q.redirect_uri ?? "";
   const base = { client, state: q.state, codeChallenge: q.code_challenge };
 
@@ -60,7 +60,7 @@ export async function parseAuthorize(q: Record<string, string | undefined>): Pro
     const returnTo = q.return_to ? sameOriginUrl(q.return_to, origin, "return_to") : null;
     return { ...base, redirectUri, responseMode: mode, origin, returnTo };
   }
-  if (mode === "mu_fragment") {
+  if (mode === "cz_fragment") {
     let origin: string;
     try {
       origin = new URL(redirectUri).origin;
@@ -90,11 +90,11 @@ export async function issueCode(req: AuthorizeRequest, userId: string): Promise<
 /** Where the browser goes after consent (query / fragment modes, and the no-opener fallback of web_message). */
 export function redirectTarget(req: AuthorizeRequest, result: { code: string } | { error: string }): string {
   const params = new URLSearchParams();
-  if (req.responseMode === "web_message" || req.responseMode === "mu_fragment") {
+  if (req.responseMode === "web_message" || req.responseMode === "cz_fragment") {
     const target = req.responseMode === "web_message" ? req.returnTo : req.redirectUri;
     if (!target) throw new Error("redirectTarget: web_message request without return_to");
-    if ("code" in result) params.set("mu_code", result.code); else params.set("mu_error", result.error);
-    params.set("mu_state", req.state);
+    if ("code" in result) params.set("cz_code", result.code); else params.set("cz_error", result.error);
+    params.set("cz_state", req.state);
     return `${target}#${params}`;
   }
   if ("code" in result) params.set("code", result.code); else params.set("error", result.error);

@@ -38,9 +38,9 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
       </h1>
       <p className="lead">{where}</p>
       {req.client.verified ? (
-        <p className="ok">{l("Təsdiqlənmiş tərəfdaş. MƏNƏ UYĞUN bu xidməti yoxlayıb.", "Verified partner. MƏNƏ UYĞUN has checked this service.")}</p>
+        <p className="ok">{l("Təsdiqlənmiş tərəfdaş. Cizzy bu xidməti yoxlayıb.", "Verified partner. Cizzy has checked this service.")}</p>
       ) : (
-        <p className="error">{l("Bu xidmət hələ MƏNƏ UYĞUN tərəfindən yoxlanılmayıb. Yalnız tanıdığınız və etibar etdiyiniz sayta icazə verin.", "MƏNƏ UYĞUN has not checked this service yet. Only allow sites you know and trust.")}</p>
+        <p className="error">{l("Bu xidmət hələ Cizzy tərəfindən yoxlanılmayıb. Yalnız tanıdığınız və etibar etdiyiniz sayta icazə verin.", "Cizzy has not checked this service yet. Only allow sites you know and trust.")}</p>
       )}
       {!user.onboarded && (
         <div className="notice stack">
@@ -61,7 +61,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         </div>
       </Window>
       <div className="notice">
-        <b>{l("Diqqət:", "Careful:")}</b> {l("MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir. Belə bir şey istənilirsə, bu səhifəni bağlayın.", "MƏNƏ UYĞUN never asks for a password, card details or money. If you are asked for any of these, close this page.")}
+        <b>{l("Diqqət:", "Careful:")}</b> {l("Cizzy heç vaxt şifrə, kart məlumatı və ya pul istəmir. Belə bir şey istənilirsə, bu səhifəni bağlayın.", "Cizzy never asks for a password, card details or money. If you are asked for any of these, close this page.")}
       </div>
       <Consent params={params} />
       <p className="text-[.95rem]">{l("İstədiyiniz vaxt “Bağlı xidmətlər” bölməsindən bu icazəni ləğv edə bilərsiniz.", "You can cancel this permission at any time under “Connected services”.")}{user.email ? ` (${user.email})` : ""}</p>

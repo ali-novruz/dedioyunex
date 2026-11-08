@@ -7,9 +7,9 @@ export default async function TransferPage({ params }: { params: Promise<{ token
   return (
     <div className="stack">
       <h1 className="h1">{l("Ayarlarınız bu cihaza köçürülür", "Your settings are moving to this device")}</h1>
-      <p className="lead">{l("Yaxınınızın sizin üçün qurduğu MƏNƏ UYĞUN profili bu cihazda açılacaq.", "The MƏNƏ UYĞUN profile someone close to you set up will open on this device.")}</p>
+      <p className="lead">{l("Yaxınınızın sizin üçün qurduğu Cizzy profili bu cihazda açılacaq.", "The Cizzy profile someone close to you set up will open on this device.")}</p>
       <TransferAccept token={token} />
-      <p className="notice">{l("MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "MƏNƏ UYĞUN never asks for a password, card details or money.")}</p>
+      <p className="notice">{l("Cizzy heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "Cizzy never asks for a password, card details or money.")}</p>
     </div>
   );
 }

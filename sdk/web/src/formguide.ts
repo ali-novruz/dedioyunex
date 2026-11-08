@@ -4,7 +4,7 @@
 import type { Language } from "./schema";
 
 const FIELDS = "input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=image]):not([type=reset]),select,textarea";
-const HIDE = "data-mu-fg-hidden";
+const HIDE = "data-cz-fg-hidden";
 
 interface Step {
   wrapper: HTMLElement;
@@ -46,7 +46,7 @@ export class FormGuide {
     this.enabled = enabled;
     this.cleanups.splice(0).forEach((undo) => undo());
     if (!enabled) return;
-    const run = () => this.doc.querySelectorAll<HTMLElement>("form,[data-mu-form-guide]").forEach((f) => this.guide(f));
+    const run = () => this.doc.querySelectorAll<HTMLElement>("form,[data-cz-form-guide]").forEach((f) => this.guide(f));
     if (this.doc.readyState === "loading") this.doc.addEventListener("DOMContentLoaded", run, { once: true });
     else run();
   }
@@ -70,7 +70,7 @@ export class FormGuide {
   private stepsOf(form: HTMLElement): Step[] {
     const seen = new Set<HTMLElement>();
     const steps: Step[] = [];
-    const candidates = Array.from(form.querySelectorAll<HTMLElement>(FIELDS)).filter((f) => this.visible(f) && !f.closest("[data-mu-ui]"));
+    const candidates = Array.from(form.querySelectorAll<HTMLElement>(FIELDS)).filter((f) => this.visible(f) && !f.closest("[data-cz-ui]"));
     for (const field of candidates) {
       if (seen.has(field)) continue;
       const input = field as HTMLInputElement;
@@ -88,23 +88,23 @@ export class FormGuide {
   }
 
   private guide(form: HTMLElement): void {
-    if (form.getAttribute("data-mu-form-guide") === "off" || form.closest("[data-mu-ui]")) return;
+    if (form.getAttribute("data-cz-form-guide") === "off" || form.closest("[data-cz-ui]")) return;
     const steps = this.stepsOf(form);
-    if (steps.length < 3 && !form.hasAttribute("data-mu-form-guide")) return;
+    if (steps.length < 3 && !form.hasAttribute("data-cz-form-guide")) return;
     if (steps.length === 0) return;
     const t = TEXT[this.lang()];
-    const submits = Array.from(form.querySelectorAll<HTMLElement>("[type=submit],button:not([type]),[data-mu-form-submit]")).filter((b) => !b.closest("[data-mu-ui]"));
+    const submits = Array.from(form.querySelectorAll<HTMLElement>("[type=submit],button:not([type]),[data-cz-form-submit]")).filter((b) => !b.closest("[data-cz-ui]"));
     const explained = new Map<HTMLElement, string>();
 
     const panel = this.doc.createElement("div");
-    panel.setAttribute("data-mu-ui", "form-guide");
+    panel.setAttribute("data-cz-ui", "form-guide");
     panel.style.cssText = "margin:.8em 0;padding:.8em 1em;background:#f3f3f3;color:#262626;border:2px solid #262626;border-radius:3px;font:500 16px/1.45 system-ui,sans-serif";
     const progress = this.doc.createElement("div");
     progress.style.cssText = "font-weight:700";
     const track = this.doc.createElement("div");
     track.style.cssText = "height:10px;margin:.4em 0 .6em;border:2px solid #262626;border-radius:2px";
     const bar = this.doc.createElement("div");
-    bar.setAttribute("data-mu-fg-bar", "");
+    bar.setAttribute("data-cz-fg-bar", "");
     bar.style.cssText = "height:100%;background:#262626";
     track.append(bar);
     const help = this.doc.createElement("div");
@@ -128,7 +128,7 @@ export class FormGuide {
     const atEnd = () => index >= steps.length;
     const describe = (step: Step) => {
       const f = step.fields[0] as HTMLInputElement;
-      const own = f.getAttribute("data-mu-help") ?? f.title;
+      const own = f.getAttribute("data-cz-help") ?? f.title;
       if (own) return (help.textContent = own);
       const built = t.built[f.tagName === "SELECT" ? "select" : f.type];
       if (built) return (help.textContent = built);
@@ -141,7 +141,7 @@ export class FormGuide {
           explained.set(f, text);
           if (asked === index) help.textContent = text;
         })
-        .catch((e) => console.warn("[MeneUygun] form field explanation failed", e));
+        .catch((e) => console.warn("[Cizzy] form field explanation failed", e));
       return "";
     };
     const show = (focus: boolean) => {

@@ -42,7 +42,7 @@ BEFORE=$(ab eval "getComputedStyle(document.querySelector('.card h3')).fontSize"
 ab screenshot "$OUT/1-before.png" >/dev/null
 
 echo "4. connect + consent"
-ab click "@$(ref 'MƏNƏ UYĞUN-dan ayarları gətir')" >/dev/null
+ab click "@$(ref 'Cizzy-dən ayarları gətir')" >/dev/null
 ab wait 2500 >/dev/null
 ab tab list | grep -q "oauth/authorize" || fail "consent window not opened"
 ab screenshot "$OUT/2-consent.png" >/dev/null
@@ -52,7 +52,7 @@ ab tab t1 >/dev/null 2>&1 || true
 ab wait 1500 >/dev/null
 
 echo "5. partner adapted"
-R=$(ab eval "JSON.stringify({fs:getComputedStyle(document.querySelector('.card h3')).fontSize, promo:getComputedStyle(document.querySelector('.promo')).display, sub:getComputedStyle(document.querySelector('.sub')).color, labels:[...document.querySelectorAll('[data-mu-ui=icon-label]')].map(e=>e.textContent), compat:MeneUygun.compatibility, connected:MeneUygun.isConnected})")
+R=$(ab eval "JSON.stringify({fs:getComputedStyle(document.querySelector('.card h3')).fontSize, promo:getComputedStyle(document.querySelector('.promo')).display, sub:getComputedStyle(document.querySelector('.sub')).color, labels:[...document.querySelectorAll('[data-cz-ui=icon-label]')].map(e=>e.textContent), compat:Cizzy.compatibility, connected:Cizzy.isConnected})")
 echo "   $R"
 [[ "$R" == *'\"fs\":\"19.5px\"'* ]] || fail "text not scaled"
 [[ "$R" == *'\"promo\":\"none\"'* ]] || fail "distraction not hidden"
@@ -76,6 +76,6 @@ ab open "$D/" >/dev/null
 ab wait 2500 >/dev/null
 FS=$(ab eval "getComputedStyle(document.querySelector('.card h3')).fontSize")
 [[ "$FS" == '"13px"' ]] || fail "partner still adapted after revoke: $FS"
-ab eval "MeneUygun.isConnected" | grep -q false || fail "token not cleared after revoke"
+ab eval "Cizzy.isConnected" | grep -q false || fail "token not cleared after revoke"
 
 echo "PASS (screenshots in $OUT)"

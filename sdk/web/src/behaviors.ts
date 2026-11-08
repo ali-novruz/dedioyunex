@@ -2,7 +2,7 @@
 
 import type { Preferences } from "./schema";
 
-const UI = "data-mu-ui";
+const UI = "data-cz-ui";
 
 const KEYS: (keyof Preferences)[] = ["clickGuard", "dwellClick", "warnExternalLinks", "muteAudio", "stopAutoplay", "flashGuard", "unstickHeaders", "skipLink", "breakReminder", "readerMode", "collapseMenus", "language"];
 
@@ -71,15 +71,15 @@ export class Behaviors {
     for (let node: HTMLElement = main; node !== this.doc.body && node.parentElement; node = node.parentElement) {
       for (const sibling of Array.from(node.parentElement.children)) {
         if (sibling === node || own(sibling) || /^(SCRIPT|STYLE|LINK)$/.test(sibling.tagName)) continue;
-        sibling.setAttribute("data-mu-rd-hide", "");
+        sibling.setAttribute("data-cz-rd-hide", "");
         hidden.push(sibling);
       }
     }
-    main.setAttribute("data-mu-rd-main", "");
+    main.setAttribute("data-cz-rd-main", "");
     const root = main;
     this.cleanups.push(() => {
-      hidden.forEach((el) => el.removeAttribute("data-mu-rd-hide"));
-      root.removeAttribute("data-mu-rd-main");
+      hidden.forEach((el) => el.removeAttribute("data-cz-rd-hide"));
+      root.removeAttribute("data-cz-rd-main");
     });
   }
 
@@ -90,20 +90,20 @@ export class Behaviors {
       if (menu.closest(`[${UI}]`)) return;
       const links = Array.from(menu.querySelectorAll<HTMLElement>("a[href],button")).filter((a) => !a.closest(`[${UI}]`));
       if (links.length <= KEEP + 1) return;
-      const important = (a: HTMLElement) => a.matches("[aria-current],[data-mu-simple='primary'],[class~='active'],[class~='cur'],[class~='current']");
+      const important = (a: HTMLElement) => a.matches("[aria-current],[data-cz-simple='primary'],[class~='active'],[class~='cur'],[class~='current']");
       const extra = links.filter((a, i) => i >= KEEP && !important(a));
-      extra.forEach((a) => a.setAttribute("data-mu-collapsed", ""));
+      extra.forEach((a) => a.setAttribute("data-cz-collapsed", ""));
       const more = this.doc.createElement("button");
       more.type = "button";
       more.setAttribute(UI, "more");
       more.textContent = en ? `More (${extra.length})` : `Daha çox (${extra.length})`;
       more.addEventListener("click", () => {
-        extra.forEach((a) => a.removeAttribute("data-mu-collapsed"));
+        extra.forEach((a) => a.removeAttribute("data-cz-collapsed"));
         more.remove();
       });
       menu.append(more);
       this.cleanups.push(() => {
-        extra.forEach((a) => a.removeAttribute("data-mu-collapsed"));
+        extra.forEach((a) => a.removeAttribute("data-cz-collapsed"));
         more.remove();
       });
     });
@@ -129,11 +129,11 @@ export class Behaviors {
     let current: HTMLElement | null = null;
     const cancel = () => {
       clearTimeout(timer);
-      current?.removeAttribute("data-mu-dwell");
+      current?.removeAttribute("data-cz-dwell");
       current = null;
     };
     const consequential = (el: HTMLElement) =>
-      el.matches("[type=submit],[data-mu-guard]") ||
+      el.matches("[type=submit],[data-cz-guard]") ||
       (el.tagName === "BUTTON" && !!el.closest("form") && el.getAttribute("type") !== "button") ||
       CONSEQUENTIAL.test(el.textContent ?? "");
     this.on(this.doc, "mouseover", (e) => {
@@ -142,7 +142,7 @@ export class Behaviors {
       cancel();
       if (!el || el.closest(`[${UI}]`) || consequential(el)) return;
       current = el;
-      el.setAttribute("data-mu-dwell", "");
+      el.setAttribute("data-cz-dwell", "");
       timer = window.setTimeout(() => {
         cancel();
         el.click();
@@ -183,7 +183,7 @@ export class Behaviors {
   /** Animated images are replaced by their first frame. One that cannot be read (other origin) is hidden instead. */
   private freezeGifs(): void {
     const freeze = (img: HTMLImageElement) => {
-      if (!img.naturalWidth || img.hasAttribute("data-mu-gif")) return;
+      if (!img.naturalWidth || img.hasAttribute("data-cz-gif")) return;
       const original = img.src;
       try {
         const c = this.doc.createElement("canvas");
@@ -191,10 +191,10 @@ export class Behaviors {
         c.height = img.naturalHeight;
         c.getContext("2d")!.drawImage(img, 0, 0);
         img.src = c.toDataURL();
-        img.setAttribute("data-mu-gif", "");
+        img.setAttribute("data-cz-gif", "");
         this.cleanups.push(() => {
           img.src = original;
-          img.removeAttribute("data-mu-gif");
+          img.removeAttribute("data-cz-gif");
         });
       } catch {
         img.style.visibility = "hidden";
@@ -217,10 +217,10 @@ export class Behaviors {
       if (pos !== "fixed" && pos !== "sticky") return;
       const r = el.getBoundingClientRect();
       if (r.width < view.innerWidth * 0.5 || r.height > view.innerHeight * 0.4) return;
-      el.setAttribute("data-mu-unstick", "");
+      el.setAttribute("data-cz-unstick", "");
       marked.push(el);
     });
-    this.cleanups.push(() => marked.forEach((el) => el.removeAttribute("data-mu-unstick")));
+    this.cleanups.push(() => marked.forEach((el) => el.removeAttribute("data-cz-unstick")));
   }
 
   private addSkipLink(en: boolean): void {

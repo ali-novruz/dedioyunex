@@ -13,7 +13,7 @@ const options = {
   minify: true,
   sourcemap: true,
   legalComments: "none",
-  banner: { js: "/* MƏNƏ UYĞUN Web SDK v1 */" },
+  banner: { js: "/* Cizzy Web SDK v1 */" },
   logLevel: "info",
 };
 

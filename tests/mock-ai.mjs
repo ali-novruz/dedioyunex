@@ -33,7 +33,7 @@ http
       }
       if (req.url === "/v1/chat/completions") {
         const j = JSON.parse(body);
-        if (j.messages[0].content.includes("MENE_UYGUN_PAGE_HELP")) {
+        if (j.messages[0].content.includes("CIZZY_PAGE_HELP")) {
           const user = j.messages[1].content;
           const ids = [...user.matchAll(/^(a\d+) \| (\w+) \| ([^|\n]*)/gm)].map((m) => ({ id: m[1], kind: m[2], label: m[3].trim() }));
           const help = {

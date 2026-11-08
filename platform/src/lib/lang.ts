@@ -2,7 +2,7 @@
 
 export type Lang = "az" | "en";
 
-export const LANG_COOKIE = "mu_lang";
+export const LANG_COOKIE = "cz_lang";
 
 export const LOCALE: Record<Lang, string> = { az: "az-AZ", en: "en-GB" };
 

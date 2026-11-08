@@ -1,5 +1,5 @@
 // Page explainer: collects what the user sees (text, headings, controls) and turns the AI answer into UI.
-// Privacy: form values are never read; anything inside [data-mu-private] or SDK UI is skipped;
+// Privacy: form values are never read; anything inside [data-cz-private] or SDK UI is skipped;
 // URLs are sent without query string or hash.
 
 export interface PageHelp {
@@ -17,9 +17,9 @@ export interface PageSnapshot {
   actions: { id: string; label: string; kind: string; hint?: string }[];
 }
 
-const SKIP = "[data-mu-ui],[data-mu-private],script,style,noscript,template,svg";
+const SKIP = "[data-cz-ui],[data-cz-private],script,style,noscript,template,svg";
 const CONTROLS = "a[href],button,[role=button],[role=link],[role=tab],[role=menuitem],input[type=submit],input[type=button],select,summary";
-const AID = "data-mu-aid";
+const AID = "data-cz-aid";
 
 function visible(el: Element): boolean {
   if (el.closest(SKIP)) return false;
@@ -68,7 +68,7 @@ function hintOf(el: Element, label: string): string | undefined {
   return parts.length ? parts.join("; ").slice(0, 120) : undefined;
 }
 
-/** Takes a snapshot of the page and tags controls with data-mu-aid (same label → same id). */
+/** Takes a snapshot of the page and tags controls with data-cz-aid (same label → same id). */
 export function snapshot(doc: Document): PageSnapshot {
   const root = doc.querySelector("main,[role=main],article") ?? doc.body;
   const headings = Array.from(doc.querySelectorAll("h1,h2,h3"))

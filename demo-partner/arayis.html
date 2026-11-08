@@ -17,8 +17,8 @@
   h1 { font-size: 16px; color: #333; }
   .legal { font-size: 10.5px; color: #999; line-height: 1.35; max-height: 120px; overflow: auto; border: 1px solid #eee; padding: 8px; }
   .plain { display: none; font-size: 14px; color: #222; background: #f2f7f2; padding: 10px; border-radius: 6px; }
-  html[data-mu-plain-language] .legal { display: none; }
-  html[data-mu-plain-language] .plain { display: block; }
+  html[data-cz-plain-language] .legal { display: none; }
+  html[data-cz-plain-language] .plain { display: block; }
   .tools { display: flex; gap: 6px; margin: 12px 0; }
   .tools button { width: 32px; height: 32px; border: 1px solid #ccc; background: #fafafa; border-radius: 4px; cursor: pointer; }
   select, input { height: 28px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; padding: 0 6px; }
@@ -28,10 +28,10 @@
 </head>
 <body>
   <header><b>DEMO e-Xidmət</b> · Dövlət xidmətləri portalı (nümunə)</header>
-  <div class="menus" data-mu-simple="hide">
+  <div class="menus" data-cz-simple="hide">
     <a href="#">Vergilər</a><a href="#">Sosial</a><a href="#">Nəqliyyat</a><a href="#">Təhsil</a><a href="#">Səhiyyə</a>
   </div>
-  <div class="banner" data-mu-distraction>📢 Yeni! Mobil tətbiqimizi yükləyin və bonus qazanın! Sorğumuzda iştirak edin!</div>
+  <div class="banner" data-cz-distraction>📢 Yeni! Mobil tətbiqimizi yükləyin və bonus qazanın! Sorğumuzda iştirak edin!</div>
   <main>
     <h1>Yaşayış yerindən arayış</h1>
     <div class="legal">“Elektron xidmətlər haqqında” Əsasnamənin 4.2.1-ci bəndinə və müvafiq normativ hüquqi aktlara uyğun olaraq, arayış elektron formada tərtib edilir, gücləndirilmiş elektron imza ilə təsdiqlənir və sorğu verən şəxsin şəxsi kabinetinə yerləşdirilir. Arayışın hüquqi qüvvəsi kağız daşıyıcıda olan sənədin hüquqi qüvvəsinə bərabərdir. Məlumatların düzgünlüyünə görə məsuliyyət sorğu verən şəxsin üzərinə düşür. Sorğunun icra müddəti 3 (üç) iş günüdür, bu müddət qanunvericilikdə nəzərdə tutulmuş hallarda uzadıla bilər.</div>
@@ -44,7 +44,7 @@
     </div>
     <label for="where">Arayış hara təqdim olunur?</label>
     <select id="where"><option>Bank</option><option>Məktəb</option><option>Xəstəxana</option><option>Digər</option></select>
-    <p><button class="go" id="order" data-mu-simple="primary">Arayış sifariş et</button><span class="timer" id="timer"></span></p>
+    <p><button class="go" id="order" data-cz-simple="primary">Arayış sifariş et</button><span class="timer" id="timer"></span></p>
   </main>
 <script>
   document.getElementById("order").onclick = function () {

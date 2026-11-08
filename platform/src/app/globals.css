@@ -57,7 +57,7 @@ code, pre { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
   .shell { max-width: 50rem; margin: 0 auto; padding-inline: 1.1rem; }
   .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding-block: 1rem 0.5rem; }
   .brand { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--ink); font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
-  .brand-mark { display: grid; place-items: center; width: 2.1rem; height: 2.1rem; background: var(--ink); color: var(--field); border-radius: 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0; }
+  .brand-mark { width: 2.2rem; height: 2.2rem; }
   .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
   .nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; padding-block: 0.5rem 0.25rem; }
   .page { max-width: 50rem; margin: 0 auto; padding: 1.5rem 1.1rem 6.5rem; }
@@ -181,7 +181,8 @@ code, pre { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
   .hero { display: flex; flex-direction: column; align-items: center; padding-block: 1.5rem 0.5rem; }
   .hero-window { width: min(100%, 31rem); text-align: center; }
   .hero-window .window-body { padding: 1.9rem 1.2rem 1.8rem; }
-  .hero-name { font-size: clamp(2.5rem, 9vw, 3.9rem); line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+  .hero-name { display: inline-flex; align-items: center; gap: 0.2em; font-size: clamp(3rem, 11vw, 4.6rem); line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+  .hero-mark { width: 1.05em; height: 1.05em; }
   .hero-keys { display: grid; gap: 1.2rem; width: min(100%, 42rem); margin-top: 2.6rem; }
   .step { display: grid; grid-template-columns: 2.5rem 1fr; gap: 0.9rem; align-items: start; }
   .step-n { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; background: var(--ink); color: var(--field); border-radius: 4px; font-weight: 800; font-variant-numeric: tabular-nums; }

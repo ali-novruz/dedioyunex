@@ -45,7 +45,7 @@ export function SafetyScreen({ signedIn, safeUntil, contact: initialContact }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const message = l("MƏNƏ UYĞUN: Kimsə mənə zəng edib kod və ya pul istəyir. Zəhmət olmasa mənə zəng edin.", "MƏNƏ UYĞUN: Someone phoned me asking for a code or money. Please call me.");
+  const message = l("Cizzy: Kimsə mənə zəng edib kod və ya pul istəyir. Zəhmət olmasa mənə zəng edin.", "Cizzy: Someone phoned me asking for a code or money. Please call me.");
   const digits = contact?.phone.replace(/[^0-9]/g, "") ?? "";
 
   async function check(e: React.FormEvent) {

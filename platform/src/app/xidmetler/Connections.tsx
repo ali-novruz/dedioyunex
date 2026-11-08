@@ -35,7 +35,7 @@ export function Connections({ initial, demoUrl }: { initial: Connection[]; demoU
         {list.length === 0 ? (
           <div className="stack">
             <p className="font-semibold">{l("Hələ heç bir xidmət qoşulmayıb.", "No services are connected yet.")}</p>
-            <p className="muted">{l("MƏNƏ UYĞUN düyməsi olan saytda “MƏNƏ UYĞUN-dan ayarları gətir” düyməsinə basın.", "On a site with the MƏNƏ UYĞUN button, press “Bring my MƏNƏ UYĞUN settings”.")}</p>
+            <p className="muted">{l("Cizzy düyməsi olan saytda “Cizzy-dən ayarları gətir” düyməsinə basın.", "On a site with the Cizzy button, press “Bring my Cizzy settings”.")}</p>
             {demoUrl && (
               <a className="btn btn-primary" href={demoUrl} target="_blank" rel="noreferrer">
                 {l("Nümunə sayta keç (DEMO Market)", "Open the sample site (DEMO Market)")}

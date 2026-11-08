@@ -62,23 +62,23 @@ post "$J2" /api/auth/transfer "{\"token\":\"$TOKEN\"}" | grep -q 'etibarlı deyi
 echo "mobile OAuth (PKCE, custom scheme)"
 VERIFIER=$(head -c 48 /dev/urandom | base64 | tr '+/' '-_' | tr -d '=\n' | head -c 64)
 CHALLENGE=$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '=\n')
-PARAMS="{\"response_type\":\"code\",\"client_id\":\"demo-mobile\",\"redirect_uri\":\"meneuygun-demo://callback\",\"code_challenge\":\"$CHALLENGE\",\"code_challenge_method\":\"S256\",\"state\":\"st123\"}"
+PARAMS="{\"response_type\":\"code\",\"client_id\":\"demo-mobile\",\"redirect_uri\":\"cizzy-demo://callback\",\"code_challenge\":\"$CHALLENGE\",\"code_challenge_method\":\"S256\",\"state\":\"st123\"}"
 R=$(post "$J1" /api/oauth/decision "{\"params\":$PARAMS,\"decision\":\"allow\"}")
-URL=$(echo "$R" | grep -oE 'meneuygun-demo://callback\?[^"]+')
+URL=$(echo "$R" | grep -oE 'cizzy-demo://callback\?[^"]+')
 [[ -n "$URL" ]] && ok "redirect to app scheme: ${URL:0:40}…" || fail "decision: $R"
 CODE=$(echo "$URL" | grep -oE 'code=[^&]+' | cut -d= -f2)
 echo "$URL" | grep -q 'state=st123' && ok "state echoed" || fail "state"
-R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=authorization_code&code=$CODE&code_verifier=wrong-verifier-wrong-verifier-wrong-verifier-123&client_id=demo-mobile&redirect_uri=meneuygun-demo://callback")
+R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=authorization_code&code=$CODE&code_verifier=wrong-verifier-wrong-verifier-wrong-verifier-123&client_id=demo-mobile&redirect_uri=cizzy-demo://callback")
 echo "$R" | grep -q invalid_grant && ok "wrong PKCE verifier rejected (and code burned)" || fail "pkce: $R"
 R=$(post "$J1" /api/oauth/decision "{\"params\":$PARAMS,\"decision\":\"allow\"}")
 CODE=$(echo "$R" | grep -oE 'code=[^&"]+' | head -1 | cut -d= -f2)
-R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=authorization_code&code=$CODE&code_verifier=$VERIFIER&client_id=demo-mobile&redirect_uri=meneuygun-demo://callback")
+R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=authorization_code&code=$CODE&code_verifier=$VERIFIER&client_id=demo-mobile&redirect_uri=cizzy-demo://callback")
 TOK=$(echo "$R" | grep -oE '"access_token":"[^"]+' | cut -d'"' -f4)
 SUB=$(echo "$R" | grep -oE '"sub":"[^"]+' | cut -d'"' -f4)
 [[ -n "$TOK" ]] && ok "token issued" || fail "token: $R"
 echo "$R" | grep -q '"email"' && fail "email leaked in token response" || ok "no e-mail in token response"
 echo "$R" | grep -q 'vision' && fail "categories leaked" || ok "no categories in token response"
-R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/json" -d "{\"grant_type\":\"authorization_code\",\"code\":\"$CODE\",\"code_verifier\":\"$VERIFIER\",\"client_id\":\"demo-mobile\",\"redirect_uri\":\"meneuygun-demo://callback\"}")
+R=$(curl -s -X POST "$BASE/oauth/token" -H "Content-Type: application/json" -d "{\"grant_type\":\"authorization_code\",\"code\":\"$CODE\",\"code_verifier\":\"$VERIFIER\",\"client_id\":\"demo-mobile\",\"redirect_uri\":\"cizzy-demo://callback\"}")
 echo "$R" | grep -q invalid_grant && ok "code is single-use" || fail "code reuse: $R"
 R=$(curl -s "$BASE/v1/preferences" -H "Authorization: Bearer $TOK")
 echo "$R" | grep -q '"fontScale":1.5' && ok "GET /v1/preferences" || fail "prefs: $R"

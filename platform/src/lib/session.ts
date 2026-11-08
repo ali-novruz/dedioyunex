@@ -10,7 +10,7 @@ import { sendLoginCode } from "./mail";
 import { userBySession } from "./users";
 import { bi, type Bi, type Lang } from "./lang";
 
-const COOKIE = "mu_session";
+const COOKIE = "cz_session";
 const SESSION_DAYS = 30;
 const CODE_TTL = 10 * 60_000;
 const RESEND_AFTER = 30_000;

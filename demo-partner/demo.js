@@ -1,4 +1,4 @@
-// Shared helpers for the DEMO partner pages: language, and reactions to MƏNƏ UYĞUN preferences
+// Shared helpers for the DEMO partner pages: language, and reactions to Cizzy preferences
 // (type-B settings a real service would implement itself: longer sessions, confirmations, plain language).
 (function () {
   var EN = {
@@ -113,10 +113,10 @@
     if (missing.length) console.error("[demo] missing English text:", missing);
   }
 
-  /** Small strip in the MƏNƏ UYĞUN style: says this is a sample and switches language. Hidden once connected, when the user's language decides. */
+  /** Small strip in the Cizzy style: says this is a sample and switches language. Hidden once connected, when the user's language decides. */
   function strip() {
     var bar = document.createElement("div");
-    bar.setAttribute("data-mu-ui", "demo-strip");
+    bar.setAttribute("data-cz-ui", "demo-strip");
     bar.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 14px;background:#f5bc4a;color:#262626;border-bottom:2px solid #262626;font:600 14px/1.3 system-ui,sans-serif";
     var note = document.createElement("span");
     note.textContent = lang === "en" ? "Sample page. Not a real service." : "Nümunə səhifə. Real xidmət deyil.";
@@ -153,7 +153,7 @@
     t: t,
     missing: missing,
     onPrefs: function (cb) { listeners.push(cb); if (window.Demo.prefs) cb(window.Demo.prefs); },
-    say: function (text) { if (window.Demo.prefs && window.Demo.prefs.tts && window.MeneUygun) window.MeneUygun.speak(text).catch(function () {}); },
+    say: function (text) { if (window.Demo.prefs && window.Demo.prefs.tts && window.Cizzy) window.Cizzy.speak(text).catch(function () {}); },
     /** Session countdown; extendedTimeouts → 30 minutes and a "continue" button before it ends. */
     session: function (el, seconds) {
       var left = seconds;
@@ -198,13 +198,13 @@
       window.Demo.say(text);
     },
   };
-  document.addEventListener("meneuygun:preferences", function (e) {
+  document.addEventListener("cizzy:preferences", function (e) {
     window.Demo.prefs = e.detail;
     if (stripEl) stripEl.style.display = "none";
     if (e.detail.language !== lang) { setLang(e.detail.language); return; }
     listeners.forEach(function (cb) { cb(e.detail); });
   });
-  document.addEventListener("meneuygun:disconnect", function () {
+  document.addEventListener("cizzy:disconnect", function () {
     window.Demo.prefs = null;
     if (stripEl) stripEl.style.display = "flex";
   });

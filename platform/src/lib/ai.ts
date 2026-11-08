@@ -149,7 +149,7 @@ const QUESTION_EXAMPLE: Record<Language, string> = {
   en: "What is hard for you: reading text, hearing sounds, or tapping buttons?",
 };
 
-const SYSTEM = (lang: Language) => `You configure accessibility settings for "MƏNƏ UYĞUN", a service used by elderly people and people with vision, hearing, motor, cognitive or reading difficulties.
+const SYSTEM = (lang: Language) => `You configure accessibility settings for "Cizzy", a service used by elderly people and people with vision, hearing, motor, cognitive or reading difficulties.
 The user describes in their own words (Azerbaijani, Turkish or English; may be informal, with speech-recognition errors) what is hard for them or what they want.
 Choose the settings that help. Only use the keys and values below.
 
@@ -262,7 +262,7 @@ export interface PageHelp {
 }
 
 
-const ASSIST_SYSTEM = (lang: Language) => `MENE_UYGUN_PAGE_HELP
+const ASSIST_SYSTEM = (lang: Language) => `CIZZY_PAGE_HELP
 You explain a web page to an elderly person or a person with cognitive or reading difficulties.
 Write ONLY in ${LANG_NAME[lang]}, with very simple everyday words, short sentences, no jargon, address the user politely.
 From the page title, headings, text and list of interactive controls, return ONLY a JSON object:

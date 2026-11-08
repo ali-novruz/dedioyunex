@@ -28,8 +28,8 @@
   .timer { color: #dc2626; font-size: 11px; margin-left: 8px; }
   .legal { font-size: 10px; color: #9ca3af; line-height: 1.3; margin-top: 10px; }
   .plain { display: none; font-size: 13px; color: #111827; margin-top: 10px; }
-  html[data-mu-plain-language] .legal { display: none; }
-  html[data-mu-plain-language] .plain { display: block; }
+  html[data-cz-plain-language] .legal { display: none; }
+  html[data-cz-plain-language] .plain { display: block; }
   @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -41,10 +41,10 @@
       <button aria-label="Bildirişlər" title="Bildirişlər">🔔</button>
     </div>
   </div>
-  <nav data-mu-simple="hide">
+  <nav data-cz-simple="hide">
     <a href="#">Dərmanlar</a><a href="#">Vitaminlər</a><a href="#">Uşaq</a><a href="#">Kosmetika</a><a href="#">Tibbi cihazlar</a><a href="#">Endirimlər</a><a href="#">Bloq</a><a href="#">Əlaqə</a>
   </nav>
-  <div class="promo" data-mu-distraction>🎁 Bu gün vitaminlərə 30% endirim! Tələsin!</div>
+  <div class="promo" data-cz-distraction>🎁 Bu gün vitaminlərə 30% endirim! Tələsin!</div>
   <div class="wrap">
     <main class="card">
       <h1>Sifarişin rəsmiləşdirilməsi</h1>
@@ -57,14 +57,14 @@
         <div><label for="t">Telefon</label><input id="t" name="phone" type="tel" required autocomplete="tel" value="+994501112233"></div>
         <div><label for="a">Çatdırılma ünvanı</label><input id="a" name="address" required autocomplete="street-address" value="Bakı, Nizami küçəsi 10"></div>
         <div><label for="p">Ödəniş üsulu</label><select id="p" name="payment"><option>Kart ilə</option><option>Qapıda nağd</option></select></div>
-        <button class="pay" id="pay" type="submit" data-mu-simple="primary" data-mu-guard="payment" data-mu-guard-amount="45 AZN">Ödə — 45.00 AZN</button>
+        <button class="pay" id="pay" type="submit" data-cz-simple="primary" data-cz-guard="payment" data-cz-guard-amount="45 AZN">Ödə — 45.00 AZN</button>
         <span class="timer" id="timer"></span>
       </form>
       <p class="legal">Sifarişi təsdiq etməklə siz apteklərin fəaliyyəti haqqında qaydalara, reseptli dərmanların satışı şərtlərinə və şəxsi məlumatların emalına razılıq verirsiniz. Dərman vasitələri keyfiyyətli olduqda geri qaytarılmır.</p>
       <p class="plain">Ödə düyməsinə basanda 45 manat kartınızdan çıxılacaq. Dərmanı sonra geri qaytarmaq olmur.</p>
     </main>
     <aside>
-      <div class="card" data-mu-distraction>REKLAM · Kredit kartı ilə 0% faiz!</div>
+      <div class="card" data-cz-distraction>REKLAM · Kredit kartı ilə 0% faiz!</div>
     </aside>
   </div>
 <script>

@@ -16,7 +16,7 @@ const serif = Libre_Baskerville({ subsets: ["latin", "latin-ext"], weight: "400"
 export async function generateMetadata(): Promise<Metadata> {
   const l = tr(await pageLang());
   return {
-    title: "MƏNƏ UYĞUN",
+    title: "Cizzy",
     description: l("Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.", "Set it up once. Use every service your way."),
     manifest: "/manifest.webmanifest",
     icons: { icon: "/icon.svg" },
@@ -43,8 +43,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header>
             <div className="topbar shell">
               <Link href={user ? "/ev" : "/"} className="brand">
-                <span aria-hidden className="brand-mark">MU</span>
-                MƏNƏ UYĞUN
+                <img src="/logo-mark.svg" alt="" width={40} height={40} className="brand-mark" />
+                cizzy
               </Link>
               <HeaderActions signedIn={!!user} />
             </div>

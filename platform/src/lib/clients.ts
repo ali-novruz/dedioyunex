@@ -38,7 +38,7 @@ export async function seedDemoClients(): Promise<void> {
      VALUES ($1, $2, NULL, $3, $4, $5, TRUE)
      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, allowed_origins = EXCLUDED.allowed_origins, redirect_uris = EXCLUDED.redirect_uris, verified = TRUE`;
   await rawExec(upsert, ["demo-partner", "DEMO Market (veb)", JSON.stringify(env.demoPartnerOrigins), "[]", now()]);
-  await rawExec(upsert, ["demo-mobile", "DEMO Market (mobil)", "[]", JSON.stringify(["meneuygun-demo://callback"]), now()]);
+  await rawExec(upsert, ["demo-mobile", "DEMO Market (mobil)", "[]", JSON.stringify(["cizzy-demo://callback"]), now()]);
 }
 
 export async function getClient(id: string): Promise<Client | null> {

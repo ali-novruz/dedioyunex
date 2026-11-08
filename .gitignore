@@ -4,10 +4,6 @@ node_modules/
 *.log
 .env
 .env.local
-/sdk/android/**/build/
-/sdk/android/.gradle/
-/sdk/android/local.properties
-/sdk/android/.kotlin/
 .DS_Store
 dist/
 .vercel

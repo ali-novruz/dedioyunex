@@ -1,60 +1,98 @@
-# MƏNƏ UYĞUN
+<p align="center"><img src="platform/public/logo.svg" alt="Cizzy" width="300"></p>
 
-Şəxsi rəqəmsal əlçatanlıq profili: istifadəçi ayarlarını (yazı ölçüsü, kontrast, səsli oxunuş, sadə rejim…) bir dəfə qurur — səslə, yazaraq və ya əl ilə — və MƏNƏ UYĞUN-a qoşulan bütün sayt və tətbiqlər avtomatik ona uyğunlaşır.
+<p align="center"><b>Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.</b></p>
 
-| Qovluq | Nədir |
+<p align="center">
+  <a href="https://cizzy.vercel.app">Canlı platforma</a> ·
+  <a href="https://cizzy-demo.vercel.app/aptek">Demo sayt</a> ·
+  <a href="docs/Cizzy-spesifikasiya.pdf">Spesifikasiya (PDF)</a> ·
+  <a href="docs/ssenariler.md">Ssenarilər</a>
+</p>
+
+---
+
+**Cizzy** yaşlılar və görmə, eşitmə, hərəkət, anlama çətinliyi olan insanlar üçün şəxsi rəqəmsal əlçatanlıq profilidir. İnsan ehtiyacını bir dəfə deyir, yazır və ya əl ilə seçir. Qoşulmuş hər sayt dərhal ona uyğunlaşır, onu səhvdən və fırıldaqdan qoruyur.
+
+## Problem
+
+Yaşlı insan bankda, apteklə, dövlət portalında tək başına iş görə bilmir: yazılar xırdadır, menyu qarışıqdır, sessiya tez bağlanır. Hər saytın öz ayarı varsa belə, hamısını ayrıca qurmaq mümkün deyil. Eyni insanlar fırıldaqçıların da əsas hədəfidir.
+
+## Məhsulun 4 qatı
+
+| Qat | Nə edir |
 |---|---|
-| `platform/` | İstifadəçi platforması + API + OAuth (Next.js 16, Postgres / Supabase) |
-| `sdk/web/` | Web SDK (`/sdk.js`) — ayar sxemi, tətbiq mühərriki, səsli oxunuş, uyğunluq yoxlaması |
-| `sdk/android/` | Android SDK (P2, MVP-dən kənar) |
-| `sdk/ios/` | iOS SDK (P2, MVP-dən kənar), yığılmayıb |
-| `demo-partner/` | DEMO Market — inteqrasiya nümunəsi sayt |
-| `deploy/` | Docker Compose (Traefik) — Hostinger VPS; `vercel-proxy/` — dedio.vercel.app → VPS |
-| `tests/` | `e2e-web.sh` (brauzer), `api-test.sh` (API), `mock-ai.mjs` |
-| `docs/` | Spesifikasiya (PDF), API müqaviləsi, sxem |
+| **1. Daşınan profil** | Bir dəfə qurulur, hər saytda işləyir (OAuth 2.0 + PKCE, açıq sxem). Saytlar ad, e-poçt və ya çətinlikləri görmür, hər sayt üçün ayrı anonim ID. |
+| **2. Adaptasiya** | 89 ayar: yazı, bütün rənglər, parlaqlıq, şəkil və video, kursor, altyazı, səs. Saytı dəyişmədən, bir sətir kodla. |
+| **3. Davranış və qoruma** | Action Guard, Təhlükəsiz rejim, Form Guide. |
+| **4. AI yardımı** | Ayarları səslə qurmaq, səhifəni və düymələri izah etmək, mətni sadə dilə çevirmək, şübhəli mesajı yoxlamaq. |
+
+## Əsas funksiyalar
+
+- **Səsli və yazılı köməkçi:** “Yazılar xırdadır” deyin, ekran dərhal dəyişsin. Azərbaycan dilində danışır və cavab verir.
+- **18 ehtiyac:** görmə, eşitmə, hərəkət, oxuma, rəng korluğu, miqren, epilepsiya, DEHB, autizm, Parkinson, bir əllə istifadə, demensiya, disleksiya və s. Hər biri uyğun ayarları açır.
+- **Mürəkkəb saytı sadələşdirmə:** oxuma görünüşü, AI ilə düymələri azaltma, uzun menyuları qısaltma, açılan pəncərələri gizlətmə.
+- **Action Guard:** “Siz 45 AZN ödəyirsiniz. Əminsiniz?” Yoxlama brauzerdə aparılır.
+- **Təhlükəsiz rejim:** “Kimsə zəng edib kod və ya pul istəyir” düyməsi. Dərhal izah, etibarlı şəxsə xəbər, 24 saat ciddi qoruma. Qoşulmuş saytlarda ödəniş dayandırılır.
+- **Form Guide:** bir ekranda bir sahə, sadə izah, irəliləyiş.
+- **Tam Azərbaycan və ingilis dili.**
+
+## 3 dəqiqəlik sınaq
+
+1. [cizzy.vercel.app](https://cizzy.vercel.app) açın, **E-poçtsuz başla**, ehtiyacınızı seçin. E-poçtla girmək üçün `@demo.az` ilə bitən istənilən ünvan yazın, kod ekranda görünür.
+2. [Demo aptekdə](https://cizzy-demo.vercel.app/aptek) **Cizzy-dən ayarları gətir** düyməsinə basıb icazə verin. Sayt dərhal dəyişir.
+3. **Ödə** düyməsinə basın: Action Guard soruşur.
+4. Platformada **Kimsə zəng edib kod və ya pul istəyir** düyməsinə basın, apteke qayıdıb yenidən ödəyin: ödəniş dayandırılır.
+
+## Sayta qoşulma
+
+```html
+<script src="https://cizzy.vercel.app/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>
+<button data-cz-guard="payment" data-cz-guard-amount="45 AZN">Ödə</button>
+```
+
+`client_id` [tərtibatçı səhifəsindən](https://cizzy.vercel.app/developers) alınır. Server cavab verməsə sayt bloklanmır.
+
+## Texnologiya
+
+| Hissə | Texnologiya |
+|---|---|
+| Platforma və API | Next.js 16, TypeScript |
+| Verilənlər bazası | PostgreSQL (Supabase), ehtiyaclar AES-256-GCM ilə şifrəli |
+| Web SDK | TypeScript, asılılıqsız, tək fayl |
+| AI | Groq (Qwen, Whisper), Azure Speech (Azərbaycan səsi) |
+
+```
+platform/       istifadəçi platforması, API, OAuth
+sdk/web/        Web SDK: ayar sxemi, mühərrik, qoruma, səs
+demo-partner/   demo saytlar: aptek, poliklinika, arayış, xəbər, mağaza
+tests/          brauzer və API testləri
+docs/           spesifikasiya, API, ssenarilər, dizayn
+```
 
 ## Lokal işə salma
 
+Node 24 və Postgres lazımdır.
+
 ```bash
-docker run -d --name dedio-pg -p 5433:5432 -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=dedio postgres:16-alpine
-cd platform && cp .env.example .env.local   # SECRET doldurun
-npm install && npm run dev                  # http://localhost:3000
-node demo-partner/serve.mjs                         # http://localhost:4000  (DEMO Market)
+cd platform
+cp .env.example .env.local   # DATABASE_URL və SECRET yazın
+npm install
+npm run dev                  # http://localhost:3000
+node ../demo-partner/serve.mjs   # http://localhost:4000
 ```
-
-Səsli köməkçi üçün `platform/.env.local`-da `AI_API_KEY` doldurun (pulsuz: https://console.groq.com/keys).
-`STT_MODE=browser` — səs brauzerdə (Chrome/Edge) tanınır, `STT_MODE=server` — Whisper ilə serverdə.
-
-## Hər hansı sayta qoşmaq (2 addım)
-
-1. Platformada daxil olun → **Tərtibatçılar** (`/developers`) → saytın ünvanını qeyd edin → `client_id` alın.
-2. Saytın `<head>` hissəsinə:
-
-```html
-<script src="https://PLATFORMA/sdk.js" data-client-id="CLIENT_ID" async></script>
-```
-
-Saytda heç nə dəyişmədən (avtomatik rejim) yazı ölçüsü, sətir/hərf aralığı, kontrast (WCAG AAA rəng düzəlişi daxil), rəng filtrləri, linklər, kursor, fokus, böyük düymələr, animasiya, reklam/yan panel gizlətmə, ikon yazıları, altyazı, oxuma xətti, oxunaqlı şrift və səsli oxunuş işləyir.
-Dəqiq inteqrasiya (sadə rejim işarələri, B növ ayarlar, tokens rejimi) — `/developers` səhifəsində.
-Sayt sahibi üçün yoxlama: `https://SAYT/?mu-check` (və ya konsolda `MeneUygun.check()`).
 
 ## Testlər
 
 ```bash
-bash tests/e2e-web.sh                       # platform :3000 + demo :4000 işləyərkən (agent-browser lazımdır)
-node tests/mock-ai.mjs &                    # sonra platformanı AI_BASE_URL=http://127.0.0.1:4100/v1 AI_API_KEY=test-key ilə başladın
-BASE=http://localhost:3100 bash tests/api-test.sh
+node tests/engine-settings.mjs   # ayarların hər biri real brauzerdə ölçülür
+bash tests/e2e-web.sh            # giriş, qeydiyyat, qoşulma, sinxron, ayırma
+bash tests/e2e-scenarios.sh      # aptek, fırıldaq anı, Təhlükəsiz rejim, Form Guide
 ```
 
-## Deploy (Vercel + Supabase)
+## Məhdudiyyətlər
 
-Canlı: https://mene-uygun.vercel.app · demo: https://mene-uygun-demo.vercel.app
-
-```bash
-vercel deploy --prod                  # repo kökündən: platforma (layihə "mene-uygun", Root Directory = platform)
-cd demo-partner && vercel deploy --prod   # demo sayt (layihə "mene-uygun-demo", PLATFORM_URL env)
-```
-
-Canlıda test: `P=https://mene-uygun.vercel.app D=https://mene-uygun-demo.vercel.app SLOW=3 bash tests/e2e-web.sh "x-$(date +%s)@demo.az"`
-
-VPS yolu (`deploy/docker-compose.*`, `deploy/vercel-proxy`) saxlanılıb, amma istifadə olunmur: VPS-ə xaricdən qoşulmaq mümkün deyil.
+- Qoruma yalnız Cizzy qoşulmuş saytlarda işləyir. Fırıldaqçının saxta saytında SDK olmur.
+- Etibarlı şəxsə xəbər bir toxunuşla zəng, WhatsApp və ya SMS ilə verilir. Avtomatik göndəriş üçün SMTP və ya SMS xidməti lazımdır.
+- Real e-poçt göndərişi qurulmayıb; demoda kod ekranda göstərilir.
+- Real yaşlı istifadəçilərlə sınaq hələ aparılmayıb.
+- AI nəticəsi məsləhətdir, qərar istifadəçidədir.

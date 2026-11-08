@@ -23,7 +23,7 @@ export function POST(req: Request) {
       return {
         action: "postMessage",
         origin: request.origin,
-        message: { type: "meneuygun:authorize", state: request.state, ...result },
+        message: { type: "cizzy:authorize", state: request.state, ...result },
         // Used when this window has no opener (popup opened as a tab by some browsers).
         fallbackUrl: request.returnTo ? redirectTarget(request, result) : null,
       };

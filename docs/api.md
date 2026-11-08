@@ -1,6 +1,6 @@
-# MƏNƏ UYĞUN — API contract (v1)
+# Cizzy — API contract (v1)
 
-Base URL: `{BASE}` (dev: `http://localhost:3000`, Android emulator: `http://10.0.2.2:3000`, prod: set later).
+Base URL: `https://cizzy.vercel.app` (dev: `http://localhost:3000`).
 All JSON. Errors: `{ "error": "<code>", "error_description": "<text>" }` with 4xx/5xx.
 
 ## Preferences object
@@ -33,7 +33,7 @@ Clients must ignore unknown keys (forward compatibility).
 A client (partner site or app) has `client_id`, `name`, `allowed_origins` (web) and `redirect_uris` (mobile).
 Seeded demo clients:
 - `demo-partner` — web, origin from env `DEMO_PARTNER_ORIGIN` (dev `http://localhost:4000`)
-- `demo-mobile` — mobile, redirect URIs `meneuygun-demo://callback`
+- `demo-mobile` — mobile, redirect URIs `cizzy-demo://callback`
 
 ## Authorization (OAuth 2.0 + PKCE, public clients, no client secret)
 
@@ -49,12 +49,12 @@ Seeded demo clients:
 | `redirect_uri` | mobile: exact registered URI. web popup: `postmessage` |
 | `response_mode` | mobile: omit (query). web popup: `web_message` |
 | `origin` | web popup only: `location.origin` of the partner page (must be in `allowed_origins`) |
-| `return_to` | web popup only, optional: page URL on the same origin. Used when the popup has no `window.opener` (opened as a tab): the browser is sent to `return_to#mu_code=…&mu_state=…` |
+| `return_to` | web popup only, optional: page URL on the same origin. Used when the popup has no `window.opener` (opened as a tab): the browser is sent to `return_to#cz_code=…&cz_state=…` |
 
 User logs in if needed and sees the consent screen.
 - Mobile result: redirect to `{redirect_uri}?code=...&state=...` or `{redirect_uri}?error=access_denied&state=...`.
-- Web, popup blocked: `response_mode=mu_fragment`, `redirect_uri=<page URL on a registered origin>` → `redirect_uri#mu_code=…&mu_state=…` (exchange with that same `redirect_uri`).
-- Web result: the popup calls `window.opener.postMessage({ type: "meneuygun:authorize", code, state } | { type: "meneuygun:authorize", error: "access_denied", state }, origin)` and closes.
+- Web, popup blocked: `response_mode=cz_fragment`, `redirect_uri=<page URL on a registered origin>` → `redirect_uri#cz_code=…&cz_state=…` (exchange with that same `redirect_uri`).
+- Web result: the popup calls `window.opener.postMessage({ type: "cizzy:authorize", code, state } | { type: "cizzy:authorize", error: "access_denied", state }, origin)` and closes.
 
 Code lifetime: 5 minutes, single use.
 

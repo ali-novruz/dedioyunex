@@ -27,7 +27,7 @@ export async function synthesize(text: string, language: Language, rate: number)
       "Ocp-Apim-Subscription-Key": c.key,
       "Content-Type": "application/ssml+xml",
       "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
-      "User-Agent": "mene-uygun",
+      "User-Agent": "cizzy",
     },
     signal: AbortSignal.timeout(15_000),
     body: ssml,

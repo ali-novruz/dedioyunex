@@ -24,7 +24,7 @@ export default async function DevelopersPage() {
   const id = l("SIZIN_CLIENT_ID", "YOUR_CLIENT_ID");
   return (
     <div className="stack">
-      <h1 className="h1">{l("Saytınızı MƏNƏ UYĞUN-a qoşun", "Connect your site to MƏNƏ UYĞUN")}</h1>
+      <h1 className="h1">{l("Saytınızı Cizzy-yə qoşun", "Connect your site to Cizzy")}</h1>
       <p className="lead">
         {l("Bir sətir kod. Saytınız istifadəçinin yazı ölçüsü, kontrast, səsli oxunuş, sadə rejim və digər ayarlarına avtomatik uyğunlaşır.", "One line of code. Your site adapts automatically to each user’s text size, contrast, reading aloud, simple mode and other settings.")}
       </p>
@@ -46,8 +46,8 @@ export default async function DevelopersPage() {
           <Code>{`<script src="${base}/sdk.js" data-client-id="${id}" async></script>`}</Code>
           <p className="muted">
             {l(
-              "Bu qədər. Skript saytın sağ aşağı küncündə “MƏNƏ UYĞUN-dan ayarları gətir” düyməsini göstərir və heç bir dəyişiklik etmədən yazıları, kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. async ilə qoşun: MƏNƏ UYĞUN serveri cavab verməsə belə saytınız heç vaxt gözləmir və bloklanmır, istifadəçinin son ayarları cihazda saxlanılır və dərhal tətbiq olunur.",
-              "That’s all. The script shows a “Bring my MƏNƏ UYĞUN settings” button in the bottom-right corner and, with no other changes, controls text, contrast, colours, buttons, animations, ads and reading aloud. Load it with async: even if the MƏNƏ UYĞUN server does not respond, your site never waits or blocks, and the user’s last settings are kept on the device and applied at once.",
+              "Bu qədər. Skript saytın sağ aşağı küncündə “Cizzy-dən ayarları gətir” düyməsini göstərir və heç bir dəyişiklik etmədən yazıları, kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. async ilə qoşun: Cizzy serveri cavab verməsə belə saytınız heç vaxt gözləmir və bloklanmır, istifadəçinin son ayarları cihazda saxlanılır və dərhal tətbiq olunur.",
+              "That’s all. The script shows a “Bring my Cizzy settings” button in the bottom-right corner and, with no other changes, controls text, contrast, colours, buttons, animations, ads and reading aloud. Load it with async: even if the Cizzy server does not respond, your site never waits or blocks, and the user’s last settings are kept on the device and applied at once.",
             )}
           </p>
         </div>
@@ -93,37 +93,37 @@ font-src ${base};`}</Code>
         <div className="rows">
           <div className="stack">
             <h3 className="h3">{l("Düyməni öz yerinizə qoyun", "Place the button yourself")}</h3>
-            <Code>{`<div data-mu-button></div>   <!-- ${l("düymə burada görünəcək, küncdəki düymə yox olacaq", "the button appears here, the corner button goes away")} -->
+            <Code>{`<div data-cz-button></div>   <!-- ${l("düymə burada görünəcək, küncdəki düymə yox olacaq", "the button appears here, the corner button goes away")} -->
 <!-- ${l("küncdə düymə istəmirsinizsə", "no corner button at all")}: <script ... data-floating="false"> -->`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Sadə rejimdə nə gizlənsin, nə önə çıxsın", "What simple mode hides and highlights")}</h3>
-            <Code>{`<section data-mu-simple="hide">${l("Kampaniyalar, əlavə menyular…", "Promotions, extra menus…")}</section>
-<a data-mu-simple="primary" href="/pay">${l("Ödəniş", "Payment")}</a>
-<div data-mu-distraction>${l("Reklam", "Advert")}</div>
-<aside data-mu-simple="keep">${l("Vacib yan panel", "Important side panel")}</aside>`}</Code>
+            <Code>{`<section data-cz-simple="hide">${l("Kampaniyalar, əlavə menyular…", "Promotions, extra menus…")}</section>
+<a data-cz-simple="primary" href="/pay">${l("Ödəniş", "Payment")}</a>
+<div data-cz-distraction>${l("Reklam", "Advert")}</div>
+<aside data-cz-simple="keep">${l("Vacib yan panel", "Important side panel")}</aside>`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Xidmətin özünün tətbiq etdiyi ayarlar (B növü)", "Settings the service applies itself (type B)")}</h3>
             <p className="muted">
-              {l("Bütün ayarlar <html> elementində atribut kimi görünür:", "Every setting appears as an attribute on <html>:")} <C>data-mu-confirm-actions</C>, <C>data-mu-extended-timeouts</C>, <C>data-mu-plain-language</C>, <C>data-mu-step-by-step</C>, <C>data-mu-visual-alerts</C>, <C>data-mu-language=&quot;az&quot;</C>.
+              {l("Bütün ayarlar <html> elementində atribut kimi görünür:", "Every setting appears as an attribute on <html>:")} <C>data-cz-confirm-actions</C>, <C>data-cz-extended-timeouts</C>, <C>data-cz-plain-language</C>, <C>data-cz-step-by-step</C>, <C>data-cz-visual-alerts</C>, <C>data-cz-language=&quot;az&quot;</C>.
             </p>
-            <Code>{`MeneUygun.on("preferences", (p) => {
+            <Code>{`Cizzy.on("preferences", (p) => {
   if (p.extendedTimeouts) session.setTimeout(30 * 60);
   if (p.confirmActions) payButton.dataset.confirm = "1";
 });
 
-html[data-mu-plain-language] .legal-text { display: none; }
-html[data-mu-plain-language] .simple-text { display: block; }`}</Code>
+html[data-cz-plain-language] .legal-text { display: none; }
+html[data-cz-plain-language] .simple-text { display: block; }`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Tokens rejimi: dizaynı tam özünüz idarə edin", "Tokens mode: keep full control of your design")}</h3>
             <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-mode="tokens"></script>
 
 /* ${l("SDK heç nəyi dəyişmir, yalnız dəyişənləri verir", "The SDK changes nothing, it only provides variables")} */
-html { font-size: calc(100% * var(--mu-font-scale, 1)); }
-html[data-mu-contrast="high"] { --text: #000; --bg: #fff; }
-html[data-mu-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
+html { font-size: calc(100% * var(--cz-font-scale, 1)); }
+html[data-cz-contrast="high"] { --text: #000; --bg: #fff; }
+html[data-cz-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Uyğunluq: hansı ayarları özünüz dəstəkləyirsiniz", "Compatibility: which settings you support")}</h3>
@@ -132,7 +132,7 @@ html[data-mu-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Saytınızı yoxlayın", "Check your site")}</h3>
-            <p className="muted">{l("Ünvanın sonuna ?mu-check əlavə edin. Səhifə 200% yazı ölçüsündə yoxlanılır: üfüqi sürüşmə, kəsilən mətnlər, kiçik düymələr, aşağı kontrast, adsız ikonlar. Konsolda:", "Add ?mu-check to the address. The page is tested at 200% text size for sideways scrolling, clipped text, small buttons, low contrast and unnamed icons. In the console:")} <C>await MeneUygun.check()</C></p>
+            <p className="muted">{l("Ünvanın sonuna ?cz-check əlavə edin. Səhifə 200% yazı ölçüsündə yoxlanılır: üfüqi sürüşmə, kəsilən mətnlər, kiçik düymələr, aşağı kontrast, adsız ikonlar. Konsolda:", "Add ?cz-check to the address. The page is tested at 200% text size for sideways scrolling, clipped text, small buttons, low contrast and unnamed icons. In the console:")} <C>await Cizzy.check()</C></p>
           </div>
           <div className="stack">
             <h3 className="h3">{l("Açıq sxem", "Open schema")}</h3>
@@ -140,16 +140,16 @@ html[data-mu-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">JavaScript API</h3>
-            <Code>{`MeneUygun.connect()
-MeneUygun.disconnect()
-MeneUygun.refresh()
-MeneUygun.preferences
-MeneUygun.isConnected
-MeneUygun.speak("${l("Mətn", "Text")}")
-MeneUygun.compatibility    // { active, supported, unsupported[] }
-await MeneUygun.check()
-MeneUygun.on("connect" | "disconnect" | "preferences" | "error", cb)
-document.addEventListener("meneuygun:preferences", (e) => e.detail)`}</Code>
+            <Code>{`Cizzy.connect()
+Cizzy.disconnect()
+Cizzy.refresh()
+Cizzy.preferences
+Cizzy.isConnected
+Cizzy.speak("${l("Mətn", "Text")}")
+Cizzy.compatibility    // { active, supported, unsupported[] }
+await Cizzy.check()
+Cizzy.on("connect" | "disconnect" | "preferences" | "error", cb)
+document.addEventListener("cizzy:preferences", (e) => e.detail)`}</Code>
           </div>
         </div>
       </Window>
@@ -160,16 +160,16 @@ document.addEventListener("meneuygun:preferences", (e) => e.detail)`}</Code>
           <div className="stack">
             <h3 className="h3">{l("Vacib düymələri işarələyin", "Mark the important buttons")}</h3>
             <p className="muted">{l("İstifadəçi basanda aydın təsdiq ekranı çıxır. Yoxlama brauzerdə aparılır, əməliyyat məlumatı serverə getmir.", "When pressed, a clear confirmation appears. The check runs in the browser and no action data goes to a server.")}</p>
-            <Code>{`<button data-mu-guard="payment" data-mu-guard-amount="45 AZN">${l("Ödə", "Pay")}</button>
-<button data-mu-guard="delete">${l("Sil", "Delete")}</button>
-<button data-mu-guard="submit" data-mu-guard-text="${l("Sifarişiniz göndərilir.", "Your order is being sent.")}">${l("Göndər", "Send")}</button>
-<button data-mu-guard="subscribe">${l("Abunə ol", "Subscribe")}</button>`}</Code>
+            <Code>{`<button data-cz-guard="payment" data-cz-guard-amount="45 AZN">${l("Ödə", "Pay")}</button>
+<button data-cz-guard="delete">${l("Sil", "Delete")}</button>
+<button data-cz-guard="submit" data-cz-guard-text="${l("Sifarişiniz göndərilir.", "Your order is being sent.")}">${l("Göndər", "Send")}</button>
+<button data-cz-guard="subscribe">${l("Abunə ol", "Subscribe")}</button>`}</Code>
           </div>
           <div className="stack">
             <h3 className="h3">Form Guide</h3>
             <p className="muted">{l("3 və daha çox sahəsi olan formalar avtomatik addım-addım göstərilir. İzahı özünüz yaza bilərsiniz.", "Forms with 3 or more fields are shown step by step automatically. You can write the explanation yourself.")}</p>
-            <Code>{`<input name="fin" data-mu-help="${l("Şəxsiyyət vəsiqənizdəki 7 işarəli kod", "The 7-character code on your ID card")}">
-<form data-mu-form-guide="off">...</form>`}</Code>
+            <Code>{`<input name="fin" data-cz-help="${l("Şəxsiyyət vəsiqənizdəki 7 işarəli kod", "The 7-character code on your ID card")}">
+<form data-cz-form-guide="off">...</form>`}</Code>
           </div>
         </div>
       </Window>

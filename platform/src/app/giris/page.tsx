@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </p>
       <LoginForm next={next || (adding ? "/xidmetler" : "")} />
       {!adding && <StartAnonymous next={next} />}
-      <p className="notice">{l("MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "MƏNƏ UYĞUN never asks for a password, card details or money.")}</p>
+      <p className="notice">{l("Cizzy heç vaxt şifrə, kart məlumatı və ya pul istəmir.", "Cizzy never asks for a password, card details or money.")}</p>
     </div>
   );
 }

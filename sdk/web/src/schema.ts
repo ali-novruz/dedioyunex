@@ -1,4 +1,4 @@
-// MƏNƏ UYĞUN — preference schema. Single source of truth for platform, API, Web SDK.
+// Cizzy — preference schema. Single source of truth for platform, API, Web SDK.
 // Android (Kotlin) and iOS (Swift) models mirror this file; keep keys and values identical.
 
 export const SCHEMA_VERSION = 1 as const;
@@ -288,7 +288,7 @@ export const SETTINGS: SettingDef[] = [
   // ---- touch
   tog("clickGuard", ["motor"], "Təsadüfi ikiqat basmanı əngəllə", "Dalbadal ikinci basma nəzərə alınmır"),
   pick("dwellClick", ["motor"], "Kursoru saxlayanda bas", "Kursor düymənin üstündə dayananda özü basılır. Ödəniş və silmə üçün işləmir", [[0, "Bağlı"], [2500, "2,5 saniyə"], [1500, "1,5 saniyə"], [1000, "1 saniyə"]]),
-  pick("handedness", ["motor"], "İstifadə etdiyiniz əl", "MƏNƏ UYĞUN düymələri bu tərəfə keçir", [["right", "Sağ əl"], ["left", "Sol əl"]]),
+  pick("handedness", ["motor"], "İstifadə etdiyiniz əl", "Cizzy düymələri bu tərəfə keçir", [["right", "Sağ əl"], ["left", "Sol əl"]]),
   // ---- sound and voice
   pick("captionSize", ["hearing", "vision"], "Altyazının ölçüsü", "Videolardakı altyazı", [[1, "Normal"], [1.5, "Böyük"], [2, "Çox böyük"]]),
   pick("captionStyle", ["hearing", "vision"], "Altyazının görünüşü", "Altyazının rəngi və fonu", [["default", "Normal"], ["yellow", "Qara fonda sarı"], ["white", "Ağ fonda qara"]]),
@@ -358,7 +358,7 @@ const SETTING_EN: Record<PreferenceKey, { label: string; help: string; options?:
   focusMode: { label: "Focus mode", help: "Only the text under the pointer stays bright" },
   clickGuard: { label: "Block accidental double presses", help: "A quick second press is ignored" },
   dwellClick: { label: "Press by resting the pointer", help: "A button presses itself when the pointer rests on it. Not for payments or deleting", options: { "0": "Off", "2500": "2.5 seconds", "1500": "1.5 seconds", "1000": "1 second" } },
-  handedness: { label: "The hand you use", help: "MƏNƏ UYĞUN buttons move to this side", options: { right: "Right hand", left: "Left hand" } },
+  handedness: { label: "The hand you use", help: "Cizzy buttons move to this side", options: { right: "Right hand", left: "Left hand" } },
   captionSize: { label: "Caption size", help: "Captions in videos", options: { "1": "Normal", "1.5": "Large", "2": "Very large" } },
   captionStyle: { label: "Caption look", help: "Caption colour and background", options: { default: "Normal", yellow: "Yellow on black", white: "Black on white" } },
   ttsPitch: { label: "Voice pitch", help: "How deep the reading voice is", options: { "1": "Normal", "0.8": "Deep", "1.2": "High" } },

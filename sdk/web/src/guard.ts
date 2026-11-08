@@ -27,7 +27,7 @@ type Kind = "payment" | "submit" | "delete" | "subscribe";
 
 const TEXT = {
   az: {
-    bar: "MƏNƏ UYĞUN qoruması",
+    bar: "Cizzy qoruması",
     sure: "Əminsiniz?",
     payment: (a: string, to: string) => `Siz ${a || "pul"}${to ? ` ${to} üçün` : ""} ödəyirsiniz.`,
     submit: () => "Bu məlumatları göndərirsiniz.",
@@ -46,7 +46,7 @@ const TEXT = {
     close: "Bağla",
   },
   en: {
-    bar: "MƏNƏ UYĞUN protection",
+    bar: "Cizzy protection",
     sure: "Are you sure?",
     payment: (a: string, to: string) => `You are paying ${a || "money"}${to ? ` to ${to}` : ""}.`,
     submit: () => "You are sending this information.",
@@ -99,15 +99,15 @@ export class ActionGuard {
   }
 
   private onClick = (e: Event) => {
-    const el = (e.target as Element | null)?.closest?.("[data-mu-guard]") as HTMLElement | null;
-    if (!el || el.closest("[data-mu-ui]")) return;
+    const el = (e.target as Element | null)?.closest?.("[data-cz-guard]") as HTMLElement | null;
+    if (!el || el.closest("[data-cz-ui]")) return;
     if (el === this.allowed) return;
     this.stop(e, el);
   };
 
   /** Pressing Enter in a field submits without any click on the guarded button. */
   private onSubmit = (e: Event) => {
-    const el = (e.target as HTMLFormElement).querySelector?.<HTMLElement>("[data-mu-guard]");
+    const el = (e.target as HTMLFormElement).querySelector?.<HTMLElement>("[data-cz-guard]");
     if (!el) return;
     if (el === this.allowed) {
       this.allowed = null;
@@ -134,17 +134,17 @@ export class ActionGuard {
 
   private message(el: HTMLElement): string {
     const t = TEXT[this.lang()];
-    const own = el.getAttribute("data-mu-guard-text");
+    const own = el.getAttribute("data-cz-guard-text");
     if (own) return own;
-    const kind = el.getAttribute("data-mu-guard") as Kind;
-    if (kind === "payment") return t.payment(el.getAttribute("data-mu-guard-amount") ?? "", el.getAttribute("data-mu-guard-to") ?? "");
+    const kind = el.getAttribute("data-cz-guard") as Kind;
+    if (kind === "payment") return t.payment(el.getAttribute("data-cz-guard-amount") ?? "", el.getAttribute("data-cz-guard-to") ?? "");
     if (kind === "delete" || kind === "subscribe") return t[kind]();
     return t.submit();
   }
 
   private ask(el: HTMLElement): void {
     const host = this.doc.createElement("div");
-    host.setAttribute("data-mu-ui", "guard");
+    host.setAttribute("data-cz-ui", "guard");
     host.setAttribute("role", "alertdialog");
     host.setAttribute("aria-modal", "true");
     host.style.cssText = "position:fixed;inset:0;z-index:2147483647";
