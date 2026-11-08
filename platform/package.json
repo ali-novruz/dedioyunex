@@ -12,6 +12,7 @@
     "demo-partner": "node ../demo-partner/serve.mjs"
   },
   "dependencies": {
+    "@vercel/functions": "^3.11.0",
     "next": "16.4.5",
     "nodemailer": "^10.4.0",
     "pg": "^8.23.1",

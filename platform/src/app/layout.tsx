@@ -1,46 +1,54 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Archivo, Libre_Baskerville } from "next/font/google";
 import "./globals.css";
 import { currentUser } from "@/lib/session";
+import { pageLang } from "@/lib/lang-server";
+import { tr } from "@/lib/lang";
 import { PrefsProvider } from "@/components/PrefsProvider";
 import { HeaderActions } from "@/components/HeaderActions";
+import { MainNav } from "@/components/MainNav";
 
-export const metadata: Metadata = {
-  title: "MƏNƏ UYĞUN",
-  description: "Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.",
-  manifest: "/manifest.webmanifest",
-};
+// Every face must contain Ə/ə (U+018F, U+0259). Many popular fonts, Rubik among them, do not.
+const sans = Archivo({ subsets: ["latin", "latin-ext"], variable: "--font-sans", display: "swap" });
+const serif = Libre_Baskerville({ subsets: ["latin", "latin-ext"], weight: "400", style: "italic", variable: "--font-serif", display: "swap" });
+
+export async function generateMetadata(): Promise<Metadata> {
+  const l = tr(await pageLang());
+  return {
+    title: "MƏNƏ UYĞUN",
+    description: l("Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.", "Set it up once. Use every service your way."),
+    manifest: "/manifest.webmanifest",
+    icons: { icon: "/icon.svg" },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b6e4f",
+  themeColor: "#f5bc4a",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
+  const lang = await pageLang();
+  const l = tr(lang);
   return (
-    <html lang="az">
+    <html lang={lang} className={`${sans.variable} ${serif.variable}`}>
       <body>
-        <PrefsProvider initial={user?.prefs ?? null}>
+        <PrefsProvider initial={user?.prefs ?? null} lang={lang}>
           <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 btn btn-primary">
-            Əsas məzmuna keç
+            {l("Əsas məzmuna keç", "Skip to main content")}
           </a>
-          <header className="border-b-2 border-[var(--line)] bg-white">
-            <div className="mx-auto flex max-w-[46rem] flex-wrap items-center justify-between gap-3 px-4 py-3">
-              <Link href={user ? "/ev" : "/"} className="flex items-center gap-2 text-[1.3rem] font-black tracking-tight text-[var(--brand)] no-underline">
-                <span aria-hidden className="grid h-10 w-10 place-items-center rounded-full bg-[var(--brand)] text-[.8rem] text-white">MU</span>
+          <header>
+            <div className="topbar shell">
+              <Link href={user ? "/ev" : "/"} className="brand">
+                <span aria-hidden className="brand-mark">MU</span>
                 MƏNƏ UYĞUN
               </Link>
               <HeaderActions signedIn={!!user} />
             </div>
-            {user && (
-              <nav aria-label="Əsas menyu" className="mx-auto flex max-w-[46rem] gap-2 overflow-x-auto px-4 pb-3">
-                <Link className="btn btn-secondary" href="/ev">🏠 Əsas</Link>
-                <Link className="btn btn-secondary" href="/ayarlar">⚙️ Ayarlar</Link>
-                <Link className="btn btn-secondary" href="/xidmetler">🔗 Xidmətlər</Link>
-              </nav>
-            )}
+            {user && <MainNav />}
           </header>
           <main id="main" className="page">
             {children}

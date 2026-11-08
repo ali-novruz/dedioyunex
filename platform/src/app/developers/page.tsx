@@ -2,159 +2,181 @@ import Link from "next/link";
 import { currentUser } from "@/lib/session";
 import { clientsOf } from "@/lib/clients";
 import { env } from "@/lib/env";
+import { pageT } from "@/lib/lang-server";
+import { Window } from "@/components/Window";
 import { ClientManager } from "./ClientManager";
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-2xl bg-[#14181f] p-4 text-[.8rem] leading-relaxed text-[#e8eaed]">
-      <code>{children}</code>
-    </pre>
+    <pre className="code"><code>{children}</code></pre>
   );
+}
+
+function C({ children }: { children: React.ReactNode }) {
+  return <code className="inline-code">{children}</code>;
 }
 
 export default async function DevelopersPage() {
   const user = await currentUser();
   const base = env.appUrl;
   const mine = user ? await clientsOf(user.id) : [];
+  const { l } = await pageT();
+  const id = l("SIZIN_CLIENT_ID", "YOUR_CLIENT_ID");
   return (
     <div className="stack">
-      <h1 className="h1">Saytınızı MƏNƏ UYĞUN-a qoşun</h1>
+      <h1 className="h1">{l("Saytınızı MƏNƏ UYĞUN-a qoşun", "Connect your site to MƏNƏ UYĞUN")}</h1>
       <p className="lead">
-        Bir sətir kod. Saytınız istifadəçinin yazı ölçüsü, kontrast, səsli oxunuş, sadə rejim və digər ayarlarına avtomatik uyğunlaşır.
+        {l("Bir sətir kod. Saytınız istifadəçinin yazı ölçüsü, kontrast, səsli oxunuş, sadə rejim və digər ayarlarına avtomatik uyğunlaşır.", "One line of code. Your site adapts automatically to each user’s text size, contrast, reading aloud, simple mode and other settings.")}
       </p>
 
-      <h2 className="h2">1. Saytınızı qeydiyyatdan keçirin</h2>
+      <h2 className="h2">{l("1. Saytınızı qeydiyyatdan keçirin", "1. Register your site")}</h2>
       {user ? (
         <ClientManager initial={mine} base={base} />
       ) : (
-        <p className="card">
-          Qeydiyyat üçün <Link className="font-bold text-[var(--brand)] underline" href="/giris?next=/developers">daxil olun</Link>. Sizə <code>client_id</code> veriləcək.
-        </p>
+        <Window title={l("Qeydiyyat", "Registration")}>
+          <p>
+            {l("Qeydiyyat üçün", "To register,")} <Link className="textlink" href="/giris?next=/developers">{l("daxil olun", "sign in")}</Link>. {l("Sizə client_id veriləcək.", "You will receive a client_id.")}
+          </p>
+        </Window>
       )}
 
-      <h2 className="h2">2. Skripti &lt;head&gt; hissəsinə əlavə edin</h2>
-      <Code>{`<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>`}</Code>
-      <p className="muted">
-        Bu qədər. Skript saytın sağ aşağı küncündə “MƏNƏ UYĞUN-dan ayarları gətir” düyməsini göstərir və heç bir dəyişiklik etmədən (avtomatik rejim) yazıları,
-        kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. <code>async</code> ilə qoşun: MƏNƏ UYĞUN serveri cavab verməsə belə saytınız heç vaxt gözləmir və bloklanmır (fail-open) — istifadəçinin son ayarları cihazda saxlanılır və dərhal tətbiq olunur.
-      </p>
+      <h2 className="h2">{l("2. Skripti <head> hissəsinə əlavə edin", "2. Add the script to <head>")}</h2>
+      <Window title="HTML">
+        <div className="stack">
+          <Code>{`<script src="${base}/sdk.js" data-client-id="${id}" async></script>`}</Code>
+          <p className="muted">
+            {l(
+              "Bu qədər. Skript saytın sağ aşağı küncündə “MƏNƏ UYĞUN-dan ayarları gətir” düyməsini göstərir və heç bir dəyişiklik etmədən yazıları, kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. async ilə qoşun: MƏNƏ UYĞUN serveri cavab verməsə belə saytınız heç vaxt gözləmir və bloklanmır, istifadəçinin son ayarları cihazda saxlanılır və dərhal tətbiq olunur.",
+              "That’s all. The script shows a “Bring my MƏNƏ UYĞUN settings” button in the bottom-right corner and, with no other changes, controls text, contrast, colours, buttons, animations, ads and reading aloud. Load it with async: even if the MƏNƏ UYĞUN server does not respond, your site never waits or blocks, and the user’s last settings are kept on the device and applied at once.",
+            )}
+          </p>
+        </div>
+      </Window>
 
-      <h2 className="h2">Platformaya görə</h2>
-      <div className="stack">
-        <details className="card">
-          <summary className="cursor-pointer font-bold">Next.js (App Router)</summary>
-          <Code>{`// app/layout.tsx
+      <h2 className="h2">{l("Platformaya görə", "By platform")}</h2>
+      <Window title={l("Quraşdırma", "Installation")}>
+        <div className="rows">
+          <details className="fold">
+            <summary>Next.js (App Router)</summary>
+            <Code>{`// app/layout.tsx
 import Script from "next/script";
 
 <html>
   <head>
-    <Script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" strategy="afterInteractive" />
+    <Script src="${base}/sdk.js" data-client-id="${id}" strategy="afterInteractive" />
   </head>
   ...`}</Code>
-        </details>
-        <details className="card">
-          <summary className="cursor-pointer font-bold">React / Vite / Vue / Angular (index.html)</summary>
-          <Code>{`<!-- index.html, <head> içində -->
-<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>`}</Code>
-        </details>
-        <details className="card">
-          <summary className="cursor-pointer font-bold">WordPress</summary>
-          <p className="muted">“WPCode” və ya “Insert Headers and Footers” plaginində “Header” bölməsinə yapışdırın, ya da temanın <code>functions.php</code> faylına:</p>
-          <Code>{`add_action('wp_head', function () {
-  echo '<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>';
+          </details>
+          <details className="fold">
+            <summary>React / Vite / Vue / Angular (index.html)</summary>
+            <Code>{`<!-- index.html, ${l("<head> içində", "inside <head>")} -->
+<script src="${base}/sdk.js" data-client-id="${id}" async></script>`}</Code>
+          </details>
+          <details className="fold">
+            <summary>WordPress</summary>
+            <p className="muted mb-2">{l("“WPCode” və ya “Insert Headers and Footers” plaginində “Header” bölməsinə yapışdırın, ya da temanın functions.php faylına:", "Paste it into the “Header” section of the “WPCode” or “Insert Headers and Footers” plugin, or add this to your theme’s functions.php:")}</p>
+            <Code>{`add_action('wp_head', function () {
+  echo '<script src="${base}/sdk.js" data-client-id="${id}" async></script>';
 }, 1);`}</Code>
-        </details>
-        <details className="card">
-          <summary className="cursor-pointer font-bold">Content-Security-Policy istifadə edirsinizsə</summary>
-          <Code>{`script-src ${base};
+          </details>
+          <details className="fold">
+            <summary>{l("Content-Security-Policy istifadə edirsinizsə", "If you use a Content-Security-Policy")}</summary>
+            <Code>{`script-src ${base};
 connect-src ${base};
 font-src ${base};`}</Code>
-        </details>
-      </div>
+          </details>
+        </div>
+      </Window>
 
-      <h2 className="h2">3. İstəyə görə: daha dəqiq inteqrasiya</h2>
-      <div className="stack">
-        <div className="card stack">
-          <b>Düyməni öz yerinizə qoyun</b>
-          <Code>{`<div data-mu-button></div>   <!-- düymə burada görünəcək, küncdəki düymə yox olacaq -->
-<!-- küncdə düymə istəmirsinizsə: <script ... data-floating="false"> -->`}</Code>
-        </div>
-        <div className="card stack">
-          <b>Sadə rejimdə nə gizlənsin, nə önə çıxsın</b>
-          <Code>{`<section data-mu-simple="hide">Kampaniyalar, əlavə menyular…</section>
-<a data-mu-simple="primary" href="/odenis">Ödəniş</a>
-<div data-mu-distraction>Reklam</div>          <!-- "Reklamları gizlət" açıq olanda gizlənir -->
-<aside data-mu-simple="keep">Vacib yan panel</aside>`}</Code>
-        </div>
-        <div className="card stack">
-          <b>Xidmətin özünün tətbiq etdiyi ayarlar (B növü)</b>
-          <p className="muted">
-            Bütün ayarlar <code>&lt;html&gt;</code> elementində atribut kimi görünür: <code>data-mu-confirm-actions</code>, <code>data-mu-extended-timeouts</code>,{" "}
-            <code>data-mu-plain-language</code>, <code>data-mu-step-by-step</code>, <code>data-mu-visual-alerts</code>, <code>data-mu-language=&quot;az&quot;</code> və s.
-          </p>
-          <Code>{`MeneUygun.on("preferences", (p) => {
-  if (p.extendedTimeouts) session.setTimeout(30 * 60);  // sessiyanı uzat
-  if (p.confirmActions) payButton.dataset.confirm = "1"; // ödənişdən əvvəl soruş
+      <h2 className="h2">{l("3. İstəyə görə: daha dəqiq inteqrasiya", "3. Optional: finer integration")}</h2>
+      <Window title={l("Dəqiq nəzarət", "Fine control")}>
+        <div className="rows">
+          <div className="stack">
+            <h3 className="h3">{l("Düyməni öz yerinizə qoyun", "Place the button yourself")}</h3>
+            <Code>{`<div data-mu-button></div>   <!-- ${l("düymə burada görünəcək, küncdəki düymə yox olacaq", "the button appears here, the corner button goes away")} -->
+<!-- ${l("küncdə düymə istəmirsinizsə", "no corner button at all")}: <script ... data-floating="false"> -->`}</Code>
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Sadə rejimdə nə gizlənsin, nə önə çıxsın", "What simple mode hides and highlights")}</h3>
+            <Code>{`<section data-mu-simple="hide">${l("Kampaniyalar, əlavə menyular…", "Promotions, extra menus…")}</section>
+<a data-mu-simple="primary" href="/pay">${l("Ödəniş", "Payment")}</a>
+<div data-mu-distraction>${l("Reklam", "Advert")}</div>
+<aside data-mu-simple="keep">${l("Vacib yan panel", "Important side panel")}</aside>`}</Code>
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Xidmətin özünün tətbiq etdiyi ayarlar (B növü)", "Settings the service applies itself (type B)")}</h3>
+            <p className="muted">
+              {l("Bütün ayarlar <html> elementində atribut kimi görünür:", "Every setting appears as an attribute on <html>:")} <C>data-mu-confirm-actions</C>, <C>data-mu-extended-timeouts</C>, <C>data-mu-plain-language</C>, <C>data-mu-step-by-step</C>, <C>data-mu-visual-alerts</C>, <C>data-mu-language=&quot;az&quot;</C>.
+            </p>
+            <Code>{`MeneUygun.on("preferences", (p) => {
+  if (p.extendedTimeouts) session.setTimeout(30 * 60);
+  if (p.confirmActions) payButton.dataset.confirm = "1";
 });
 
-// CSS ilə:
 html[data-mu-plain-language] .legal-text { display: none; }
 html[data-mu-plain-language] .simple-text { display: block; }`}</Code>
-        </div>
-        <div className="card stack">
-          <b>Tokens rejimi — dizaynı tam özünüz idarə edin</b>
-          <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-mode="tokens"></script>
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Tokens rejimi: dizaynı tam özünüz idarə edin", "Tokens mode: keep full control of your design")}</h3>
+            <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-mode="tokens"></script>
 
-/* SDK heç nəyi dəyişmir, yalnız dəyişənləri verir: */
+/* ${l("SDK heç nəyi dəyişmir, yalnız dəyişənləri verir", "The SDK changes nothing, it only provides variables")} */
 html { font-size: calc(100% * var(--mu-font-scale, 1)); }
 html[data-mu-contrast="high"] { --text: #000; --bg: #fff; }
 html[data-mu-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
-        </div>
-        <div className="card stack">
-          <b>Uyğunluq: hansı ayarları özünüz dəstəkləyirsiniz</b>
-          <p className="muted">B növ ayarları tətbiq edirsinizsə, siyahını bildirin — istifadəçi “Bu sayt ayarlarınızdan 9/10-nu dəstəkləyir” görəcək.</p>
-          <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-supports="confirmActions,extendedTimeouts,plainLanguage" async></script>`}</Code>
-        </div>
-        <div className="card stack">
-          <b>Saytınızı yoxlayın</b>
-          <p className="muted">Ünvanın sonuna <code>?mu-check</code> əlavə edin (məs. <code>https://saytim.az/?mu-check</code>): səhifə 200% yazı ölçüsündə yoxlanılır — üfüqi sürüşmə, kəsilən mətnlər, kiçik düymələr, aşağı kontrast, adsız ikonlar. Konsolda: <code>await MeneUygun.check()</code>.</p>
-        </div>
-        <div className="card stack">
-          <b>Açıq sxem</b>
-          <p className="muted">Bütün ayarlar, dəyərlər və WCAG / ISO/IEC 24751 uyğunluqları: <a className="font-bold text-[var(--brand)] underline" href="/v1/schema">{`${base}/v1/schema`}</a></p>
-        </div>
-        <div className="card stack">
-          <b>JavaScript API</b>
-          <Code>{`MeneUygun.connect()        // düyməsiz qoşulma (klik içində çağırın)
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Uyğunluq: hansı ayarları özünüz dəstəkləyirsiniz", "Compatibility: which settings you support")}</h3>
+            <p className="muted">{l("B növ ayarları tətbiq edirsinizsə, siyahını bildirin. İstifadəçi “Bu sayt ayarlarınızdan 9/10-nu dəstəkləyir” görəcək.", "If you implement type B settings, list them. The user will see “This site supports 9 of your 10 settings”.")}</p>
+            <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-supports="confirmActions,extendedTimeouts,plainLanguage" async></script>`}</Code>
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Saytınızı yoxlayın", "Check your site")}</h3>
+            <p className="muted">{l("Ünvanın sonuna ?mu-check əlavə edin. Səhifə 200% yazı ölçüsündə yoxlanılır: üfüqi sürüşmə, kəsilən mətnlər, kiçik düymələr, aşağı kontrast, adsız ikonlar. Konsolda:", "Add ?mu-check to the address. The page is tested at 200% text size for sideways scrolling, clipped text, small buttons, low contrast and unnamed icons. In the console:")} <C>await MeneUygun.check()</C></p>
+          </div>
+          <div className="stack">
+            <h3 className="h3">{l("Açıq sxem", "Open schema")}</h3>
+            <p className="muted">{l("Bütün ayarlar, dəyərlər və WCAG / ISO/IEC 24751 uyğunluqları:", "All settings, values and WCAG / ISO/IEC 24751 mappings:")} <a className="textlink" href="/v1/schema">{`${base}/v1/schema`}</a></p>
+          </div>
+          <div className="stack">
+            <h3 className="h3">JavaScript API</h3>
+            <Code>{`MeneUygun.connect()
 MeneUygun.disconnect()
-MeneUygun.refresh()        // ən son ayarları çək
-MeneUygun.preferences      // hazırkı ayarlar və ya null
+MeneUygun.refresh()
+MeneUygun.preferences
 MeneUygun.isConnected
-MeneUygun.speak("Mətn")    // istifadəçinin səs ayarları ilə oxu
+MeneUygun.speak("${l("Mətn", "Text")}")
 MeneUygun.compatibility    // { active, supported, unsupported[] }
-await MeneUygun.check()    // uyğunluq hesabatı
+await MeneUygun.check()
 MeneUygun.on("connect" | "disconnect" | "preferences" | "error", cb)
 document.addEventListener("meneuygun:preferences", (e) => e.detail)`}</Code>
+          </div>
         </div>
-      </div>
+      </Window>
 
-      <h2 className="h2">Mobil tətbiqlər</h2>
-      <p className="muted">
-        Android (Kotlin/Compose) və iOS (Swift/SwiftUI) SDK-ları eyni hesabla işləyir. Qeydiyyatda “Mobil redirect URI” daxil edin (məs. <code>myapp://callback</code>).
-      </p>
-      <Code>{`// Android
-MeneUygun.init(context, clientId = "SIZIN_CLIENT_ID", baseUrl = "${base}", redirectUri = "myapp://callback")
+      <h2 className="h2">{l("Mobil tətbiqlər", "Mobile apps")}</h2>
+      <Window title="Android / iOS">
+        <div className="stack">
+          <p className="muted">
+            {l("Android (Kotlin/Compose) və iOS (Swift/SwiftUI) SDK-ları eyni hesabla işləyir. Qeydiyyatda “Mobil redirect URI” daxil edin (məs. myapp://callback).", "The Android (Kotlin/Compose) and iOS (Swift/SwiftUI) SDKs work with the same account. Enter a “Mobile redirect URI” when you register (for example myapp://callback).")}
+          </p>
+          <Code>{`// Android
+MeneUygun.init(context, clientId = "${id}", baseUrl = "${base}", redirectUri = "myapp://callback")
 setContent { MeneUygunTheme { MeneUygunConnectButton(); App() } }
 
 // iOS
-MeneUygun.shared.configure(clientId: "SIZIN_CLIENT_ID", baseURL: URL(string: "${base}")!, redirectURI: "myapp://callback")
+MeneUygun.shared.configure(clientId: "${id}", baseURL: URL(string: "${base}")!, redirectURI: "myapp://callback")
 ContentView().meneUygun()`}</Code>
+        </div>
+      </Window>
 
       <h2 className="h2">REST API</h2>
-      <Code>{`GET  ${base}/oauth/authorize   (OAuth 2.0 + PKCE)
+      <Window title="REST">
+        <Code>{`GET  ${base}/oauth/authorize   (OAuth 2.0 + PKCE)
 POST ${base}/oauth/token
 GET  ${base}/v1/preferences    Authorization: Bearer <token>
 POST ${base}/oauth/revoke`}</Code>
+      </Window>
     </div>
   );
 }

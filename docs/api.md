@@ -22,7 +22,7 @@ Flat JSON, source of truth: `sdk/web/src/schema.ts`. Every key is always present
   "confirmActions": false, "iconLabels": false,
   "dyslexiaFont": false, "readingRuler": false,
   "tts": false, "ttsRate": 1,  // ttsRate: 0.6 | 0.8 | 1 | 1.2
-  "language": "az"           // "az" | "ru" | "en"
+  "language": "az"           // "az" | "en"
 }
 ```
 

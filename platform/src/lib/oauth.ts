@@ -4,12 +4,15 @@ import { getClient, originAllowed, type Client } from "./clients";
 import { pairwiseSub, randomToken, sha256, sha256Base64Url, safeEqual } from "./crypto";
 import { getUser } from "./users";
 import type { Preferences } from "@sdk/schema";
+import { bi, type Bi } from "./lang";
 
 const CODE_TTL = 5 * 60_000;
 
 export class OAuthError extends Error {
-  constructor(readonly code: string, message: string, readonly status = 400) {
-    super(message);
+  readonly en: string;
+  constructor(readonly code: string, message: string | Bi, readonly status = 400) {
+    super(typeof message === "string" ? message : message.az);
+    this.en = typeof message === "string" ? message : message.en;
   }
 }
 
@@ -41,7 +44,7 @@ function sameOriginUrl(raw: string, origin: string, what: string): string {
 export async function parseAuthorize(q: Record<string, string | undefined>): Promise<AuthorizeRequest> {
   if (q.response_type !== "code") throw new OAuthError("invalid_request", "response_type must be 'code'");
   const client = q.client_id ? await getClient(q.client_id) : null;
-  if (!client) throw new OAuthError("invalid_client", "Naməlum xidmət (client_id)");
+  if (!client) throw new OAuthError("invalid_client", bi("Naməlum xidmət (client_id)", "Unknown service (client_id)"));
   if (!q.code_challenge || !/^[A-Za-z0-9_-]{43}$/.test(q.code_challenge)) throw new OAuthError("invalid_request", "code_challenge is missing or malformed");
   if (q.code_challenge_method !== "S256") throw new OAuthError("invalid_request", "code_challenge_method must be S256");
   if (!q.state || q.state.length > 200) throw new OAuthError("invalid_request", "state is missing");
@@ -53,7 +56,7 @@ export async function parseAuthorize(q: Record<string, string | undefined>): Pro
   if (mode === "web_message") {
     if (redirectUri !== "postmessage") throw new OAuthError("invalid_request", "redirect_uri must be 'postmessage' for web_message");
     const origin = q.origin ?? "";
-    if (!originAllowed(client, origin)) throw new OAuthError("invalid_request", `Bu sayt (${origin || "?"}) ${client.name} üçün qeydiyyatda deyil`);
+    if (!originAllowed(client, origin)) throw new OAuthError("invalid_request", bi(`Bu sayt (${origin || "?"}) ${client.name} üçün qeydiyyatda deyil`, `This site (${origin || "?"}) is not registered for ${client.name}`));
     const returnTo = q.return_to ? sameOriginUrl(q.return_to, origin, "return_to") : null;
     return { ...base, redirectUri, responseMode: mode, origin, returnTo };
   }
@@ -64,7 +67,7 @@ export async function parseAuthorize(q: Record<string, string | undefined>): Pro
     } catch {
       throw new OAuthError("invalid_request", "redirect_uri is not a URL");
     }
-    if (!originAllowed(client, origin)) throw new OAuthError("invalid_request", `Bu sayt (${origin}) ${client.name} üçün qeydiyyatda deyil`);
+    if (!originAllowed(client, origin)) throw new OAuthError("invalid_request", bi(`Bu sayt (${origin}) ${client.name} üçün qeydiyyatda deyil`, `This site (${origin}) is not registered for ${client.name}`));
     return { ...base, redirectUri: sameOriginUrl(redirectUri, origin, "redirect_uri"), responseMode: mode, origin, returnTo: null };
   }
   if (!client.redirectUris.includes(redirectUri)) throw new OAuthError("invalid_request", "redirect_uri is not registered for this client");

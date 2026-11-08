@@ -49,8 +49,8 @@
 <script>
   document.getElementById("order").onclick = function () {
     var where = document.getElementById("where").value;
-    Demo.confirm("Yaşayış yerindən arayış sifariş edirsiniz. Arayış " + where + " üçündür.", function () {
-      Demo.notify("✓ Sifariş qəbul edildi. Arayış 3 iş günü ərzində kabinetinizdə olacaq (demo).");
+    Demo.confirm(Demo.t("Yaşayış yerindən arayış sifariş edirsiniz. Arayış " + where + " üçündür.", "You are ordering a proof of residence. It is for: " + where + "."), function () {
+      Demo.notify(Demo.t("Sifariş qəbul edildi. Arayış 3 iş günü ərzində kabinetinizdə olacaq (demo).", "Order received. The certificate will be in your account within 3 working days (demo)."));
     });
   };
   Demo.session(document.getElementById("timer"), 120);

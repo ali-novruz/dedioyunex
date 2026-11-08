@@ -109,7 +109,7 @@
 
 <h3>AI axını (səs və mətn)</h3>
 <ol>
-  <li>Səs mətnə çevrilir (Azərbaycan, rus, ingilis dili).</li>
+  <li>Səs mətnə çevrilir (Azərbaycan və ingilis dili).</li>
   <li>AI mətndən ayarları çıxarır və strukturlaşdırılmış nəticə (JSON) qaytarır — yalnız mövcud ayarlar siyahısından seçə bilər.</li>
   <li>Platformanın öz ekranı dərhal yeni ayarlarla dəyişir, AI qısa xülasəni səsli oxuyur: “Yazıları böyütdüm, kontrastı artırdım, sadə rejimi açdım.”</li>
   <li>Üç iri düymə: <b>Bəli, saxla</b> · <b>Yenidən de</b> · <b>Özüm dəyişim</b>.</li>
@@ -162,7 +162,7 @@
   <tr><td rowspan="3"><b>Oxuma</b></td><td>Disleksiya şrifti</td><td><span class="tag tA">A</span></td><td>Oxunması asan şrift</td></tr>
   <tr><td>Oxuma xətti</td><td><span class="tag tA">A</span></td><td>Oxunan sətri vurğulayan zolaq</td></tr>
   <tr><td>Səsli oxunuş + sürət</td><td><span class="tag tA">A</span></td><td>Seçilən mətn və ya səhifə səslə oxunur</td></tr>
-  <tr><td><b>Ümumi</b></td><td>Dil</td><td><span class="tag tB">B</span></td><td>Azərbaycan / rus / ingilis</td></tr>
+  <tr><td><b>Ümumi</b></td><td>Dil</td><td><span class="tag tB">B</span></td><td>Azərbaycan / ingilis</td></tr>
 </table>
 <p class="muted">Ayar ekranları tək bir sxem faylından avtomatik yaranır — yeni ayar əlavə etmək sxemə bir sətir yazmaq qədər asandır.</p>
 
@@ -290,13 +290,13 @@ ContentView().meneUygun()</pre>
   <tr><td><span class="tag P1">P1</span></td><td>Bağlı xidmətlər + tərtibatçı səhifəsi</td><td>Bağlantını ləğv etmə, inteqrasiya bələdçisi</td></tr>
   <tr><td><span class="tag P2">P2</span></td><td>iOS SDK</td><td>Swift kitabxanası və <code>.meneUygun()</code>. Mac olmadan kod yazılır, amma test edilə bilmir</td></tr>
   <tr><td><span class="tag P2">P2</span></td><td>B növ ayarların demosu</td><td>Partnyor saytda vaxt limiti, təsdiq sualı, altyazı nümunəsi</td></tr>
-  <tr><td><span class="tag P2">P2</span></td><td>Rus və ingilis dili</td><td>Platforma interfeysi</td></tr>
+  <tr><td><span class="tag P2">P2</span></td><td>İngilis dili ✓</td><td>Platforma, SDK, AI cavabları və demo səhifələr tam ingiliscə</td></tr>
   <tr><td><span class="tag P1">✓</span></td><td>Əlavə (rəy əsasında)</td><td>E-poçtsuz başlama, yaxının QR ilə profil ötürməsi, “təsdiqlənmiş tərəfdaş” nişanı, uyğunluq göstəricisi (“bu sayt ayarlarınızdan 10/11-ni dəstəkləyir”), sayt sahibləri üçün <code>?mu-check</code> yoxlaması, AI aydınlaşdırıcı sual + geri qaytarma + limit, açıq sxem (WCAG / ISO/IEC 24751 xəritəsi), fail-open SDK</td></tr>
   <tr><td><span class="tag RM">YX 1</span></td><td>SDK-sız rejim</td><td>Veb: SDK qoşmayan saytlar üçün brauzer genişlənməsi. Android: ekran üstü qat və OCR ilə səsli oxunuş (iOS buna icazə vermir)</td></tr>
   <tr><td><span class="tag RM">YX</span></td><td>Dövlət kimliyi</td><td>ASAN Login / SİMA ilə bağlantı</td></tr>
   <tr><td><span class="tag RM">YX</span></td><td>Genişlənmə</td><td>Səslə idarəetmə, Flutter/React Native SDK, partnyor analitika paneli, xidmətlər üçün əlçatanlıq yoxlaması</td></tr>
 </table>
-<div class="note"><b>Kəsmə sırası</b> (vaxt çatmazsa): 1) iOS SDK, 2) B növ ayarların demosu, 3) rus/ingilis dili. P0 hissələrdən kəsilmir.</div>
+<div class="note"><b>Kəsmə sırası</b> (vaxt çatmazsa): 1) iOS SDK, 2) B növ ayarların demosu. P0 hissələrdən kəsilmir.</div>
 
 <h2 class="page-break">8. Texniki arxitektura</h2>
 <div class="arch">

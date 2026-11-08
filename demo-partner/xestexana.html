@@ -48,14 +48,14 @@
     b.onclick = function () {
       document.querySelectorAll("#slots button").forEach(function (x) { x.classList.remove("sel"); });
       b.classList.add("sel"); chosen = b.textContent;
-      Demo.say("Seçdiniz: " + chosen);
+      Demo.say(Demo.t("Seçdiniz: ", "You chose: ") + chosen);
     };
   });
   document.getElementById("book").onclick = function () {
-    if (!chosen) { Demo.notify("Əvvəlcə vaxt seçin."); return; }
+    if (!chosen) { Demo.notify(Demo.t("Əvvəlcə vaxt seçin.", "Please choose a time first.")); return; }
     var doc = document.getElementById("doc").value;
-    Demo.confirm(doc + " ilə " + chosen + " tarixinə yazılırsınız.", function () {
-      Demo.notify("✓ Siz " + chosen + " tarixinə yazıldınız. Bir gün əvvəl xatırladacağıq (demo).");
+    Demo.confirm(Demo.t(doc + " ilə " + chosen + " tarixinə yazılırsınız.", "You are booking " + doc + " for " + chosen + "."), function () {
+      Demo.notify(Demo.t("Siz " + chosen + " tarixinə yazıldınız. Bir gün əvvəl xatırladacağıq (demo).", "You are booked for " + chosen + ". We will remind you one day before (demo)."));
     });
   };
   Demo.session(document.getElementById("timer"), 120);

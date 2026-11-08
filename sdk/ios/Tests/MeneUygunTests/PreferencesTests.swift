@@ -27,7 +27,7 @@ final class PreferencesTests: XCTestCase {
          "largeTargets":true,"extendedTimeouts":false,"noDrag":false,"reduceMotion":true,
          "simpleMode":true,"hideDistractions":false,"plainLanguage":false,"stepByStep":false,
          "confirmActions":true,"iconLabels":true,"dyslexiaFont":false,"readingRuler":false,
-         "tts":true,"ttsRate":0.6,"language":"ru"}
+         "tts":true,"ttsRate":0.6,"language":"en"}
         """)
         XCTAssertEqual(prefs.fontScale, 1.5)
         XCTAssertEqual(prefs.lineSpacing, 2)
@@ -36,7 +36,7 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(prefs.colorFilter, .grayscale)
         XCTAssertTrue(prefs.confirmActions)
         XCTAssertEqual(prefs.ttsRate, 0.6)
-        XCTAssertEqual(prefs.language, .ru)
+        XCTAssertEqual(prefs.language, .en)
     }
 
     func testUnknownKeysAreIgnored() throws {

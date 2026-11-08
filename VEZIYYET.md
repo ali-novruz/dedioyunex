@@ -60,10 +60,18 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 
 ---
 
+## 🎨 Dizayn və dil
+
+- Yeni dizayn Canva referansından çıxarılıb: sarı fon, boz “pəncərə” kartlar, tünd çərçivə, sərt kölgə, basılanda enən düymələr. Qaydalar `DESIGN.md`-dədir, məhsul qeydi `PRODUCT.md`-dədir.
+- **Tam AZ + EN:** interfeys, server xətaları, e-poçt, SDK düymələri, AI cavabları, demo səhifələr. Rus dili çıxarılıb. Varsayılan Azərbaycan dilidir, yuxarıdakı AZ/EN düyməsi ilə dəyişir.
+- **Şrift:** Archivo + Libre Baskerville. Hər ikisində `Ə ə Ğ ğ İ ı Ö ö Ş ş Ç ç Ü ü` var (canlıda ölçülüb).
+- **Köməkçi:** danışmaq və yazmaq yan-yanadır. Təklif ekranda olanda yazaraq düzəliş etmək olur, AI əvvəlki təklifin üstündən davam edir.
+- Landing səhifəsində “Özünüz sınayın”: düyməyə basan kimi səhifənin özü dəyişir.
+
 ## 🚀 Yerləşdirmə
 
 - **Vercel** (`alinovruz29s-projects`): `mene-uygun` (Root Directory = `platform`, region `sin1`) və `mene-uygun-demo`.
-- **Supabase:** Session pooler, ayrıca `dedio` sxemi; `DATABASE_POOL_MAX=2` (serverless).
+- **Supabase:** Session pooler (limit 15 bağlantı), ayrıca `dedio` sxemi; `DATABASE_POOL_MAX=1` və `attachDatabasePool` (serverless).
 - **AI:** Groq — `qwen/qwen3.8-27b` (`llama-3.3-70b-versatile` Groq-dan çıxarılıb) + `whisper-large-v3`.
 - Sirlər `deploy/.env`-dədir (git-ə düşmür) və Vercel env-ə yüklənib.
 
@@ -86,6 +94,8 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 - Groq pulsuz planı: dəqiqədə 8000 token, təxminən 2–3 köməkçi sorğusu. Canlı demoda ardıcıl çox sorğu göndərməyin; bir dəfə müvəqqəti “over capacity” xətası görülüb (istifadəçiyə “yenidən cəhd edin” deyilir).
 - IP limitləri yaddaşdadır: Vercel-də hər instansiya üçün ayrıca sayılır, ona görə tək serverdəkindən zəifdir. Gündəlik AI limiti bazadadır və dəqiqdir.
 - SDK-nın sabit düymələri böyük şriftdə başlığın bir hissəsini örtə bilir.
+- Yeni deploy-dan dərhal sonra bir neçə dəqiqə köhnə versiyaların bağlantıları Supabase limitini tuta bilər: demodan ən azı 15 dəqiqə əvvəl deploy etməyin.
+- iOS düyməsinin yeni görünüşü yığılmayıb (Mac lazımdır). Android yenidən yığılıb, `dist/` içindəki APK canlı ünvana bağlıdır, cihazda hələ sınanmayıb.
 - Brauzerlərdə Azərbaycan səsi yoxdur → türk səsi istifadə olunur (ekranda deyilir). Bulud TTS — yol xəritəsində.
 - E-poçt göndərmə (SMTP) qurulmayıb → real e-poçtlar üçün kod getmir; “E-poçtsuz başla” və `@demo.az` işləyir.
 - iOS SDK yığılmayıb (Mac lazımdır); Android cihazda sınanmayıb.

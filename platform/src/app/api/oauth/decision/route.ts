@@ -1,3 +1,4 @@
+import { bi } from "@/lib/lang";
 import { handle, jsonBody } from "@/lib/http";
 import { requireApiUser, AuthError } from "@/lib/session";
 import { issueCode, parseAuthorize, redirectTarget, OAuthError } from "@/lib/oauth";
@@ -8,12 +9,12 @@ export function POST(req: Request) {
     const user = await requireApiUser();
     const body = await jsonBody(req);
     const params = body.params as Record<string, string> | undefined;
-    if (!params || typeof params !== "object") throw new AuthError("params is required");
+    if (!params || typeof params !== "object") throw new AuthError(bi("params is required", "params is required"));
     let request;
     try {
       request = await parseAuthorize(params);
     } catch (e) {
-      if (e instanceof OAuthError) throw new AuthError(e.message);
+      if (e instanceof OAuthError) throw new AuthError(bi(e.message, e.en));
       throw e;
     }
     const allow = body.decision === "allow";

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
+import { tr } from "@/lib/lang";
 import { env } from "@/lib/env";
+import { Icon } from "@/components/Icons";
 import { Assistant } from "./Assistant";
 import { ActiveSettings } from "./ActiveSettings";
 
@@ -10,13 +12,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   if (!user.onboarded) redirect("/qeydiyyat");
   const { mic } = await searchParams;
   const ai = env.ai;
+  const l = tr(user.prefs.language);
   return (
     <div className="stack">
-      <h1 className="h1">Sizə necə uyğunlaşaq?</h1>
-      <p className="lead">Düyməyə basın və çətinliyinizi öz sözlərinizlə deyin. Məsələn: “Yazılar xırdadır, gözüm yaxşı görmür.”</p>
+      <h1 className="h1">{l("Sizə necə uyğunlaşaq?", "How can we suit you?")}</h1>
+      <p className="lead">
+        {l("Çətinliyinizi öz sözlərinizlə deyin və ya yazın. Məsələn: “Yazılar xırdadır, gözüm yaxşı görmür.”", "Say or type what is difficult, in your own words. For example: “The text is too small, I can’t see well.”")}
+      </p>
       <Assistant sttMode={env.sttMode} aiReady={!!(ai.baseUrl && ai.apiKey && ai.chatModel)} autoStart={mic === "1"} />
       <Link href="/ayarlar" className="btn btn-secondary btn-block text-[1.15rem]">
-        ⚙️ Özüm tənzimləyim
+        <Icon name="sliders" /> {l("Özüm tənzimləyim", "I’ll set it up myself")}
       </Link>
       <ActiveSettings />
     </div>

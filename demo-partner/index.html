@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DEMO Market — onlayn mağaza</title>
 <!-- MƏNƏ UYĞUN: one line integration. data-supports lists type-B settings this site implements itself. -->
+<script src="/demo.js"></script>
 <script src="{{PLATFORM_URL}}/sdk.js" data-client-id="demo-partner" data-supports="confirmActions,extendedTimeouts,plainLanguage,visualAlerts" async></script>
 <style>
   /* A deliberately "typical" site: small px fonts, light-grey text, busy layout. */
@@ -105,7 +106,7 @@
   function fmt(s) { return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
   function tick() {
     secondsLeft = Math.max(0, secondsLeft - 1);
-    document.getElementById("timer").textContent = "Sessiya " + fmt(secondsLeft) + " sonra bitəcək";
+    document.getElementById("timer").textContent = Demo.t("Sessiya " + fmt(secondsLeft) + " sonra bitəcək", "Session ends in " + fmt(secondsLeft));
   }
   setInterval(tick, 1000); tick();
 
@@ -122,8 +123,8 @@
   document.addEventListener("meneuygun:disconnect", function () { prefs = null; });
 
   document.getElementById("pay").addEventListener("click", function () {
-    if (prefs && prefs.confirmActions && !confirm("Əminsiniz? Kartınızdan 15.30 AZN çıxılacaq.")) return;
-    var msg = "✓ Ödəniş qəbul edildi (demo)";
+    if (prefs && prefs.confirmActions && !confirm(Demo.t("Əminsiniz? Kartınızdan 15.30 AZN çıxılacaq.", "Are you sure? 15.30 AZN will be taken from your card."))) return;
+    var msg = Demo.t("Ödəniş qəbul edildi (demo)", "Payment accepted (demo)");
     if (prefs && prefs.visualAlerts) toast(msg); else alert(msg);
   });
 </script>

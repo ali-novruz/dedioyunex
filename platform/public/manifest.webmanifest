@@ -1,0 +1,9 @@
+{
+  "name": "MƏNƏ UYĞUN",
+  "short_name": "MƏNƏ UYĞUN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5bc4a",
+  "theme_color": "#f5bc4a",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

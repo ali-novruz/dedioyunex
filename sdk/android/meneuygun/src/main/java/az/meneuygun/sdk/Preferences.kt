@@ -11,7 +11,7 @@ enum class ColorFilter(val json: String) {
     NONE("none"), PROTANOPIA("protanopia"), DEUTERANOPIA("deuteranopia"), TRITANOPIA("tritanopia"), GRAYSCALE("grayscale")
 }
 
-enum class Language(val json: String) { AZ("az"), RU("ru"), EN("en") }
+enum class Language(val json: String) { AZ("az"), EN("en") }
 
 class PreferenceException(message: String, val key: String? = null) : IllegalArgumentException(message)
 

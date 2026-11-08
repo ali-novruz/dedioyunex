@@ -5,18 +5,18 @@ export const SCHEMA_VERSION = 1 as const;
 
 export type Category = "vision" | "hearing" | "motor" | "cognitive" | "reading" | "tech";
 
-export const CATEGORIES: { id: Category; label: string; help: string; icon: string }[] = [
-  { id: "vision", label: "Görmə", help: "Yazıları və rəngləri görməkdə çətinlik", icon: "👁️" },
-  { id: "hearing", label: "Eşitmə", help: "Səsləri eşitməkdə çətinlik", icon: "👂" },
-  { id: "motor", label: "Hərəkət", help: "Əl ilə dəqiq toxunmaqda və ya siçanla çətinlik", icon: "✋" },
-  { id: "cognitive", label: "Anlama və yaddaş", help: "Mürəkkəb ekranlar çaşdırır, tez yorulursunuz", icon: "🧠" },
-  { id: "reading", label: "Oxuma", help: "Uzun mətnləri oxumaq çətindir", icon: "📖" },
-  { id: "tech", label: "Texnologiyadan istifadə", help: "Telefon və saytlardan istifadə etmək çətindir", icon: "📱" },
+export const CATEGORIES: { id: Category; label: string; help: string; en: { label: string; help: string } }[] = [
+  { id: "vision", label: "Görmə", help: "Yazıları və rəngləri görməkdə çətinlik", en: { label: "Vision", help: "Difficulty seeing text and colours" } },
+  { id: "hearing", label: "Eşitmə", help: "Səsləri eşitməkdə çətinlik", en: { label: "Hearing", help: "Difficulty hearing sounds" } },
+  { id: "motor", label: "Hərəkət", help: "Əl ilə dəqiq toxunmaqda və ya siçanla çətinlik", en: { label: "Movement", help: "Difficulty tapping accurately or using a mouse" } },
+  { id: "cognitive", label: "Anlama və yaddaş", help: "Mürəkkəb ekranlar çaşdırır, tez yorulursunuz", en: { label: "Understanding and memory", help: "Complicated screens are confusing or tiring" } },
+  { id: "reading", label: "Oxuma", help: "Uzun mətnləri oxumaq çətindir", en: { label: "Reading", help: "Long texts are hard to read" } },
+  { id: "tech", label: "Texnologiyadan istifadə", help: "Telefon və saytlardan istifadə etmək çətindir", en: { label: "Using technology", help: "Phones and websites are hard to use" } },
 ];
 
 export type Contrast = "normal" | "high" | "dark";
 export type ColorFilter = "none" | "protanopia" | "deuteranopia" | "tritanopia" | "grayscale";
-export type Language = "az" | "ru" | "en";
+export type Language = "az" | "en";
 
 export interface Preferences {
   version: typeof SCHEMA_VERSION;
@@ -143,8 +143,69 @@ export const SETTINGS: SettingDef[] = [
   { key: "aiHelp", kind: "A", categories: ["cognitive", "tech", "reading", "vision"], label: "Səhifəni izah et (AI)", help: "Saytda “Bu səhifə nədir?” düyməsi: qısa xülasə və hər düymənin nə etdiyi", control: "toggle" },
 
   { key: "language", kind: "B", categories: ["vision", "hearing", "motor", "cognitive", "reading", "tech"], label: "Dil", help: "Xidmətin dili", control: "choice",
-    options: [{ value: "az", label: "Azərbaycan" }, { value: "ru", label: "Русский" }, { value: "en", label: "English" }] },
+    options: [{ value: "az", label: "Azərbaycan" }, { value: "en", label: "English" }] },
 ];
+
+/** English texts. A missing key does not compile; a missing option throws in optionLabel. */
+const SETTING_EN: Record<PreferenceKey, { label: string; help: string; options?: Record<string, string> }> = {
+  fontScale: { label: "Text size", help: "Makes all text larger", options: { "1": "Normal", "1.25": "Large", "1.5": "Larger", "1.75": "Very large", "2": "Largest" } },
+  lineSpacing: { label: "Line spacing", help: "More space between lines", options: { "1": "Normal", "1.5": "Wide", "2": "Very wide" } },
+  letterSpacing: { label: "Letter spacing", help: "More space between letters", options: { "0": "Normal", "0.05": "Wide", "0.1": "Very wide" } },
+  contrast: { label: "Contrast", help: "Text stands out more clearly from the background", options: { normal: "Normal", high: "High", dark: "Dark background" } },
+  colorFilter: { label: "Colour filter", help: "For difficulty telling colours apart", options: { none: "None", protanopia: "Red (protanopia)", deuteranopia: "Green (deuteranopia)", tritanopia: "Blue (tritanopia)", grayscale: "Black and white" } },
+  highlightLinks: { label: "Highlight links", help: "All links become bold and underlined" },
+  largeCursor: { label: "Large cursor", help: "The mouse pointer becomes larger" },
+  strongFocus: { label: "Show the selection clearly", help: "The selected item gets a thick outline" },
+  screenReader: { label: "I use a screen reader", help: "The service adapts for VoiceOver/TalkBack" },
+  captions: { label: "Captions always on", help: "Captions turn on automatically in videos" },
+  visualAlerts: { label: "Visual alerts instead of sounds", help: "A message on screen instead of a sound" },
+  transcripts: { label: "Written version of audio", help: "Written text for audio and video" },
+  signLanguage: { label: "Sign language", help: "Shows a sign language video when there is one" },
+  largeTargets: { label: "Large buttons", help: "Buttons are easier to tap" },
+  extendedTimeouts: { label: "More time", help: "Sessions and forms do not close quickly" },
+  noDrag: { label: "Buttons instead of dragging", help: "A button wherever dragging is required" },
+  reduceMotion: { label: "Reduce motion", help: "Animations and moving effects stop" },
+  simpleMode: { label: "Simple mode", help: "Only the main functions remain" },
+  hideDistractions: { label: "Hide adverts", help: "Adverts and distracting parts are hidden" },
+  plainLanguage: { label: "Plain language", help: "Text in simple words" },
+  stepByStep: { label: "Step by step", help: "One task per screen" },
+  confirmActions: { label: "Ask before acting", help: "An “Are you sure?” question before payment" },
+  iconLabels: { label: "Words next to icons", help: "Shows the name of buttons without text" },
+  dyslexiaFont: { label: "Easy-to-read font", help: "A font that is easier to read" },
+  readingRuler: { label: "Reading guide", help: "A band that highlights the line you are reading" },
+  tts: { label: "Reading aloud", help: "Reads text out loud" },
+  ttsRate: { label: "Reading speed", help: "How fast text is read aloud", options: { "0.6": "Very slow", "0.8": "Slow", "1": "Normal", "1.2": "Fast" } },
+  aiHelp: { label: "Explain this page (AI)", help: "A “What is this page?” button on sites: a short summary and what each button does" },
+  language: { label: "Language", help: "The language of the service", options: { az: "Azərbaycan", en: "English" } },
+};
+
+export function settingLabel(def: SettingDef, lang: Language): string {
+  return lang === "en" ? SETTING_EN[def.key].label : def.label;
+}
+
+export function settingHelp(def: SettingDef, lang: Language): string {
+  return lang === "en" ? SETTING_EN[def.key].help : def.help;
+}
+
+export function optionLabel(def: SettingDef, value: string | number, lang: Language): string {
+  if (def.control !== "choice") throw new Error(`${def.key} has no options`);
+  if (lang === "en") {
+    const text = SETTING_EN[def.key].options?.[String(value)];
+    if (!text) throw new Error(`Missing English label for ${def.key}=${value}`);
+    return text;
+  }
+  const opt = def.options.find((o) => o.value === value);
+  if (!opt) throw new Error(`Unknown option ${def.key}=${value}`);
+  return opt.label;
+}
+
+export function categoryLabel(c: (typeof CATEGORIES)[number], lang: Language): string {
+  return lang === "en" ? c.en.label : c.label;
+}
+
+export function categoryHelp(c: (typeof CATEGORIES)[number], lang: Language): string {
+  return lang === "en" ? c.en.help : c.help;
+}
 
 const SETTING_BY_KEY = new Map(SETTINGS.map((s) => [s.key, s]));
 
@@ -238,12 +299,12 @@ export function presetFor(cats: Category[]): Partial<Omit<Preferences, "version"
 }
 
 /** Human-readable value of a setting, e.g. "Yazı ölçüsü: Daha böyük". */
-export function describeValue(key: PreferenceKey, value: unknown): string {
+export function describeValue(key: PreferenceKey, value: unknown, lang: Language = "az"): string {
   const def = SETTING_BY_KEY.get(key);
   if (!def) return `${key}: ${String(value)}`;
-  if (def.control === "toggle") return `${def.label}: ${value ? "açıq" : "bağlı"}`;
-  const opt = def.options.find((o) => o.value === value);
-  return `${def.label}: ${opt ? opt.label : String(value)}`;
+  const label = settingLabel(def, lang);
+  if (def.control === "toggle") return `${label}: ${value ? (lang === "en" ? "on" : "açıq") : lang === "en" ? "off" : "bağlı"}`;
+  return `${label}: ${optionLabel(def, value as string | number, lang)}`;
 }
 
 export function changedKeys(prefs: Preferences, base: Preferences = DEFAULT_PREFERENCES): PreferenceKey[] {

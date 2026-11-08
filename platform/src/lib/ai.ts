@@ -1,6 +1,8 @@
 import "server-only";
-import { CATEGORIES, SETTINGS, isCategory, validatePatch, type Category, type Preferences, PreferenceError } from "@sdk/schema";
+import { CATEGORIES, SETTINGS, isCategory, validatePatch, type Category, type Language, type Preferences, PreferenceError } from "@sdk/schema";
 import { env } from "./env";
+
+const LANG_NAME: Record<Language, string> = { az: "Azerbaijani", en: "English" };
 
 export class AiError extends Error {
   constructor(message: string, readonly status = 502) {
@@ -37,8 +39,13 @@ function catalogue(): string {
   }).join("\n");
 }
 
-const SYSTEM = () => `You configure accessibility settings for "MƏNƏ UYĞUN", a service used by elderly people and people with vision, hearing, motor, cognitive or reading difficulties.
-The user describes in their own words (Azerbaijani, Turkish, Russian or English; may be informal, with speech-recognition errors) what is hard for them or what they want.
+const QUESTION_EXAMPLE: Record<Language, string> = {
+  az: "Sizə nə çətindir: yazıları oxumaq, səsləri eşitmək, yoxsa düymələrə toxunmaq?",
+  en: "What is hard for you: reading text, hearing sounds, or tapping buttons?",
+};
+
+const SYSTEM = (lang: Language) => `You configure accessibility settings for "MƏNƏ UYĞUN", a service used by elderly people and people with vision, hearing, motor, cognitive or reading difficulties.
+The user describes in their own words (Azerbaijani, Turkish or English; may be informal, with speech-recognition errors) what is hard for them or what they want.
 Choose the settings that help. Only use the keys and values below.
 
 Settings:
@@ -55,11 +62,11 @@ Rules:
 - If the user wants to undo everything ("hamısını sıfırla"), set every changed key back to its normal value.
 - Never invent keys. If nothing applies, return an empty patch and explain kindly.
 - If the request is too vague to pick settings safely (e.g. only "kömək edin", "pisdir", "bilmirəm"), do NOT guess:
-  return an empty patch and ONE short, simple clarifying question in Azerbaijani in "question" (e.g. "Sizə nə çətindir: yazıları oxumaq, səsləri eşitmək, yoxsa düymələrə toxunmaq?").
+  return an empty patch and ONE short, simple clarifying question in ${LANG_NAME[lang]} in "question" (e.g. "${QUESTION_EXAMPLE[lang]}").
   Statements like "gözüm zəif görür" or "yazılar xırdadır" are clear enough — act on them.
 
 Reply with ONLY a JSON object:
-{"patch": {<key>: <value>, ...}, "categories": [<category ids that match the user's difficulties>], "summary": "<1–2 short, warm sentences in Azerbaijani, addressing the user as 'Siz', saying in plain words what you changed; empty string if you ask a question>", "question": "<clarifying question or empty string>"}`;
+{"patch": {<key>: <value>, ...}, "categories": [<category ids that match the user's difficulties>], "summary": "<1–2 short, warm sentences in ${LANG_NAME[lang]}, addressing the user politely, saying in plain words what you changed; empty string if you ask a question>", "question": "<clarifying question or empty string>"}`;
 
 export interface Interpretation {
   patch: Partial<Omit<Preferences, "version">>;
@@ -78,8 +85,8 @@ export async function interpret(text: string, current: Preferences, previous: Tu
   const c = config();
   if (!c.chatModel) throw new AiError("AI_CHAT_MODEL is not set", 503);
   const input = text.trim();
-  if (!input) throw new AiError("Mətn boşdur", 400);
-  if (input.length > 2000) throw new AiError("Mətn çox uzundur", 400);
+  if (!input) throw new AiError("Empty text", 400);
+  if (input.length > 2000) throw new AiError("Text too long", 400);
 
   const r = await fetch(`${c.baseUrl}/chat/completions`, {
     method: "POST",
@@ -89,7 +96,7 @@ export async function interpret(text: string, current: Preferences, previous: Tu
       temperature: 0.1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM() },
+        { role: "system", content: SYSTEM(current.language) },
         ...(previous
           ? [
               { role: "user", content: `Current settings: ${JSON.stringify(current)}\n\nUser said: """${previous.said.slice(0, 1000)}"""` },
@@ -153,7 +160,7 @@ export interface PageInput {
   headings: string[];
   text: string;
   actions: PageAction[];
-  language: string;
+  language: Language;
 }
 
 export interface PageHelp {
@@ -163,11 +170,10 @@ export interface PageHelp {
   actions: { id: string; explain: string }[];
 }
 
-const LANG_NAME: Record<string, string> = { az: "Azerbaijani", ru: "Russian", en: "English" };
 
-const ASSIST_SYSTEM = (lang: string) => `MENE_UYGUN_PAGE_HELP
+const ASSIST_SYSTEM = (lang: Language) => `MENE_UYGUN_PAGE_HELP
 You explain a web page to an elderly person or a person with cognitive or reading difficulties.
-Write ONLY in ${LANG_NAME[lang] ?? "Azerbaijani"}, with very simple everyday words, short sentences, no jargon, address the user politely.
+Write ONLY in ${LANG_NAME[lang]}, with very simple everyday words, short sentences, no jargon, address the user politely.
 From the page title, headings, text and list of interactive controls, return ONLY a JSON object:
 {"headline": "<what this page is about, max 12 words>",
  "summary": "<2-3 short sentences: the main message / what the user can do here>",

@@ -41,7 +41,7 @@ function bgOf(el: Element | null): [number, number, number, number] | null {
   return [255, 255, 255, 1];
 }
 
-export function runCheck(doc: Document, fontScale: number): CheckReport {
+export function runCheck(doc: Document, fontScale: number, lang: "az" | "en" = "az"): CheckReport {
   const issues: CheckIssue[] = [];
   const view = doc.defaultView!;
   const horizontalOverflow = doc.documentElement.scrollWidth > view.innerWidth + 2;
@@ -51,7 +51,7 @@ export function runCheck(doc: Document, fontScale: number): CheckReport {
     if (cs.display === "none" || cs.visibility === "hidden") return;
     const hidden = (v: string) => v === "hidden" || v === "clip";
     if ((hidden(cs.overflowY) && el.scrollHeight > el.clientHeight + 2) || (hidden(cs.overflowX) && el.scrollWidth > el.clientWidth + 2)) {
-      issues.push({ kind: "clipped", selector: selectorOf(el), detail: "mətn qutuya sığmır və kəsilir" });
+      issues.push({ kind: "clipped", selector: selectorOf(el), detail: lang === "en" ? "text does not fit its box and is cut off" : "mətn qutuya sığmır və kəsilir" });
     }
     const fg = rgb(cs.color), bg = bgOf(el);
     if (fg && bg) {
@@ -69,7 +69,7 @@ export function runCheck(doc: Document, fontScale: number): CheckReport {
       issues.push({ kind: "smallTarget", selector: selectorOf(el), detail: `${Math.round(r.width)}×${Math.round(r.height)}px` });
     }
     if ((el.tagName === "BUTTON" || el.getAttribute("role") === "button") && !/\p{L}/u.test(el.textContent ?? "") && !el.getAttribute("aria-label") && !el.getAttribute("title")) {
-      issues.push({ kind: "unlabeled", selector: selectorOf(el), detail: "yazısız və aria-label-sız düymə" });
+      issues.push({ kind: "unlabeled", selector: selectorOf(el), detail: lang === "en" ? "button with no text and no aria-label" : "yazısız və aria-label-sız düymə" });
     }
   });
 

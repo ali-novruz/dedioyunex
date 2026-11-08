@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "MƏNƏ UYĞUN-dan ayarları gətir" button. When connected shows "Qoşulub ✓" and an "Ayır" button.
+/// The connect key in Azerbaijani or English. When connected shows the connected state and a disconnect button.
 @MainActor
 public struct MeneUygunConnectButton: View {
     @ObservedObject private var client: MeneUygun
@@ -15,14 +15,19 @@ public struct MeneUygunConnectButton: View {
         _client = ObservedObject(wrappedValue: client)
     }
 
+    private var english: Bool {
+        client.isConnected ? client.preferences.language == .en : (Locale.preferredLanguages.first?.hasPrefix("en") ?? false)
+    }
+
+    private func l(_ az: String, _ en: String) -> String { english ? en : az }
+
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if client.isConnected {
                 HStack(spacing: 12) {
-                    Text("Qoşulub ✓")
+                    Text(l("Qoşulub", "Connected"))
                         .font(.headline)
-                        .foregroundStyle(.green)
-                    Button("Ayır", role: .destructive) {
+                    Button(l("Ayır", "Disconnect"), role: .destructive) {
                         Task { await disconnect() }
                     }
                     .buttonStyle(.bordered)
@@ -34,11 +39,11 @@ public struct MeneUygunConnectButton: View {
                 } label: {
                     HStack {
                         if isWorking { ProgressView() }
-                        Text("MƏNƏ UYĞUN-dan ayarları gətir")
+                        Text(l("MƏNƏ UYĞUN-dan ayarları gətir", "Bring my MƏNƏ UYĞUN settings"))
                     }
                     .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(MeneUygunKeyStyle())
                 .disabled(isWorking)
             }
 
@@ -68,5 +73,24 @@ public struct MeneUygunConnectButton: View {
         defer { isWorking = false }
         await client.disconnect()
         errorMessage = client.lastError?.localizedDescription
+    }
+}
+
+
+/// A physical key: amber face, ink border, hard shadow that disappears when pressed.
+struct MeneUygunKeyStyle: ButtonStyle {
+    private let ink = Color(red: 0.149, green: 0.149, blue: 0.149)
+    private let amber = Color(red: 0.961, green: 0.737, blue: 0.290)
+
+    func makeBody(configuration: Configuration) -> some View {
+        let lift: CGFloat = configuration.isPressed ? 0 : 5
+        return configuration.label
+            .foregroundStyle(ink)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 14)
+            .background(RoundedRectangle(cornerRadius: 10).fill(amber))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(ink, lineWidth: 2))
+            .background(RoundedRectangle(cornerRadius: 10).fill(ink).offset(x: lift, y: lift))
+            .offset(x: configuration.isPressed ? 5 : 0, y: configuration.isPressed ? 5 : 0)
     }
 }

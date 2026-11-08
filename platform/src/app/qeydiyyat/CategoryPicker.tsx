@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIES, presetFor, changedKeys, type Category } from "@sdk/schema";
+import { CATEGORIES, categoryHelp, categoryLabel, presetFor, changedKeys, type Category } from "@sdk/schema";
 import { api, usePrefs } from "@/components/PrefsProvider";
+import { CATEGORY_ICON, Icon } from "@/components/Icons";
 
 export function CategoryPicker({ initial, firstTime, next }: { initial: Category[]; firstTime: boolean; next: string }) {
-  const { saved, save } = usePrefs();
+  const { saved, save, l, lang } = usePrefs();
   const [selected, setSelected] = useState<Category[]>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,47 +39,42 @@ export function CategoryPicker({ initial, firstTime, next }: { initial: Category
       <div className="stack">
         {done.preset && (
           <p className="ok" role="status">
-            Seçiminizə uyğun başlanğıc ayarları tətbiq etdik. İstədiyiniz vaxt dəyişə bilərsiniz.
+            {l("Seçiminizə uyğun başlanğıc ayarları tətbiq etdik. İstədiyiniz vaxt dəyişə bilərsiniz.", "We applied starter settings for your choices. You can change them at any time.")}
           </p>
         )}
-        <h2 className="h2">İndi ayarlarınızı necə qurmaq istəyirsiniz?</h2>
-        <a href="/ev?mic=1" className="btn btn-primary btn-block text-[1.2rem]">🎤 Danışaraq — köməkçi qursun</a>
-        <a href="/ayarlar" className="btn btn-secondary btn-block text-[1.2rem]">✋ Özüm seçərək</a>
+        <h2 className="h2">{l("İndi ayarlarınızı necə qurmaq istəyirsiniz?", "How would you like to set things up?")}</h2>
+        <a href="/ev?mic=1" className="btn btn-primary btn-block text-[1.2rem]"><Icon name="mic" /> {l("Danışaraq, köməkçi qursun", "By speaking, with the assistant")}</a>
+        <a href="/ayarlar" className="btn btn-secondary btn-block text-[1.2rem]"><Icon name="sliders" /> {l("Özüm seçərək", "By choosing myself")}</a>
       </div>
     );
   }
 
   return (
     <div className="stack">
-      <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label="Çətinliklər">
+      <div className="grid gap-4 sm:grid-cols-2" role="group" aria-label={l("Çətinliklər", "Difficulties")}>
         {CATEGORIES.map((c) => {
           const on = selected.includes(c.id);
           return (
-            <button
-              key={c.id}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggle(c.id)}
-              className={`card flex min-h-[7rem] items-start gap-3 text-left transition ${on ? "!border-[var(--brand)] bg-[var(--brand-soft)]" : ""}`}
-              style={{ borderWidth: 3 }}
-            >
-              <span aria-hidden className="text-[2.2rem] leading-none">{c.icon}</span>
+            <button key={c.id} type="button" aria-pressed={on} onClick={() => toggle(c.id)} className="need">
+              <Icon name={CATEGORY_ICON[c.id]} className="need-icon" />
               <span>
-                <span className="block text-[1.2rem] font-extrabold">
-                  {c.label} {on && <span aria-hidden>✓</span>}
+                <span className="need-title">
+                  {categoryLabel(c, lang)} {on && <Icon name="check" />}
                 </span>
-                <span className="muted block">{c.help}</span>
+                <span className="need-help">{categoryHelp(c, lang)}</span>
               </span>
             </button>
           );
         })}
       </div>
       {error && <p className="error" role="alert">{error}</p>}
-      <button className="btn btn-primary btn-block text-[1.2rem]" disabled={busy || selected.length === 0} onClick={() => submit(selected)}>
-        {busy ? "Saxlanılır…" : `Davam et${selected.length ? ` (${selected.length})` : ""}`}
-      </button>
+      <div className="pt-3">
+        <button className="btn btn-primary btn-block text-[1.2rem]" disabled={busy || selected.length === 0} onClick={() => submit(selected)}>
+          {busy ? l("Saxlanılır…", "Saving…") : `${l("Davam et", "Continue")}${selected.length ? ` (${selected.length})` : ""}`}
+        </button>
+      </div>
       <button className="btn btn-secondary btn-block" disabled={busy} onClick={() => submit([])}>
-        {firstTime ? "Heç biri — bütün ayarları göstər" : "Seçimi təmizlə — bütün ayarları göstər"}
+        {firstTime ? l("Heç biri, bütün ayarları göstər", "None, show all settings") : l("Seçimi təmizlə, bütün ayarları göstər", "Clear my choices, show all settings")}
       </button>
     </div>
   );

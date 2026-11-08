@@ -11,7 +11,7 @@ public enum ColorFilter: String, Codable, CaseIterable, Sendable {
 }
 
 public enum Language: String, Codable, CaseIterable, Sendable {
-    case az, ru, en
+    case az, en
 }
 
 /// The user's accessibility preference profile (schema v1).

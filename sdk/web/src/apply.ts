@@ -93,7 +93,7 @@ function buildCss(assetBase: string): string {
     `${A}:is([data-mu-hide-distractions],[data-mu-simple-mode]) :is([data-mu-distraction],ins.adsbygoogle,iframe[src*='doubleclick'],iframe[src*='googlesyndication'],iframe[id^='google_ads'],div[id^='google_ads'],[id^='div-gpt-ad'],.advertisement,.ad-banner,[aria-label='Advertisement'],marquee){display:none!important}`,
     // simple mode: site-marked secondary content and sidebars
     `${A}[data-mu-simple-mode] :is([data-mu-simple='hide'],aside:not([data-mu-simple='keep']),[role='complementary']:not([data-mu-simple='keep'])){display:none!important}`,
-    `${A}[data-mu-simple-mode] [data-mu-simple='primary']{outline:3px solid #0b6e4f!important;outline-offset:4px!important;font-weight:700!important}`,
+    `${A}[data-mu-simple-mode] [data-mu-simple='primary']{outline:3px solid #262626!important;outline-offset:4px!important;font-weight:700!important}`,
     // readable font
     `${A}[data-mu-dyslexia-font] body,${A}[data-mu-dyslexia-font] body *${notIcon}{font-family:"MU Lexend",system-ui,sans-serif!important}`,
     // icon labels inserted by the scanner

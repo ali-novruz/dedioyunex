@@ -1,3 +1,4 @@
+import { attachDatabasePool } from "@vercel/functions";
 import "server-only";
 import { Pool, types, type PoolClient } from "pg";
 import { env } from "./env";
@@ -82,8 +83,10 @@ function pool(): Pool {
       // Supabase requires TLS. DATABASE_SSL=require encrypts without pinning the CA (set DATABASE_SSL=disable for a local Postgres).
       ssl: env.databaseSsl === "require" ? { rejectUnauthorized: false } : undefined,
       max: env.databasePoolMax,
-      idleTimeoutMillis: 30_000,
+      idleTimeoutMillis: 5_000,
     });
+    // Closes idle connections before Vercel suspends the function. Without it, frozen instances keep them open and exhaust Supabase's pool.
+    attachDatabasePool(p);
     p.on("connect", (c) => {
       c.query(`SET search_path TO ${SCHEMA}`).catch((e) => console.error("[db] search_path failed", e));
     });

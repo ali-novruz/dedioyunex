@@ -9,7 +9,7 @@ export interface VoiceInfo {
   substitute: boolean; // true when the requested language had no voice and a substitute is used
 }
 
-const SUBSTITUTES: Record<string, string[]> = { az: ["az", "tr"], ru: ["ru"], en: ["en"] };
+const SUBSTITUTES: Record<string, string[]> = { az: ["az", "tr"], en: ["en"] };
 
 function synth(): SpeechSynthesis | null {
   return typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis : null;

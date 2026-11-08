@@ -3,7 +3,7 @@
 // Optional attributes: data-mode="auto|tokens", data-floating="false", data-base-url="https://PLATFORM"
 
 import { PreferenceEngine, type Mode } from "./apply";
-import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, type Preferences, type PreferenceKey } from "./schema";
+import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, settingLabel, type Language, type Preferences, type PreferenceKey } from "./schema";
 import { runCheck, type CheckReport } from "./check";
 import { snapshot, controlFor, aidOf, elementsFor, type PageHelp } from "./assist";
 import { speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
@@ -62,7 +62,7 @@ async function challengeFor(verifier: string): Promise<string> {
 }
 
 // ---------- texts ----------
-const T = {
+const AZ = {
   connect: "MƏNƏ UYĞUN-dan ayarları gətir",
   waiting: "Gözləyin…",
   active: "Mənə uyğun ayarlar aktiv",
@@ -77,7 +77,7 @@ const T = {
   stop: "Dayandır",
   readPage: "Səhifəni oxu",
   noVoice: "Bu brauzerdə səsli oxunuş yoxdur.",
-  substitute: "Azərbaycan səsi tapılmadı — türk səsi ilə oxunur.",
+  substitute: "Azərbaycan səsi tapılmadı, türk səsi ilə oxunur.",
   whatPage: "Bu səhifə nədir?",
   whatIsThis: "Bu nədir?",
   whatIsThisOn: "Haqqında bilmək istədiyiniz düyməyə toxunun",
@@ -92,36 +92,114 @@ const T = {
   plain: "Sadə dildə",
   youAreHere: "Siz buradasınız",
   whatToDo: "Nə edim?",
+  supports: "Bu sayt aktiv ayarlarınızdan {a}/{b}-ni dəstəkləyir.",
+  unsupported: "Dəstəklənmir",
+  checkTitle: "MƏNƏ UYĞUN yoxlama",
+  overflow: "Üfüqi sürüşmə",
+  overflowYes: "var",
+  overflowNo: "yoxdur",
+  clipped: "Kəsilən mətnlər",
+  small: "Kiçik toxunma sahələri (<44px)",
+  contrast: "Aşağı kontrast (<4.5:1)",
+  unnamed: "Adsız ikon düymələr",
 };
 
+type Texts = Record<keyof typeof AZ, string>;
+
+const EN: Texts = {
+  connect: "Bring my MƏNƏ UYĞUN settings",
+  waiting: "Please wait…",
+  active: "My settings are on",
+  refresh: "Refresh",
+  edit: "Change settings",
+  disconnect: "Disconnect",
+  popupClosed: "The window was closed. Please try again.",
+  denied: "Permission was not given.",
+  failed: "Could not connect. Please try again.",
+  listen: "Tap and listen",
+  listening: "Tap where you want to hear",
+  stop: "Stop",
+  readPage: "Read this page",
+  noVoice: "This browser cannot read aloud.",
+  substitute: "No voice was found for this language.",
+  whatPage: "What is this page?",
+  whatIsThis: "What is this?",
+  whatIsThisOn: "Tap the button you want to know about",
+  thinking: "Reading the page…",
+  short: "In short",
+  keyPoints: "Key points",
+  canDo: "What you can do here",
+  show: "Show",
+  readAloud: "Read aloud",
+  close: "Close",
+  noExplain: "No explanation was found for this button.",
+  plain: "In plain words",
+  youAreHere: "You are here",
+  whatToDo: "What do I do?",
+  supports: "This site supports {a} of your {b} active settings.",
+  unsupported: "Not supported",
+  checkTitle: "MƏNƏ UYĞUN check",
+  overflow: "Sideways scrolling",
+  overflowYes: "yes",
+  overflowNo: "no",
+  clipped: "Clipped text",
+  small: "Small touch targets (<44px)",
+  contrast: "Low contrast (<4.5:1)",
+  unnamed: "Icon buttons without a name",
+};
+
+const TEXTS: Record<Language, Texts> = { az: AZ, en: EN };
+let T: Texts = AZ;
+
+// One authored icon set (24px grid, 2px stroke). Static strings only.
+const svg = (d: string) => `<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  page: svg('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9.5 12h6M9.5 16h6"/>'),
+  question: svg('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.8 2.1c-.8.5-1.3 1.1-1.3 2M12 17h.01"/>'),
+  speaker: svg('<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>'),
+  stop: svg('<rect x="6" y="6" width="12" height="12" rx="1"/>'),
+  pointer: svg('<path d="M9 11V5a1.5 1.5 0 0 1 3 0v6l5.5 1.2a2 2 0 0 1 1.5 2.3l-.8 4A3 3 0 0 1 15.3 21h-3.1a4 4 0 0 1-3.2-1.6L5.5 14.7a1.5 1.5 0 0 1 2.3-2z"/>'),
+};
+
+function setLabel(btn: HTMLElement, icon: keyof typeof ICON, text: string): void {
+  btn.innerHTML = ICON[icon];
+  btn.append(text);
+}
+
+const INK = "#262626", PAPER = "#f3f3f3", FIELD = "#f5bc4a";
+
 const WIDGET_CSS = `
-:host{all:initial;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(17px * min(var(--mu-font-scale,1),1.5));color:#111}
+:host{all:initial;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:calc(17px * min(var(--mu-font-scale,1),1.5));color:${INK}}
 *{box-sizing:border-box;font:inherit}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:.5em}
-button{cursor:pointer;border:0;border-radius:999px;min-height:2.9em;padding:.6em 1.15em;font-weight:700;line-height:1.2;display:inline-flex;align-items:center;gap:.55em}
-button:focus-visible{outline:4px solid #ffbf00;outline-offset:3px}
-.primary{background:#0b6e4f;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.primary:hover{background:#095a41}
-.chip{background:#e6f3ee;color:#0b6e4f;border:2px solid #0b6e4f}
-.ghost{background:#fff;color:#0b6e4f;border:2px solid #0b6e4f;min-height:2.4em;padding:.4em .9em}
-.logo{width:1.7em;height:1.7em;border-radius:50%;background:#fff;color:#0b6e4f;display:grid;place-items:center;font-weight:900;font-size:.75em;letter-spacing:-.02em;flex:none}
-.chip .logo{background:#0b6e4f;color:#fff}
-.msg{margin-top:.4em;font-size:.85em;color:#9a1c1c;background:#fff;border-radius:.4em;padding:.25em .5em}
-.note{margin-top:.4em;font-size:.8em;background:#fff;color:#333;border-radius:.4em;padding:.25em .5em;max-width:22em}
-.menu{margin-top:.5em;background:#fff;border:2px solid #0b6e4f;border-radius:1em;padding:.5em;display:flex;flex-direction:column;gap:.4em;box-shadow:0 6px 20px rgba(0,0,0,.18)}
-.tts{background:#111;color:#fff}
-.tts.on{background:#ffbf00;color:#111}
-.ai{background:#4b2a86;color:#fff}
-.ai.on{background:#ffbf00;color:#111}
-.sheet{background:#fff;color:#111;border:3px solid #4b2a86;border-radius:1.2em;padding:1em 1.1em;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:82vh;overflow:auto;width:min(27em,92vw);line-height:1.45}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:.6em}
+button{cursor:pointer;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:.55em;min-height:2.9em;padding:.55em 1em;font-weight:600;line-height:1.2;display:inline-flex;align-items:center;gap:.5em;box-shadow:4px 4px 0 ${INK};transition:transform .11s cubic-bezier(.16,1,.3,1),box-shadow .11s cubic-bezier(.16,1,.3,1)}
+button:hover:not(:disabled){transform:translate(1px,1px);box-shadow:3px 3px 0 ${INK}}
+button:active:not(:disabled){transform:translate(4px,4px);box-shadow:0 0 0 ${INK}}
+button:focus-visible{outline:3px solid ${INK};outline-offset:2px;box-shadow:0 0 0 2px ${PAPER},4px 4px 0 2px ${INK}}
+button:disabled{cursor:progress}
+.primary{background:${FIELD}}
+.chip{background:${PAPER}}
+.ghost{background:transparent;box-shadow:none;min-height:2.5em;padding:.35em .85em}
+.ghost:hover:not(:disabled){background:${INK};color:${PAPER};transform:none;box-shadow:none}
+.logo{width:1.75em;height:1.75em;border-radius:3px;background:${INK};color:${FIELD};display:grid;place-items:center;font-weight:800;font-size:.72em;flex:none}
+.msg{margin-top:.5em;font-size:.88em;color:#8f1d14;background:${PAPER};border:2px solid #8f1d14;border-radius:3px;padding:.3em .55em}
+.note{margin-top:.5em;font-size:.82em;background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:3px;padding:.3em .55em;max-width:22em}
+.menu{margin-top:.6em;background:${PAPER};border:2px solid ${INK};border-radius:3px;padding:.6em;display:flex;flex-direction:column;gap:.45em;box-shadow:6px 6px 0 ${INK}}
+.on{background:${INK};color:${FIELD};box-shadow:none;transform:translate(4px,4px)}
+.window{background:${PAPER};color:${INK};border:2px solid ${INK};border-radius:3px;box-shadow:7px 7px 0 ${INK};width:min(27em,92vw)}
+.bar{display:flex;align-items:center;gap:.6em;min-height:2.1em;padding:.2em .7em;border-bottom:2px solid ${INK};font-size:.85em;font-weight:600}
+.dots{display:inline-flex;gap:.3em}
+.dots i{display:block;width:.55em;height:.55em;border:1.5px solid ${INK};border-radius:50%}
+.sheet{padding:1em 1.1em;max-height:76vh;overflow:auto;line-height:1.45}
 .sheet h2{font-size:1.25em;margin:.1em 0 .5em;font-weight:800}
-.sheet h3{font-size:1em;margin:1em 0 .35em;font-weight:800;color:#4b2a86}
+.sheet h3{font-size:1em;margin:1em 0 .35em;font-weight:700}
 .sheet ul{margin:0;padding-left:1.2em}
 .sheet li{margin:.25em 0}
-.act{display:flex;gap:.6em;align-items:flex-start;justify-content:space-between;border-top:1px solid #e6e1f0;padding:.55em 0}
+.act{display:flex;gap:.6em;align-items:flex-start;justify-content:space-between;border-top:1.5px solid ${INK}33;padding:.55em 0}
 .act b{display:block}
-.bubble{background:#4b2a86;color:#fff;border-radius:1em;padding:.7em .9em;max-width:min(22em,88vw);box-shadow:0 8px 30px rgba(0,0,0,.35);line-height:1.4}
-.bubble b{display:block;margin-bottom:.2em}
+.bubble{background:${INK};color:${PAPER};border-radius:3px;padding:.7em .9em;max-width:min(22em,88vw);line-height:1.4}
+.bubble b{display:block;margin-bottom:.2em;color:${FIELD}}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
 `;
 
 class MeneUygunSDK {
@@ -168,6 +246,10 @@ class MeneUygunSDK {
     this.cfg = { clientId: config.clientId, baseUrl, mode: config.mode ?? "auto", floating: config.floating ?? true, supports, ai: config.ai ?? "on" };
     this.engine = new PreferenceEngine(document, { mode: this.cfg.mode, assetBase: baseUrl });
     this.injectGlobalStyle();
+    new MutationObserver(() => {
+      this.renderButtons();
+      this.renderTts();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 
     // 1) apply cached preferences immediately (no flash of unadjusted content)
     const cached = store.get(this.key("prefs"));
@@ -266,7 +348,7 @@ class MeneUygunSDK {
         this.safeRefresh();
         throw e;
       }
-      // Show our own Azerbaijani message when we raised it, a generic one otherwise.
+      // Show our own message when we raised it, a generic one otherwise.
       this.error = e instanceof Error && REVERSE[e.message] ? e.message : T.failed;
       this.emit("error", e);
       throw e;
@@ -315,7 +397,7 @@ class MeneUygunSDK {
   /** Read a text aloud with the user's voice settings. */
   async speak(text: string): Promise<void> {
     const p = this.prefs;
-    await speak(text, { language: p?.language ?? "az", rate: p?.ttsRate ?? 1 });
+    await speak(text, { language: this.lang(), rate: p?.ttsRate ?? 1 });
   }
 
   /**
@@ -328,7 +410,7 @@ class MeneUygunSDK {
     const cfg = this.cfg;
     const active = SETTINGS.filter((s) => s.key !== "language" && s.key !== "ttsRate" && p[s.key] !== DEFAULT_PREFERENCES[s.key]);
     const unsupported = active.filter((s) => !(cfg.supports.includes(s.key) || (s.kind === "A" && cfg.mode === "auto")));
-    return { active: active.length, supported: active.length - unsupported.length, unsupported: unsupported.map((s) => s.label) };
+    return { active: active.length, supported: active.length - unsupported.length, unsupported: unsupported.map((s) => settingLabel(s, this.lang())) };
   }
 
   /** Compatibility check for site owners: renders the page at the given text scale and reports problems. */
@@ -340,7 +422,7 @@ class MeneUygunSDK {
     engine.apply({ ...DEFAULT_PREFERENCES, fontScale: scale });
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     try {
-      const report = runCheck(document, scale);
+      const report = runCheck(document, scale, this.lang());
       console.table(report.issues.map((i) => ({ problem: i.kind, element: i.selector, detail: i.detail })));
       return report;
     } finally {
@@ -363,14 +445,14 @@ class MeneUygunSDK {
     box.style.maxHeight = "80vh";
     box.style.overflow = "auto";
     const title = document.createElement("b");
-    title.textContent = `MƏNƏ UYĞUN yoxlama (${r.fontScale * 100}%): ${r.score}/100`;
+    title.textContent = `${T.checkTitle} (${r.fontScale * 100}%): ${r.score}/100`;
     box.append(title);
     const lines = [
-      `Üfüqi sürüşmə: ${r.horizontalOverflow ? "VAR ✗" : "yoxdur ✓"}`,
-      `Kəsilən mətnlər: ${r.counts.clipped}`,
-      `Kiçik toxunma sahələri (<44px): ${r.counts.smallTarget}`,
-      `Aşağı kontrast (<4.5:1): ${r.counts.lowContrast}`,
-      `Adsız ikon düymələr: ${r.counts.unlabeled}`,
+      `${T.overflow}: ${r.horizontalOverflow ? T.overflowYes : T.overflowNo}`,
+      `${T.clipped}: ${r.counts.clipped}`,
+      `${T.small}: ${r.counts.smallTarget}`,
+      `${T.contrast}: ${r.counts.lowContrast}`,
+      `${T.unnamed}: ${r.counts.unlabeled}`,
     ];
     for (const l of lines) {
       const d = document.createElement("div");
@@ -379,10 +461,15 @@ class MeneUygunSDK {
     }
     const close = document.createElement("button");
     close.className = "ghost";
-    close.textContent = "Bağla";
+    close.textContent = T.close;
     close.addEventListener("click", () => (host.host as HTMLElement).remove());
     box.append(close);
     root.append(box);
+  }
+
+  /** The user's language once connected, otherwise the language of the page. */
+  private lang(): Language {
+    return this.prefs?.language ?? (document.documentElement.lang.toLowerCase().startsWith("en") ? "en" : "az");
   }
 
   private need(): Config {
@@ -529,6 +616,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
   }
 
   private renderButtons(): void {
+    T = TEXTS[this.lang()];
     if (!this.cfg || !document.body) return;
     if (this.buttons.length === 0) {
       const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-mu-button]"));
@@ -557,7 +645,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     } else {
       const row = el("div", "row");
       const chip = el("button", "chip");
-      chip.append(logo(), document.createTextNode("✓ " + T.active));
+      chip.append(logo(), document.createTextNode(T.active));
       chip.setAttribute("aria-expanded", String(this.menuOpen));
       chip.addEventListener("click", () => {
         this.menuOpen = !this.menuOpen;
@@ -578,9 +666,8 @@ html[data-mu-listening] body *{cursor:help!important}`;
         root.append(menu);
         const c = this.compatibility;
         if (c.active > 0) {
-          const note = el("div", "note", `Bu sayt aktiv ayarlarınızdan ${c.supported}/${c.active}-ni dəstəkləyir.`);
-          if (c.unsupported.length) note.title = "Dəstəklənmir: " + c.unsupported.join(", ");
-          if (c.unsupported.length) note.textContent += ` Dəstəklənmir: ${c.unsupported.join(", ")}.`;
+          const note = el("div", "note", T.supports.replace("{a}", String(c.supported)).replace("{b}", String(c.active)));
+          if (c.unsupported.length) note.textContent += ` ${T.unsupported}: ${c.unsupported.join(", ")}.`;
           root.append(note);
         }
       }
@@ -590,6 +677,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
 
   // ---------- text-to-speech widget ----------
   private renderTts(): void {
+    T = TEXTS[this.lang()];
     if (!document.body) return;
     const tts = !!this.prefs?.tts;
     const ai = this.aiEnabled();
@@ -612,13 +700,12 @@ html[data-mu-listening] body *{cursor:help!important}`;
       arow.className = "row";
       arow.style.marginBottom = ".45em";
       const what = document.createElement("button");
-      what.className = "ai";
-      what.textContent = "🧠 " + (this.helpLoading ? T.thinking : T.whatPage);
+      setLabel(what, "page", this.helpLoading ? T.thinking : T.whatPage);
       what.disabled = this.helpLoading;
       what.addEventListener("click", () => void this.openPanel());
       const expl = document.createElement("button");
-      expl.className = "ai" + (this.explaining ? " on" : "");
-      expl.textContent = "❓ " + (this.explaining ? T.whatIsThisOn : T.whatIsThis);
+      expl.className = this.explaining ? "on" : "";
+      setLabel(expl, "question", this.explaining ? T.whatIsThisOn : T.whatIsThis);
       expl.setAttribute("aria-pressed", String(this.explaining));
       expl.addEventListener("click", () => (this.explaining ? this.stopExplaining() : this.startExplaining()));
       arow.append(what, expl);
@@ -635,17 +722,15 @@ html[data-mu-listening] body *{cursor:help!important}`;
     const row = document.createElement("div");
     row.className = "row";
     const listen = document.createElement("button");
-    listen.className = "tts" + (this.listening ? " on" : "");
-    listen.textContent = (this.listening ? "👆 " + T.listening : "🔊 " + T.listen);
+    listen.className = this.listening ? "on" : "";
+    setLabel(listen, this.listening ? "pointer" : "speaker", this.listening ? T.listening : T.listen);
     listen.setAttribute("aria-pressed", String(this.listening));
     listen.addEventListener("click", () => (this.listening ? this.stopListening() : this.startListening()));
     const page = document.createElement("button");
-    page.className = "tts";
-    page.textContent = "📄 " + T.readPage;
+    setLabel(page, "page", T.readPage);
     page.addEventListener("click", () => this.readElement(document.querySelector("main,[role=main],article") ?? document.body));
     const stop = document.createElement("button");
-    stop.className = "tts";
-    stop.textContent = "⏹ " + T.stop;
+    setLabel(stop, "stop", T.stop);
     stop.addEventListener("click", () => {
       stopSpeaking();
       this.clearReading();
@@ -659,7 +744,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       root.append(n);
       return;
     }
-    void voiceInfo(this.prefs!.language).then((info) => {
+    void voiceInfo(this.lang()).then((info) => {
       if (!this.ttsRoot || this.ttsRoot !== root) return;
       if (!info.available || info.substitute) {
         const n = document.createElement("div");
@@ -718,12 +803,12 @@ html[data-mu-listening] body *{cursor:help!important}`;
     const bar = document.createElement("div");
     bar.setAttribute("data-mu-ui", "reminder");
     bar.setAttribute("role", "note");
-    bar.style.cssText = "position:sticky;top:0;z-index:2147483640;display:flex;gap:.8em;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.6em 1em;background:#4b2a86;color:#fff;font:600 1.05em/1.4 system-ui,sans-serif";
+    bar.style.cssText = "position:sticky;top:0;z-index:2147483640;display:flex;gap:.8em;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.6em 1em;background:#262626;color:#f3f3f3;font:600 1.05em/1.4 system-ui,sans-serif";
     const t = document.createElement("span");
-    t.textContent = `📍 ${T.youAreHere}: ${help.headline}`;
+    t.textContent = `${T.youAreHere}: ${help.headline}`;
     const b = document.createElement("button");
     b.textContent = T.whatToDo;
-    b.style.cssText = "min-height:2.4em;padding:.3em 1em;border:0;border-radius:999px;background:#ffbf00;color:#111;font:inherit;cursor:pointer";
+    b.style.cssText = "min-height:2.4em;padding:.3em 1em;border:2px solid #f5bc4a;border-radius:.45em;background:#f5bc4a;color:#262626;font:inherit;cursor:pointer";
     b.addEventListener("click", () => void this.openPanel());
     bar.append(t, b);
     document.body.prepend(bar);
@@ -748,8 +833,15 @@ html[data-mu-listening] body *{cursor:help!important}`;
     host.setAttribute("role", "dialog");
     host.setAttribute("aria-label", T.whatPage);
     this.panelHost = host;
+    const win = document.createElement("div");
+    win.className = "window";
+    const titleBar = document.createElement("div");
+    titleBar.className = "bar";
+    titleBar.innerHTML = '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+    titleBar.append("MƏNƏ UYĞUN");
     const sheet = document.createElement("div");
     sheet.className = "sheet";
+    win.append(titleBar, sheet);
     const h = (tag: string, text: string) => {
       const e = document.createElement(tag);
       e.textContent = text;
@@ -782,8 +874,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     bar.className = "row";
     bar.style.marginTop = ".8em";
     const read = document.createElement("button");
-    read.className = "ai";
-    read.textContent = "🔊 " + T.readAloud;
+    setLabel(read, "speaker", T.readAloud);
     read.addEventListener("click", () => void this.speak(`${help.headline}. ${help.summary} ${help.points.join(". ")}`).catch((e) => console.warn(e)));
     const close = document.createElement("button");
     close.className = "ghost";
@@ -791,7 +882,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     close.addEventListener("click", () => this.closePanel());
     bar.append(read, close);
     sheet.append(bar);
-    root.append(sheet);
+    root.append(win);
     close.focus();
     function snapshotLabels(): [string, string][] {
       return Array.from(document.querySelectorAll("[data-mu-aid]")).map((el) => [el.getAttribute("data-mu-aid")!, (el as HTMLElement).innerText?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || ""]);
@@ -846,7 +937,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     const b = document.createElement("div");
     b.className = "bubble";
     const t = document.createElement("b");
-    t.textContent = title || "❓";
+    t.textContent = title || "?";
     const p = document.createElement("span");
     p.textContent = text;
     b.append(t, p);
@@ -886,7 +977,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
       if (!h1 || document.querySelector("[data-mu-ui='plain-summary']")) return;
       const box = document.createElement("div");
       box.setAttribute("data-mu-ui", "plain-summary");
-      box.style.cssText = "margin:.6em 0 1em;padding:.8em 1em;border-left:6px solid #4b2a86;background:#f4effc;color:#111;border-radius:.6em;font:inherit;line-height:1.5";
+      box.style.cssText = "margin:.6em 0 1em;padding:.8em 1em;border:2px solid #262626;background:#f3f3f3;color:#262626;border-radius:3px;box-shadow:5px 5px 0 #262626;font:inherit;line-height:1.5";
       const b = document.createElement("b");
       b.textContent = `${T.plain}: ${help.headline}`;
       const p = document.createElement("div");
@@ -939,7 +1030,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
     this.clearReading();
     if (el) el.setAttribute("data-mu-reading", "");
     try {
-      await speak(text, { language: this.prefs?.language ?? "az", rate: this.prefs?.ttsRate ?? 1, onEnd: () => this.clearReading() });
+      await speak(text, { language: this.lang(), rate: this.prefs?.ttsRate ?? 1, onEnd: () => this.clearReading() });
     } catch (e) {
       console.error("[MeneUygun]", e);
       this.clearReading();
@@ -951,7 +1042,7 @@ html[data-mu-listening] body *{cursor:help!important}`;
   }
 }
 
-const REVERSE: Record<string, true> = Object.fromEntries(Object.values(T).map((v) => [v, true]));
+const REVERSE: Record<string, true> = Object.fromEntries([...Object.values(AZ), ...Object.values(EN)].map((v) => [v, true]));
 
 declare global {
   interface Window {
