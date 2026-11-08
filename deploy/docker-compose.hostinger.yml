@@ -1,5 +1,7 @@
 # For Hostinger Docker Manager (VPS API): images are built straight from the public GitHub repo,
 # so no files need to be copied to the server. Environment comes from the project's .env (see .env.example).
+# DATABASE_URL: Supabase (preferred) — or the bundled "db" service below (postgres://dedio:${DB_PASSWORD}@db:5432/dedio, DATABASE_SSL=disable)
+# as an interim database until the Supabase connection string is set.
 services:
   platform:
     build:
@@ -17,6 +19,16 @@ services:
       - traefik.http.routers.dedio.tls.certresolver=letsencrypt
       - traefik.http.services.dedio.loadbalancer.server.port=3000
 
+  db:
+    image: postgres:16-alpine
+    container_name: dedio-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dedio
+      POSTGRES_DB: dedio
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes: [dedio-db:/var/lib/postgresql/data]
+
   demo-partner:
     build:
       context: https://github.com/ali-novruz/dedioyunex.git#main:demo-partner
@@ -30,3 +42,6 @@ services:
       - traefik.http.routers.dedio-demo.entrypoints=websecure
       - traefik.http.routers.dedio-demo.tls.certresolver=letsencrypt
       - traefik.http.services.dedio-demo.loadbalancer.server.port=4000
+
+volumes:
+  dedio-db:
