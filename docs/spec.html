@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<title>MƏNƏ UYĞUN — Məhsul spesifikasiyası və MVP planı</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  :root {
+    --ink: #1a1d24; --muted: #5b6270; --line: #dfe3ea; --soft: #f4f6f9;
+    --accent: #0b6e4f; --accent-soft: #e6f3ee; --warn: #9a5b00; --warn-soft: #fdf3e2;
+    --p0: #0b6e4f; --p1: #2457a6; --p2: #7a4fb0; --rm: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Noto Sans", Arial, sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.5; margin: 0; background: #fff; }
+  h1 { font-size: 24pt; margin: 0 0 4px; letter-spacing: -0.3px; }
+  h2 { font-size: 14pt; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); color: var(--accent); break-after: avoid; }
+  h3 { font-size: 11pt; margin: 14px 0 6px; break-after: avoid; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 0 0 8px; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9.4pt; break-inside: auto; }
+  th, td { border: 1px solid var(--line); padding: 5px 7px; vertical-align: top; text-align: left; }
+  th { background: var(--soft); font-weight: 600; }
+  tr { break-inside: avoid; }
+  code, pre { font-family: Consolas, "Cascadia Mono", monospace; font-size: 8.8pt; }
+  code { background: var(--soft); padding: 0 3px; border-radius: 3px; }
+  pre { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0 10px; white-space: pre-wrap; break-inside: avoid; }
+  .cover { border-left: 6px solid var(--accent); padding: 4px 0 4px 16px; margin-bottom: 14px; }
+  .sub { color: var(--muted); font-size: 11pt; margin: 0; }
+  .meta { color: var(--muted); font-size: 9pt; margin-top: 6px; }
+  .pitch { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; margin: 10px 0 6px; font-size: 10.6pt; }
+  .slogan { font-weight: 700; color: var(--accent); margin-top: 6px; }
+  .note { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 8px 12px; border-radius: 4px; margin: 8px 0 10px; break-inside: avoid; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 10px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; break-inside: avoid; }
+  .card b { display: block; margin-bottom: 3px; }
+  .tag { display: inline-block; font-size: 8pt; font-weight: 700; padding: 1px 6px; border-radius: 10px; color: #fff; }
+  .tA { background: var(--p0); } .tB { background: var(--p1); }
+  .P0 { background: var(--p0); } .P1 { background: var(--p1); } .P2 { background: var(--p2); } .RM { background: var(--rm); }
+  .flow { display: flex; align-items: stretch; gap: 6px; margin: 8px 0 10px; break-inside: avoid; }
+  .flow .step { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 9pt; background: #fff; }
+  .flow .step b { display: block; color: var(--accent); font-size: 9.5pt; }
+  .flow .arr { align-self: center; color: var(--muted); font-weight: 700; }
+  .arch { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; margin: 8px 0 10px; break-inside: avoid; }
+  .arch .col { border: 1px dashed var(--line); border-radius: 8px; padding: 8px; }
+  .arch .col > i { font-style: normal; font-size: 8.5pt; color: var(--muted); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+  .box { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; font-size: 9pt; }
+  .box.alt { border-color: var(--p1); background: #e9f0fb; }
+  .box.ai { border-color: var(--p2); background: #f1ebf8; }
+  .page-break { break-before: page; }
+  .muted { color: var(--muted); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>MƏNƏ UYĞUN</h1>
+  <p class="sub">Şəxsi rəqəmsal əlçatanlıq profili — məhsul spesifikasiyası, xüsusiyyətlər, prioritetlər və MVP planı</p>
+  <p class="meta">YUNEX Hackathon · Versiya 1.0 · 8 noyabr 2026</p>
+</div>
+
+<h2>1. İdeya</h2>
+<div class="pitch">
+  <p><b>MƏNƏ UYĞUN</b> — yaşlılar, həmçinin görmə, eşitmə, hərəkət və anlama çətinliyi olan insanlar üçün şəxsi rəqəmsal əlçatanlıq profilidir. İstifadəçi ehtiyaclarını bir dəfə — səslə, yazaraq və ya əl ilə — bildirir; süni intellekt bunu iri şrift, yüksək kontrast, səsli oxunuş, sadə rejim kimi konkret ayarlara çevirir. İnteqrasiya olunmuş istənilən veb-sayt və ya mobil tətbiqdə <b>“MƏNƏ UYĞUN-dan ayarları gətir”</b> düyməsinə bir toxunuşla interfeys dərhal ona uyğunlaşır və hər növbəti girişdə avtomatik tətbiq olunur.</p>
+  <p>Saytlara heç bir sağlamlıq məlumatı ötürülmür — yalnız interfeys ayarları. Dövlət portalı, bank, e-ticarət, təhsil və ya istənilən xidmət Web, Android və iOS SDK-sı ilə bir neçə dəqiqəyə qoşulur. Platforma istifadəçi üçün pulsuzdur, qoşulan qurumlar illik lisenziya ödəyir.</p>
+  <p class="slogan">Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.</p>
+</div>
+
+<h3>Problem</h3>
+<ul>
+  <li>Telefonun öz ayarları əsasən yalnız şrifti böyüdür; tətbiqlərin və saytların çoxu bu ayarlara düzgün uyğunlaşmır, böyüdüləndə dizayn pozulur.</li>
+  <li>Mürəkkəb interfeysi sadələşdirmək (lazımsız menyuları gizlətmək, addım-addım rejim) imkanı heç bir əməliyyat sistemində yoxdur.</li>
+  <li>Hər xidmətin öz ayar menyusu varsa belə, istifadəçi hər birində ayrı-ayrı tənzimləməli olur — yaşlı insan üçün bu, praktikada mümkün deyil.</li>
+  <li>Nəticə: bu insanlar bank, dövlət və digər rəqəmsal xidmətlərdən müstəqil istifadə edə bilmir, başqasından asılı qalır.</li>
+</ul>
+
+<h3>Həll — necə işləyir</h3>
+<div class="flow">
+  <div class="step"><b>1. Profil</b>İstifadəçi platformada ehtiyaclarını səslə, yazaraq və ya əl ilə bildirir.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>2. AI ayarları qurur</b>Danışıq konkret ayarlara çevrilir, ekranda dərhal göstərilir, istifadəçi təsdiqləyir.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>3. Ayarları gətir</b>Qoşulmuş saytda/tətbiqdə bir düymə: icazə ver → interfeys uyğunlaşır.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>4. Hər yerdə avtomatik</b>Növbəti girişlərdə və platformada edilən dəyişikliklər avtomatik gəlir.</div>
+</div>
+
+<h3>Brauzer genişlənməsindən və telefonun ayarlarından fərqi</h3>
+<table>
+  <tr><th></th><th>Telefon ayarları</th><th>Brauzer genişlənməsi</th><th>MƏNƏ UYĞUN</th></tr>
+  <tr><td>Quraşdırma</td><td>Hər cihazda ayrıca</td><td>Hər brauzerdə ayrıca</td><td>Heç nə quraşdırılmır, hesabla gəlir</td></tr>
+  <tr><td>Veb + mobil tətbiq</td><td>Yalnız dəstəkləyən tətbiqlər</td><td>Yalnız masaüstü veb</td><td>Veb, Android, iOS</td></tr>
+  <tr><td>Dizayn</td><td>Böyüdəndə tez-tez pozulur</td><td>Kənardan müdaxilə, pozulur</td><td>Saytın öz dizayn sisteminə tətbiq olunur</td></tr>
+  <tr><td>Sadə rejim</td><td>Yoxdur</td><td>Yoxdur</td><td>Var — nəyin qalacağını xidmət özü seçir</td></tr>
+  <tr><td>Səslə qurma</td><td>Yoxdur</td><td>Yoxdur</td><td>AI ilə: “yazılar xırdadır” deməyin kifayətdir</td></tr>
+</table>
+
+<h2>2. İstifadəçi platforması (veb)</h2>
+<p>Platforma veb-saytdır (telefonda “ana ekrana əlavə et” ilə tətbiq kimi işləyir). Əsas prinsip: <b>ekranda bir anda bir iş</b>, iri elementlər, sadə dil, hər addım səslə də mümkün. Platformanın özü ilk ekrandan əlçatandır — profil hələ olmasa belə.</p>
+
+<h3>Ana ekran</h3>
+<div class="grid3">
+  <div class="card"><b>🎤 Böyük səs düyməsi</b>Ekranın ortasında. Basıb danışır: “Gözüm zəif görür, yazılar xırdadır, mürəkkəb menyular məni çaşdırır.”</div>
+  <div class="card"><b>⌨️ Yazaraq de</b>Danışmaq istəməyən və ya eşitmə çətinliyi olan üçün eyni şeyi sadə mətnlə yazmaq.</div>
+  <div class="card"><b>⚙️ Özüm tənzimləyim</b>Bütün ayarlar əl ilə — adi istifadəçi və ya dəqiq tənzimləmək istəyən üçün.</div>
+</div>
+
+<h3>AI axını (səs və mətn)</h3>
+<ol>
+  <li>Səs mətnə çevrilir (Azərbaycan, rus, ingilis dili).</li>
+  <li>AI mətndən ayarları çıxarır və strukturlaşdırılmış nəticə (JSON) qaytarır — yalnız mövcud ayarlar siyahısından seçə bilər.</li>
+  <li>Platformanın öz ekranı dərhal yeni ayarlarla dəyişir, AI qısa xülasəni səsli oxuyur: “Yazıları böyütdüm, kontrastı artırdım, sadə rejimi açdım.”</li>
+  <li>Üç iri düymə: <b>Bəli, saxla</b> · <b>Yenidən de</b> · <b>Özüm dəyişim</b>.</li>
+  <li>Səs yazısı və mətn saxlanmır; yalnız təsdiqlənmiş ayarlar yadda qalır.</li>
+</ol>
+
+<h3>Qeydiyyat — ehtiyaca uyğun forma</h3>
+<ol>
+  <li><b>Giriş:</b> e-poçt və ona göndərilən 6 rəqəmli kod. Şifrə yoxdur — yaşlılar üçün ən böyük maneə aradan qalxır.</li>
+  <li><b>“Sizə nə çətinlik yaradır?”</b> — iri ikonlu kartlar, bir neçəsi seçilə bilər: Görmə · Eşitmə · Hərəkət · Anlama/yaddaş · Oxuma · Texnologiyadan istifadə · Heç biri. Bu addım səslə də keçilə bilər.</li>
+  <li><b>Uyğun ayarlar:</b> yalnız seçilmiş kateqoriyaların ayarları göstərilir. Məsələn, görmə çətinliyi seçən şəxsə eşitmə ayarları çıxmır.</li>
+  <li>Kateqoriyalar və ayarlar istənilən vaxt dəyişdirilə bilər.</li>
+</ol>
+<div class="note"><b>Diaqnoz yox, ehtiyac.</b> Forma “hansı xəstəliyiniz var” deyil, “nə çətinlik yaradır” soruşur. Bu seçim könüllüdür, yalnız platformada saxlanır və heç bir sayta ötürülmür — saytlar yalnız nəticədəki interfeys ayarlarını görür.</div>
+
+<h3>Digər ekranlar</h3>
+<ul>
+  <li><b>Bağlı xidmətlər:</b> profilə qoşulmuş saytların/tətbiqlərin siyahısı, hər birini bir toxunuşla ayırmaq.</li>
+  <li><b>Hesab:</b> profili ixrac et, hesabı tam sil.</li>
+  <li><b>İcazə ekranı:</b> partnyor saytdan gələndə: “<i>[Sayt adı]</i> bu ayarları görmək istəyir: yazı ölçüsü, kontrast, ...” → <b>İcazə ver</b> / <b>İmtina</b>.</li>
+  <li><b>Tərtibatçı səhifəsi:</b> partnyor qeydiyyatı (client ID, icazəli domenlər) və 5 dəqiqəlik inteqrasiya bələdçisi.</li>
+</ul>
+
+<h2 class="page-break">3. Ayar kateqoriyaları</h2>
+<p><span class="tag tA">A</span> SDK ayarı özü avtomatik tətbiq edir. &nbsp; <span class="tag tB">B</span> SDK ayarı xidmətə bildirir, xidmət öz tərəfində tətbiq edir.</p>
+<table>
+  <tr><th style="width:17%">Kateqoriya</th><th>Ayar</th><th style="width:7%">Növ</th><th>Nə edir</th></tr>
+  <tr><td rowspan="8"><b>Görmə</b></td><td>Yazı ölçüsü</td><td><span class="tag tA">A</span></td><td>100 / 125 / 150 / 200%</td></tr>
+  <tr><td>Sətir və hərf aralığı</td><td><span class="tag tA">A</span></td><td>Mətn daha rahat oxunur</td></tr>
+  <tr><td>Kontrast</td><td><span class="tag tA">A</span></td><td>Normal / yüksək / qaranlıq</td></tr>
+  <tr><td>Rəng korluğu filtri</td><td><span class="tag tA">A</span></td><td>Protanopiya / deyteranopiya / tritanopiya</td></tr>
+  <tr><td>Linkləri vurğula</td><td><span class="tag tA">A</span></td><td>Bütün linklərin altı xətli və qalın</td></tr>
+  <tr><td>Böyük kursor</td><td><span class="tag tA">A</span></td><td>Veb üçün iri siçan göstəricisi</td></tr>
+  <tr><td>Güclü fokus çərçivəsi</td><td><span class="tag tA">A</span></td><td>Seçilmiş element aydın görünür</td></tr>
+  <tr><td>Ekran oxuyucu istifadəçisi</td><td><span class="tag tB">B</span></td><td>Xidmət VoiceOver/TalkBack üçün optimallaşdırır</td></tr>
+  <tr><td rowspan="4"><b>Eşitmə</b></td><td>Altyazı həmişə açıq</td><td><span class="tag tB">B</span></td><td>Videolarda avtomatik altyazı</td></tr>
+  <tr><td>Vizual bildiriş</td><td><span class="tag tB">B</span></td><td>Səsli siqnal əvəzinə ekranda işıq/mesaj</td></tr>
+  <tr><td>Transkript</td><td><span class="tag tB">B</span></td><td>Audio/video üçün mətn variantı</td></tr>
+  <tr><td>İşarə dili üstünlüyü</td><td><span class="tag tB">B</span></td><td>Varsa işarə dili videosu göstərilir</td></tr>
+  <tr><td rowspan="4"><b>Hərəkət</b></td><td>Böyük düymələr</td><td><span class="tag tA">A</span></td><td>Toxunma sahəsi minimum 48 px</td></tr>
+  <tr><td>Vaxt limitini uzat</td><td><span class="tag tB">B</span></td><td>Bank sessiyası tez bağlanmır</td></tr>
+  <tr><td>Sürüşdürmə əvəzinə düymə</td><td><span class="tag tB">B</span></td><td>Drag/swipe əməliyyatlarına alternativ</td></tr>
+  <tr><td>Animasiyaları azalt</td><td><span class="tag tA">A</span></td><td>Hərəkətli effektlər dayanır</td></tr>
+  <tr><td rowspan="6"><b>Anlama / yaddaş</b></td><td>Sadə rejim</td><td><span class="tag tA">A</span></td><td>Xidmətin işarələdiyi ikinci dərəcəli hissələr gizlənir</td></tr>
+  <tr><td>Diqqəti yayındıranları gizlət</td><td><span class="tag tA">A</span></td><td>Reklam, banner, popup gizlənir</td></tr>
+  <tr><td>Sadə dil</td><td><span class="tag tB">B</span></td><td>Mətnlərin sadələşdirilmiş variantı</td></tr>
+  <tr><td>Addım-addım rejim</td><td><span class="tag tB">B</span></td><td>Bir ekranda bir əməliyyat</td></tr>
+  <tr><td>Əməliyyatdan əvvəl təsdiq</td><td><span class="tag tB">B</span></td><td>“Əminsiniz?” sualı — səhv ödənişin qarşısı</td></tr>
+  <tr><td>İkonların yanında yazı</td><td><span class="tag tB">B</span></td><td>Yalnız ikon yox, mətnli düymələr</td></tr>
+  <tr><td rowspan="3"><b>Oxuma</b></td><td>Disleksiya şrifti</td><td><span class="tag tA">A</span></td><td>Oxunması asan şrift</td></tr>
+  <tr><td>Oxuma xətti</td><td><span class="tag tA">A</span></td><td>Oxunan sətri vurğulayan zolaq</td></tr>
+  <tr><td>Səsli oxunuş + sürət</td><td><span class="tag tA">A</span></td><td>Seçilən mətn və ya səhifə səslə oxunur</td></tr>
+  <tr><td><b>Ümumi</b></td><td>Dil</td><td><span class="tag tB">B</span></td><td>Azərbaycan / rus / ingilis</td></tr>
+</table>
+<p class="muted">Ayar ekranları tək bir sxem faylından avtomatik yaranır — yeni ayar əlavə etmək sxemə bir sətir yazmaq qədər asandır.</p>
+
+<h2>4. İnteqrasiya: “MƏNƏ UYĞUN-dan ayarları gətir”</h2>
+<p>Partnyor öz giriş sistemini dəyişmir. Düymə Figma-dakı “import” kimi işləyir: ayarlar bizim platformadan partnyor xidmətə gətirilir. Texniki əsas: OAuth 2.0 + PKCE (standart, təhlükəsiz icazə axını).</p>
+<div class="flow">
+  <div class="step"><b>1. Düymə</b>İstifadəçi partnyor saytda düyməyə basır.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>2. Giriş</b>MƏNƏ UYĞUN pəncərəsi açılır, e-poçt kodu ilə giriş.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>3. İcazə</b>“Bu sayt bu ayarları görəcək” → İcazə ver.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>4. Tətbiq</b>SDK ayarları alır, interfeys dərhal dəyişir.</div>
+  <div class="arr">→</div>
+  <div class="step"><b>5. Sinxron</b>Növbəti girişdə ən son ayarlar avtomatik çəkilir.</div>
+</div>
+
+<h3>SDK-lar</h3>
+<table>
+  <tr><th style="width:16%">SDK</th><th>Nə edir</th><th style="width:30%">Partnyor nə edir</th></tr>
+  <tr><td><b>Web (JavaScript)</b></td><td>Düyməni çəkir, icazə axınını idarə edir, A növ ayarları CSS dəyişənləri və <code>data-mu-*</code> atributları ilə tətbiq edir, səsli oxunuş, <code>on('preferences')</code> hadisəsi</td><td>Bir <code>&lt;script&gt;</code> sətri; dizaynını CSS dəyişənlərinə bağlayır; sadə rejimdə gizlənəcəkləri işarələyir</td></tr>
+  <tr><td><b>Android (Kotlin)</b></td><td>Custom Tabs ilə icazə axını, ayarların saxlanması, <code>MeneUygunTheme { }</code> Compose sarmalayıcısı: şrift miqyası, rənglər, toxunma sahəsi</td><td>Tətbiqi sarmalayıcıya bükür, B növ ayarları oxuyur</td></tr>
+  <tr><td><b>iOS (Swift)</b></td><td>ASWebAuthenticationSession ilə icazə axını, SwiftUI <code>.meneUygun()</code> modifikatoru</td><td>Kök görünüşə modifikator əlavə edir</td></tr>
+</table>
+
+<div class="two">
+<pre>&lt;!-- Web: 3 addım --&gt;
+&lt;script src="https://meneuygun.az/sdk.js"
+        data-client-id="startup-demo"&gt;&lt;/script&gt;
+&lt;div data-mu-button&gt;&lt;/div&gt;
+
+/* CSS */
+html { font-size: calc(16px * var(--mu-font-scale, 1)); }
+
+&lt;!-- Sadə rejimdə gizlənəcək hissə --&gt;
+&lt;aside data-mu-simple="hide"&gt;...&lt;/aside&gt;</pre>
+<pre>// Android
+MeneUygun.init(context, clientId = "startup-demo")
+MeneUygun.connect(activity)          // düymə
+setContent { MeneUygunTheme { App() } }
+
+// iOS
+MeneUygun.configure(clientId: "startup-demo")
+try await MeneUygun.connect()
+ContentView().meneUygun()</pre>
+</div>
+
+<h3>API</h3>
+<table>
+  <tr><th style="width:40%">Endpoint</th><th>Təyinat</th></tr>
+  <tr><td><code>GET /oauth/authorize</code></td><td>Giriş və icazə ekranı (client_id, redirect_uri, code_challenge, state)</td></tr>
+  <tr><td><code>POST /oauth/token</code></td><td>Kodu tokenə dəyişir; hər sayt üçün ayrıca anonim istifadəçi ID-si qaytarır</td></tr>
+  <tr><td><code>GET /v1/preferences</code></td><td>Ən son interfeys ayarları (Bearer token ilə)</td></tr>
+  <tr><td><code>POST /v1/assistant/transcribe</code></td><td>Səs → mətn (yalnız platforma daxili)</td></tr>
+  <tr><td><code>POST /v1/assistant/interpret</code></td><td>Mətn → təklif olunan ayarlar (yalnız platforma daxili)</td></tr>
+  <tr><td><code>GET/DELETE /v1/connections</code></td><td>Bağlı xidmətlər və bağlantını ləğv etmə</td></tr>
+  <tr><td><code>POST /v1/clients</code></td><td>Partnyor qeydiyyatı: ad, icazəli domenlər, redirect ünvanları</td></tr>
+</table>
+
+<h3>Xidmətə ötürülən məlumat (nümunə)</h3>
+<pre>{
+  "version": 1,
+  "fontScale": 1.5, "lineSpacing": 1.5, "letterSpacing": 0.05,
+  "contrast": "high", "colorFilter": "none",
+  "highlightLinks": true, "largeCursor": false, "strongFocus": true,
+  "largeTargets": true, "reduceMotion": true,
+  "simpleMode": true, "hideDistractions": true,
+  "dyslexiaFont": false, "readingRuler": false,
+  "tts": { "enabled": true, "rate": 0.9 },
+  "captions": false, "visualAlerts": false,
+  "extendedTimeouts": true, "confirmActions": true, "plainLanguage": true,
+  "language": "az"
+}</pre>
+<p class="muted">Kateqoriya seçimi (“görmə”, “eşitmə” və s.), ad, e-poçt və səs yazıları bu məlumata daxil deyil.</p>
+
+<h2 class="page-break">5. Məxfilik və təhlükəsizlik</h2>
+<ul>
+  <li><b>Xidmətlərə yalnız interfeys ayarları gedir.</b> Ad, e-poçt, ehtiyac kateqoriyaları və heç bir sağlamlıq məlumatı ötürülmür.</li>
+  <li><b>Hər xidmət üçün ayrıca anonim ID.</b> Fərqli saytlar eyni istifadəçini öz aralarında tanıya bilmir.</li>
+  <li><b>Səs saxlanmır.</b> Səs mətnə çevrildikdən və ayarlar çıxarıldıqdan sonra silinir.</li>
+  <li><b>Ehtiyac kateqoriyaları könüllüdür</b> və yalnız platformada istifadəçiyə uyğun ekran göstərmək üçün istifadə olunur.</li>
+  <li><b>Tam nəzarət istifadəçidədir:</b> hər bağlantını ayırmaq, profili ixrac etmək, hesabı silmək.</li>
+  <li><b>Standart təhlükəsizlik:</b> OAuth 2.0 + PKCE, yalnız icazəli domenlərə yönləndirmə, qısa ömürlü tokenlər.</li>
+  <li><b>WCAG uyğunluğunu əvəz etmir, tamamlayır.</b> Uyğunluq xidmətin öz kodunda təmin olunur; MƏNƏ UYĞUN istifadəçinin şəxsi seçimlərini ona çatdırır.</li>
+</ul>
+
+<h2>6. Biznes modeli</h2>
+<ul>
+  <li><b>İstifadəçi üçün pulsuz</b> — həmişə.</li>
+  <li><b>Qurumlar üçün illik lisenziya</b> (B2B / B2G): dövlət portalları, banklar, e-ticarət, təhsil platformaları.</li>
+  <li><b>Niyə ödəyirlər:</b> yaşlanan müştəri bazası, ESG və əlçatanlıq hesabatı, AB-yə xidmət göstərənlər üçün Avropa Əlçatanlıq Aktı (EAA, iyun 2025-dən qüvvədə), inteqrasiyanın sadəliyi (bir SDK).</li>
+  <li><b>İlk partnyorlar:</b> dövlət portalı və 1–2 bank — istifadəçi kütləsini ilk onlar gətirir, sonra digər xidmətlər qoşulur.</li>
+</ul>
+
+<h2>7. Prioritetlər</h2>
+<p><span class="tag P0">P0</span> demo üçün mütləqdir &nbsp; <span class="tag P1">P1</span> bu gün hədəf &nbsp; <span class="tag P2">P2</span> vaxt qalarsa &nbsp; <span class="tag RM">Yol xəritəsi</span> hackathondan sonra</p>
+<table>
+  <tr><th style="width:9%">Prioritet</th><th style="width:24%">Hissə</th><th>Əhatə</th></tr>
+  <tr><td><span class="tag P0">P0</span></td><td>İstifadəçi platforması</td><td>E-poçt kodu ilə giriş, ehtiyac kartları ilə qeydiyyat, sxemdən yaranan əl ilə ayar ekranı, canlı önizləmə</td></tr>
+  <tr><td><span class="tag P0">P0</span></td><td>AI köməkçi</td><td>Böyük səs düyməsi + “yazaraq de”, səs → mətn, mətn → ayarlar, səsli xülasə, təsdiq düymələri</td></tr>
+  <tr><td><span class="tag P0">P0</span></td><td>API</td><td>OAuth + PKCE, <code>/v1/preferences</code>, partnyor qeydiyyatı, hər sayt üçün anonim ID</td></tr>
+  <tr><td><span class="tag P0">P0</span></td><td>Web SDK</td><td>Düymə, icazə axını, şrift, aralıq, kontrast, sadə rejim, diqqəti yayındıranları gizlət, böyük düymələr, animasiyanı azalt, səsli oxunuş</td></tr>
+  <tr><td><span class="tag P0">P0</span></td><td>Startup inteqrasiyası + demo</td><td>Partnyor sayta Web SDK, əvvəl/sonra video ssenarisi</td></tr>
+  <tr><td><span class="tag P1">P1</span></td><td>Android SDK</td><td>Kotlin kitabxanası, icazə axını, <code>MeneUygunTheme</code>, kiçik demo tətbiq (emulatorda test)</td></tr>
+  <tr><td><span class="tag P1">P1</span></td><td>Qalan A növ ayarlar</td><td>Rəng korluğu filtri, disleksiya şrifti, oxuma xətti, böyük kursor, linkləri vurğula, fokus çərçivəsi</td></tr>
+  <tr><td><span class="tag P1">P1</span></td><td>Bağlı xidmətlər + tərtibatçı səhifəsi</td><td>Bağlantını ləğv etmə, inteqrasiya bələdçisi</td></tr>
+  <tr><td><span class="tag P2">P2</span></td><td>iOS SDK</td><td>Swift kitabxanası və <code>.meneUygun()</code>. Mac olmadan kod yazılır, amma test edilə bilmir</td></tr>
+  <tr><td><span class="tag P2">P2</span></td><td>B növ ayarların demosu</td><td>Partnyor saytda vaxt limiti, təsdiq sualı, altyazı nümunəsi</td></tr>
+  <tr><td><span class="tag P2">P2</span></td><td>Rus və ingilis dili</td><td>Platforma interfeysi</td></tr>
+  <tr><td><span class="tag RM">YX</span></td><td>SDK-sız rejim</td><td>Veb: SDK qoşmayan saytlar üçün brauzer genişlənməsi. Android: ekran üstü qat və OCR ilə səsli oxunuş (iOS buna icazə vermir)</td></tr>
+  <tr><td><span class="tag RM">YX</span></td><td>Dövlət kimliyi</td><td>ASAN Login / SİMA ilə bağlantı</td></tr>
+  <tr><td><span class="tag RM">YX</span></td><td>Genişlənmə</td><td>Səslə idarəetmə, Flutter/React Native SDK, partnyor analitika paneli, xidmətlər üçün əlçatanlıq yoxlaması</td></tr>
+</table>
+<div class="note"><b>Kəsmə sırası</b> (vaxt çatmazsa): 1) iOS SDK, 2) B növ ayarların demosu, 3) rus/ingilis dili. P0 hissələrdən kəsilmir.</div>
+
+<h2 class="page-break">8. Texniki arxitektura</h2>
+<div class="arch">
+  <div class="col"><i>İstifadəçi</i>
+    <div class="box">MƏNƏ UYĞUN platforması (veb, telefon və kompüter)</div>
+    <div class="box alt">Partnyor sayt (Web SDK)</div>
+    <div class="box alt">Partnyor tətbiq (Android / iOS SDK)</div>
+  </div>
+  <div class="col"><i>MƏNƏ UYĞUN serveri</i>
+    <div class="box">OAuth: authorize · token · icazələr</div>
+    <div class="box">Preferences API · bağlantılar · partnyorlar</div>
+    <div class="box">Ayar sxemi (bütün ayarların tək mənbəyi)</div>
+    <div class="box">Verilənlər bazası: istifadəçilər, ayarlar, bağlantılar</div>
+  </div>
+  <div class="col"><i>Xarici xidmətlər</i>
+    <div class="box ai">Səs → mətn (Whisper)</div>
+    <div class="box ai">Mətn → ayarlar (Claude Haiku 5.5, strukturlaşdırılmış cavab)</div>
+    <div class="box ai">E-poçt göndərmə (giriş kodu)</div>
+  </div>
+</div>
+<table>
+  <tr><th style="width:28%">Hissə</th><th>Texnologiya</th></tr>
+  <tr><td>Platforma + API</td><td>Next.js (TypeScript), bir layihədə</td></tr>
+  <tr><td>Verilənlər bazası</td><td>PostgreSQL</td></tr>
+  <tr><td>Web SDK</td><td>TypeScript, tək fayl, asılılıqsız</td></tr>
+  <tr><td>Android SDK</td><td>Kotlin, Jetpack Compose, Custom Tabs</td></tr>
+  <tr><td>iOS SDK</td><td>Swift, SwiftUI, ASWebAuthenticationSession</td></tr>
+  <tr><td>AI</td><td>Whisper (səs), Claude Haiku 5.5 (ayarların çıxarılması)</td></tr>
+  <tr><td>Səsli oxunuş</td><td>Brauzerin Web Speech API-si; Azərbaycan səsi yoxdursa bulud TTS</td></tr>
+</table>
+
+<h2>9. Demo ssenarisi (video)</h2>
+<ol>
+  <li><b>Əvvəl:</b> Əli baba (72 yaş, görməsi zəif) startup saytına girir. Yazılar xırdadır, ayar axtarır, tapmır; brauzerdə böyüdəndə səhifə pozulur.</li>
+  <li><b>Profil:</b> MƏNƏ UYĞUN-da böyük səs düyməsinə basıb deyir: “Yazıları oxuya bilmirəm, menyular çox qarışıqdır.” Ekran dərhal dəyişir, köməkçi səslə izah edir, “Bəli, saxla”.</li>
+  <li><b>Bağlama:</b> Startup saytında “MƏNƏ UYĞUN-dan ayarları gətir” → giriş → icazə. Sayt dərhal iri yazı, yüksək kontrast və sadə rejimə keçir.</li>
+  <li><b>Hər yerdə:</b> Eyni hesabla telefondakı demo tətbiqə girir — ayarlar orada da avtomatik gəlir.</li>
+  <li><b>Nəzarət:</b> Platformada yazı ölçüsünü dəyişir — saytda yansıyır. “Bağlı xidmətlər”dən bağlantını ayırır.</li>
+</ol>
+
+<h2>10. Münsiflərin sualları</h2>
+<table>
+  <tr><th style="width:35%">Sual</th><th>Cavab</th></tr>
+  <tr><td>Telefonda onsuz da böyük yazı var.</td><td>Telefon yalnız şrifti böyüdür və tətbiqlərin çoxu buna uyğunlaşmır. Biz sadə rejim, vaxt limiti, təsdiq kimi xidmət daxilindəki ayarları da gətiririk və səslə bir dəfə qurmaq imkanı veririk.</td></tr>
+  <tr><td>Qurumlar niyə qoşulsun?</td><td>Yaşlanan müştəri bazası, ESG və EAA tələbləri. İnteqrasiya bir SDK və bir neçə CSS dəyişənidir.</td></tr>
+  <tr><td>Məlumat sızarsa?</td><td>Xidmətlərdə yalnız interfeys ayarları var, ad və sağlamlıq məlumatı yoxdur. Hər sayt üçün ID fərqlidir, səs saxlanmır.</td></tr>
+  <tr><td>accessiBe kimi overlay-lərdən fərqi?</td><td>Onlar sayta öz təxminləri ilə kənardan müdaxilə edir və uyğunluq vəd edir. Biz istifadəçinin real seçimini saytın öz dizaynına veririk və WCAG-ı əvəz etdiyimizi iddia etmirik.</td></tr>
+  <tr><td>SDK qoşmayan saytlarda nə olacaq?</td><td>Yol xəritəsində: veb üçün brauzer genişlənməsi, Android üçün ekran üstü qat və OCR.</td></tr>
+  <tr><td>Kim ilk qoşulacaq?</td><td>Dövlət portalı və 1–2 bank — istifadəçiləri onlar gətirir.</td></tr>
+</table>
+
+<h2>11. Risklər və açıq suallar</h2>
+<table>
+  <tr><th style="width:35%">Mövzu</th><th>Vəziyyət</th></tr>
+  <tr><td>iOS SDK-nın testi</td><td>Mac və Xcode tələb edir. Mac yoxdursa kod yazılır, “test edilməyib” kimi qeyd olunur.</td></tr>
+  <tr><td>Azərbaycan dilində səs → mətn</td><td>Whisper keyfiyyəti ilk saatda real nümunələrlə yoxlanmalıdır.</td></tr>
+  <tr><td>Azərbaycan dilində səsli oxunuş</td><td>Brauzerlərdə Azərbaycan səsi olmaya bilər — test lazımdır; yoxdursa bulud TTS.</td></tr>
+  <tr><td>Startup məlumatı</td><td>Ad, kodun yeri, texnologiya, mobil tətbiqi var/yox — gözlənilir.</td></tr>
+  <tr><td>API açarları</td><td>Anthropic (Claude) və Whisper üçün OpenAI və ya fal.ai — gözlənilir.</td></tr>
+  <tr><td>Hosting və domen</td><td>Vercel / Hostinger / Supabase / Neon — hansı var, gözlənilir.</td></tr>
+  <tr><td>Təqdim vaxtı</td><td>Hackathonun son tarixi və saatı — gözlənilir.</td></tr>
+</table>
+
+<h2>12. Bugünkü iş planı</h2>
+<ol>
+  <li>API müqaviləsi və ayar sxemi (hər şeyin əsası) — ilk iş.</li>
+  <li>Paralel: platforma + API · Web SDK · Android SDK.</li>
+  <li>AI köməkçi (səs, mətn, təsdiq).</li>
+  <li>Startup inteqrasiyası.</li>
+  <li>Deploy və uçdan-uca test (sayt + emulator).</li>
+  <li>iOS SDK (Mac varsa test ilə).</li>
+  <li>Demo videosu.</li>
+</ol>
+
+</body>
+</html>

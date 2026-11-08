@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <!-- Custom Tabs providers (package visibility, Android 11+). -->
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+        <!-- TextToSpeech engines. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
+    <application>
+        <!--
+          Receives {redirectUri}?code=...&state=... from the browser.
+          The host app must set manifestPlaceholders["meneuygunRedirectScheme"], e.g. "meneuygun-demo".
+        -->
+        <activity
+            android:name="az.meneuygun.sdk.MeneUygunRedirectActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${meneuygunRedirectScheme}" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

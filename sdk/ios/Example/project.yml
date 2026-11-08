@@ -1,0 +1,27 @@
+# Optional: generate MeneUygunDemo.xcodeproj with XcodeGen (brew install xcodegen; cd Example; xcodegen).
+# Not tested. If it fails, create the project by hand (README.md, "Running the example").
+name: MeneUygunDemo
+options:
+  bundleIdPrefix: az.meneuygun
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  MeneUygun:
+    path: ..
+targets:
+  MeneUygunDemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: MeneUygunDemo
+        excludes:
+          - Info.plist
+    dependencies:
+      - package: MeneUygun
+    settings:
+      base:
+        INFOPLIST_FILE: MeneUygunDemo/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        PRODUCT_BUNDLE_IDENTIFIER: az.meneuygun.demo
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"

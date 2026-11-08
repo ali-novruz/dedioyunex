@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "platform", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--prefix", "platform"], "port": 3000 },
+    { "name": "demo-partner", "runtimeExecutable": "node", "runtimeArgs": ["demo-partner/serve.mjs"], "port": 4000 }
+  ]
+}
