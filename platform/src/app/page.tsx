@@ -50,10 +50,6 @@ export default async function Home() {
         </div>
       </div>
 
-      <Link href="/tehlukesiz" className="btn btn-alarm btn-block">
-        {l("Kimsə zəng edib kod və ya pul istəyir", "Someone is asking me for a code or money")}
-      </Link>
-
       <h2 className="h2">{l("Özünüz sınayın", "Try it yourself")}</h2>
       <Window title={l("Canlı nümunə", "Live example")}>
         <TryIt />

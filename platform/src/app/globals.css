@@ -110,9 +110,6 @@ code, pre { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
   .swatch { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 2px solid var(--ink); border-radius: 0.4rem; cursor: pointer; }
   .fold-window > summary { cursor: pointer; list-style-position: inside; }
   .fold-window:not([open]) > summary { border-bottom: 0; }
-  .btn-alarm { min-height: 4rem; background: var(--danger); border-color: var(--ink); color: var(--white); font-size: 1.2rem; font-weight: 700; box-shadow: var(--lift-key) var(--lift-key) 0 var(--ink); }
-  .btn-alarm:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--ink); }
-  .btn-alarm:active { transform: translate(var(--lift-key), var(--lift-key)); box-shadow: 0 0 0 var(--ink); }
   .btn-small { min-height: 2.5rem; padding: 0.3rem 0.8rem; font-size: 0.95rem; }
   .btn-small.btn-on { transform: none; }
 

@@ -15,9 +15,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const l = tr(user.prefs.language);
   return (
     <div className="stack">
-      <Link href="/tehlukesiz" className="btn btn-alarm btn-block">
-        <Icon name="warn" /> {l("Kimsə zəng edib kod və ya pul istəyir", "Someone is asking me for a code or money")}
-      </Link>
       <h1 className="h1">{l("Sizə necə uyğunlaşaq?", "How can we suit you?")}</h1>
       <p className="lead">
         {l("Çətinliyinizi öz sözlərinizlə deyin və ya yazın. Məsələn: “Yazılar xırdadır, gözüm yaxşı görmür.”", "Say or type what is difficult, in your own words. For example: “The text is too small, I can’t see well.”")}
@@ -27,6 +24,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <Icon name="sliders" /> {l("Özüm tənzimləyim", "I’ll set it up myself")}
       </Link>
       <ActiveSettings />
+      <p className="pt-4">
+        <Link href="/tehlukesiz" className="btn btn-danger btn-small">
+          <Icon name="warn" /> {l("Kimsə zəng edib kod və ya pul istəyir", "Someone is asking me for a code or money")}
+        </Link>
+      </p>
     </div>
   );
 }
