@@ -38,7 +38,7 @@ Yaşlı insan bankda, apteklə, dövlət portalında tək başına iş görə bi
 
 ## 3 dəqiqəlik sınaq
 
-1. [cizzy.vercel.app](https://cizzy.vercel.app) açın, **E-poçtsuz başla**, ehtiyacınızı seçin. E-poçtla girmək üçün `@demo.az` ilə bitən istənilən ünvan yazın, kod ekranda görünür.
+1. [cizzy.vercel.app](https://cizzy.vercel.app) açın, **E-poçtsuz başla**, ehtiyacınızı seçin. E-poçtla girəndə kod poçtunuza gəlir; sürətli sınaq üçün `@demo.az` ilə bitən istənilən ünvan yazın, kod ekranda görünür.
 2. [Demo aptekdə](https://cizzy-demo.vercel.app/aptek) **Cizzy-dən ayarları gətir** düyməsinə basıb icazə verin. Sayt dərhal dəyişir.
 3. **Ödə** düyməsinə basın: Action Guard soruşur.
 4. Platformada **Kimsə zəng edib kod və ya pul istəyir** düyməsinə basın, apteke qayıdıb yenidən ödəyin: ödəniş dayandırılır.
@@ -93,6 +93,5 @@ bash tests/e2e-scenarios.sh      # aptek, fırıldaq anı, Təhlükəsiz rejim, 
 
 - Qoruma yalnız Cizzy qoşulmuş saytlarda işləyir. Fırıldaqçının saxta saytında SDK olmur.
 - Etibarlı şəxsə xəbər bir toxunuşla zəng, WhatsApp və ya SMS ilə verilir. Avtomatik göndəriş üçün SMTP və ya SMS xidməti lazımdır.
-- Real e-poçt göndərişi qurulmayıb; demoda kod ekranda göstərilir.
 - Real yaşlı istifadəçilərlə sınaq hələ aparılmayıb.
 - AI nəticəsi məsləhətdir, qərar istifadəçidədir.
