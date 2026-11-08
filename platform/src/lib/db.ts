@@ -1,127 +1,174 @@
 import "server-only";
-import { DatabaseSync } from "node:sqlite";
-import fs from "node:fs";
-import path from "node:path";
+import { Pool, types, type PoolClient } from "pg";
 import { env } from "./env";
 import { seedDemoClients } from "./clients";
 
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE,
-  categories TEXT NOT NULL DEFAULT '[]',
-  prefs TEXT NOT NULL,
-  onboarded INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS login_codes (
-  email TEXT PRIMARY KEY,
-  code_hash TEXT NOT NULL,
-  expires_at INTEGER NOT NULL,
-  attempts INTEGER NOT NULL DEFAULT 0,
-  sent_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS sessions (
-  token_hash TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS clients (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  owner_user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-  allowed_origins TEXT NOT NULL DEFAULT '[]',
-  redirect_uris TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS auth_codes (
-  code_hash TEXT PRIMARY KEY,
-  client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  redirect_uri TEXT NOT NULL,
-  code_challenge TEXT NOT NULL,
-  expires_at INTEGER NOT NULL,
-  used INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS tokens (
-  token_hash TEXT PRIMARY KEY,
-  client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at INTEGER NOT NULL,
-  last_used_at INTEGER,
-  revoked_at INTEGER
-);
-CREATE INDEX IF NOT EXISTS tokens_user ON tokens(user_id);
-`;
+// BIGINT (epoch milliseconds) as JS numbers instead of strings.
+types.setTypeParser(20, (v) => Number(v));
 
-/** Ordered migrations; index + 2 = resulting PRAGMA user_version (version 1 is SCHEMA above). */
+/** All tables live in their own schema so the app can share a Supabase project safely (not exposed via PostgREST). */
+const SCHEMA = "dedio";
+
+/** Ordered migrations. Applied once each, tracked in dedio.schema_migrations. */
 const MIGRATIONS: string[] = [
-  // v2: accounts without e-mail, verified partners, profile transfer links, AI usage limits
-  `CREATE TABLE users_v2 (
+  `CREATE TABLE users (
      id TEXT PRIMARY KEY,
      email TEXT UNIQUE,
      categories TEXT NOT NULL DEFAULT '[]',
      prefs TEXT NOT NULL,
-     onboarded INTEGER NOT NULL DEFAULT 0,
-     created_at INTEGER NOT NULL,
-     updated_at INTEGER NOT NULL
+     onboarded BOOLEAN NOT NULL DEFAULT FALSE,
+     created_at BIGINT NOT NULL,
+     updated_at BIGINT NOT NULL
    );
-   INSERT INTO users_v2 SELECT id, email, categories, prefs, onboarded, created_at, updated_at FROM users;
-   DROP TABLE users;
-   ALTER TABLE users_v2 RENAME TO users;
-   ALTER TABLE clients ADD COLUMN verified INTEGER NOT NULL DEFAULT 0;
+   CREATE TABLE login_codes (
+     email TEXT PRIMARY KEY,
+     code_hash TEXT NOT NULL,
+     expires_at BIGINT NOT NULL,
+     attempts INT NOT NULL DEFAULT 0,
+     sent_at BIGINT NOT NULL
+   );
+   CREATE TABLE sessions (
+     token_hash TEXT PRIMARY KEY,
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     expires_at BIGINT NOT NULL
+   );
+   CREATE TABLE clients (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     owner_user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+     allowed_origins TEXT NOT NULL DEFAULT '[]',
+     redirect_uris TEXT NOT NULL DEFAULT '[]',
+     created_at BIGINT NOT NULL,
+     verified BOOLEAN NOT NULL DEFAULT FALSE
+   );
+   CREATE TABLE auth_codes (
+     code_hash TEXT PRIMARY KEY,
+     client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     redirect_uri TEXT NOT NULL,
+     code_challenge TEXT NOT NULL,
+     expires_at BIGINT NOT NULL,
+     used BOOLEAN NOT NULL DEFAULT FALSE
+   );
+   CREATE TABLE tokens (
+     token_hash TEXT PRIMARY KEY,
+     client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     created_at BIGINT NOT NULL,
+     last_used_at BIGINT,
+     revoked_at BIGINT
+   );
+   CREATE INDEX tokens_user ON tokens(user_id);
+   CREATE INDEX sessions_user ON sessions(user_id);
    CREATE TABLE transfer_tokens (
      token_hash TEXT PRIMARY KEY,
      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-     expires_at INTEGER NOT NULL
+     expires_at BIGINT NOT NULL
    );
    CREATE TABLE ai_usage (
      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
      day TEXT NOT NULL,
-     count INTEGER NOT NULL DEFAULT 0,
+     count INT NOT NULL DEFAULT 0,
      PRIMARY KEY (user_id, day)
    );`,
 ];
 
-function migrate(d: DatabaseSync): void {
-  const row = d.prepare("PRAGMA user_version").get() as { user_version: number };
-  let version = row.user_version || 1;
-  // foreign keys must be off while tables are rebuilt, otherwise DROP TABLE cascades
-  d.exec("PRAGMA foreign_keys = OFF;");
+const g = globalThis as unknown as { __muPool?: Pool; __muReady?: Promise<void> };
+
+function pool(): Pool {
+  if (!g.__muPool) {
+    const p = new Pool({
+      connectionString: env.databaseUrl,
+      // Supabase requires TLS. DATABASE_SSL=require encrypts without pinning the CA (set DATABASE_SSL=disable for a local Postgres).
+      ssl: env.databaseSsl === "require" ? { rejectUnauthorized: false } : undefined,
+      max: 8,
+      idleTimeoutMillis: 30_000,
+    });
+    p.on("connect", (c) => {
+      c.query(`SET search_path TO ${SCHEMA}`).catch((e) => console.error("[db] search_path failed", e));
+    });
+    p.on("error", (e) => console.error("[db] idle client error", e));
+    g.__muPool = p;
+  }
+  return g.__muPool;
+}
+
+async function migrate(): Promise<void> {
+  const c = await pool().connect();
   try {
-    while (version - 1 < MIGRATIONS.length) {
-      d.exec("BEGIN");
-      try {
-        d.exec(MIGRATIONS[version - 1]);
-        d.exec(`PRAGMA user_version = ${version + 1}`);
-        d.exec("COMMIT");
-      } catch (e) {
-        d.exec("ROLLBACK");
-        throw new Error(`Database migration to v${version + 1} failed: ${(e as Error).message}`);
+    await c.query(`CREATE SCHEMA IF NOT EXISTS ${SCHEMA}`);
+    await c.query(`SET search_path TO ${SCHEMA}`);
+    await c.query("SELECT pg_advisory_lock(424242)"); // one migrator at a time (several containers / workers)
+    try {
+      await c.query("CREATE TABLE IF NOT EXISTS schema_migrations (version INT PRIMARY KEY, applied_at BIGINT NOT NULL)");
+      const done = new Set((await c.query<{ version: number }>("SELECT version FROM schema_migrations")).rows.map((r) => r.version));
+      for (let i = 0; i < MIGRATIONS.length; i++) {
+        const version = i + 1;
+        if (done.has(version)) continue;
+        await c.query("BEGIN");
+        try {
+          await c.query(MIGRATIONS[i]);
+          await c.query("INSERT INTO schema_migrations (version, applied_at) VALUES ($1, $2)", [version, Date.now()]);
+          await c.query("COMMIT");
+        } catch (e) {
+          await c.query("ROLLBACK");
+          throw new Error(`Database migration ${version} failed: ${(e as Error).message}`);
+        }
       }
-      version++;
+    } finally {
+      await c.query("SELECT pg_advisory_unlock(424242)");
     }
   } finally {
-    d.exec("PRAGMA foreign_keys = ON;");
+    c.release();
+  }
+  await seedDemoClients();
+}
+
+function ready(): Promise<void> {
+  g.__muReady ??= migrate().catch((e) => {
+    g.__muReady = undefined; // retry on the next request instead of caching the failure forever
+    throw e;
+  });
+  return g.__muReady;
+}
+
+export type Row = Record<string, unknown>;
+
+export async function query<T = Row>(sql: string, params: unknown[] = []): Promise<T[]> {
+  await ready();
+  return (await pool().query(sql, params)).rows as T[];
+}
+
+export async function one<T = Row>(sql: string, params: unknown[] = []): Promise<T | undefined> {
+  return (await query<T>(sql, params))[0];
+}
+
+/** Returns the number of affected rows. */
+export async function exec(sql: string, params: unknown[] = []): Promise<number> {
+  await ready();
+  return (await pool().query(sql, params)).rowCount ?? 0;
+}
+
+/** Runs fn inside a transaction on one connection. */
+export async function tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
+  await ready();
+  const c = await pool().connect();
+  try {
+    await c.query("BEGIN");
+    const out = await fn(c);
+    await c.query("COMMIT");
+    return out;
+  } catch (e) {
+    await c.query("ROLLBACK");
+    throw e;
+  } finally {
+    c.release();
   }
 }
 
-const g = globalThis as unknown as { __muDb?: DatabaseSync };
-
-export function db(): DatabaseSync {
-  if (!g.__muDb) {
-    const dir = path.resolve(env.dataDir);
-    fs.mkdirSync(dir, { recursive: true });
-    const d = new DatabaseSync(path.join(dir, "mene-uygun.db"));
-    d.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
-    d.exec(SCHEMA);
-    migrate(d);
-    d.exec("PRAGMA foreign_keys = ON;");
-    g.__muDb = d;
-    seedDemoClients(d);
-  }
-  return g.__muDb;
+/** Seeding runs inside migrate(), before ready() resolves: it must not call query()/exec(). */
+export async function rawExec(sql: string, params: unknown[] = []): Promise<void> {
+  await pool().query(sql, params);
 }
 
 export function now(): number {

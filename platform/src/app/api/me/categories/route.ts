@@ -6,6 +6,6 @@ export function PUT(req: Request) {
   return handle(async () => {
     const user = await requireApiUser();
     const body = await jsonBody(req);
-    return { categories: setCategories(user.id, body.categories) };
+    return { categories: await setCategories(user.id, body.categories) };
   });
 }

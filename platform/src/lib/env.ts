@@ -10,8 +10,14 @@ export const env = {
   get appUrl() {
     return required("APP_URL").replace(/\/+$/, "");
   },
-  get dataDir() {
-    return required("DATA_DIR");
+  /** Postgres connection string (Supabase: Project Settings → Database → Session pooler). */
+  get databaseUrl() {
+    return required("DATABASE_URL");
+  },
+  get databaseSsl(): "require" | "disable" {
+    const v = process.env.DATABASE_SSL ?? "require";
+    if (v !== "require" && v !== "disable") throw new Error(`DATABASE_SSL must be "require" or "disable", got "${v}"`);
+    return v;
   },
   get secret() {
     const s = required("SECRET");
@@ -28,8 +34,13 @@ export const env = {
   get aiDailyLimit() {
     return Number(process.env.AI_DAILY_LIMIT ?? 60);
   },
+  /** Show login codes on screen for ALL e-mails. Local development only — never on a public server. */
   get demoShowCodes() {
     return process.env.DEMO_SHOW_CODES === "true";
+  },
+  /** Public demo: show codes on screen only for e-mails of this domain (e.g. "demo.az" → ali@demo.az). */
+  get demoEmailDomain(): string | null {
+    return process.env.DEMO_EMAIL_DOMAIN?.trim().toLowerCase() || null;
   },
   get smtpUrl() {
     return process.env.SMTP_URL || null;

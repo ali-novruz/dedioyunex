@@ -3,7 +3,7 @@
 // Optional attributes: data-mode="auto|tokens", data-floating="false", data-base-url="https://PLATFORM"
 
 import { PreferenceEngine, type Mode } from "./apply";
-import { normalizePreferences, SETTINGS, DEFAULT_PREFERENCES, type Preferences, type PreferenceKey } from "./schema";
+import { readPreferences, SETTINGS, DEFAULT_PREFERENCES, type Preferences, type PreferenceKey } from "./schema";
 import { runCheck, type CheckReport } from "./check";
 import { speak, stopSpeaking, voiceInfo, isSpeechSupported } from "./tts";
 
@@ -137,7 +137,7 @@ class MeneUygunSDK {
     const cached = store.get(this.key("prefs"));
     if (cached && store.get(this.key("token"))) {
       try {
-        this.setPrefs(normalizePreferences(JSON.parse(cached)), false);
+        this.setPrefs(readPreferences(JSON.parse(cached)), false);
       } catch (e) {
         console.warn("[MeneUygun] cached preferences invalid, ignoring", e);
         store.del(this.key("prefs"));
@@ -146,6 +146,7 @@ class MeneUygunSDK {
     // 2) finish a redirect-mode authorization, else refresh from the server
     const onReady = () => {
       this.renderButtons();
+      this.renderTts();
       if (!this.completeRedirect()) this.safeRefresh();
       if (new URLSearchParams(location.search).has("mu-check")) void this.check().then((r) => this.showCheck(r));
     };
@@ -153,12 +154,20 @@ class MeneUygunSDK {
     else onReady();
 
     // 3) keep in sync: when the user comes back to the tab, and across tabs
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && Date.now() - this.lastFetch > 10_000) this.safeRefresh();
-    });
+    const onBack = () => {
+      if (document.visibilityState === "visible" && Date.now() - this.lastFetch > 2_000) this.safeRefresh();
+    };
+    document.addEventListener("visibilitychange", onBack);
+    window.addEventListener("focus", onBack);
     window.addEventListener("storage", (e) => {
-      if (e.key === this.key("prefs") && e.newValue) this.setPrefs(normalizePreferences(JSON.parse(e.newValue)), false);
-      if (e.key === this.key("token") && !e.newValue) this.clearLocal(false);
+      try {
+        if (e.key === this.key("prefs") && e.newValue) this.setPrefs(readPreferences(JSON.parse(e.newValue)), false);
+        if (e.key === this.key("token") && !e.newValue) this.clearLocal(false);
+        // Another tab (e.g. a popup opened as a tab) finished connecting.
+        if (e.key === this.key("token") && e.newValue && !this.prefs) this.safeRefresh();
+      } catch (err) {
+        console.warn("[MeneUygun] ignoring malformed storage event", err);
+      }
     });
   }
 
@@ -215,6 +224,12 @@ class MeneUygunSDK {
       this.emit("connect", prefs);
       return prefs;
     } catch (e) {
+      // The popup may have finished in another tab (no window.opener): then we are connected after all.
+      if (store.get(this.key("token"))) {
+        this.error = null;
+        this.safeRefresh();
+        throw e;
+      }
       // Show our own Azerbaijani message when we raised it, a generic one otherwise.
       this.error = e instanceof Error && REVERSE[e.message] ? e.message : T.failed;
       this.emit("error", e);
@@ -228,15 +243,19 @@ class MeneUygunSDK {
   async disconnect(): Promise<void> {
     const cfg = this.need();
     const token = store.get(this.key("token"));
-    if (token) {
-      const r = await fetch(`${cfg.baseUrl}/oauth/revoke`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, client_id: cfg.clientId }),
-      });
-      if (!r.ok) console.warn("[MeneUygun] revoke failed with", r.status);
+    try {
+      if (token) {
+        const r = await fetch(`${cfg.baseUrl}/oauth/revoke`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, client_id: cfg.clientId }),
+        });
+        if (!r.ok) console.warn("[MeneUygun] revoke failed with", r.status);
+      }
+    } finally {
+      // Always disconnect locally, even offline.
+      this.clearLocal(true);
     }
-    this.clearLocal(true);
   }
 
   /** Re-fetch preferences from the platform. No-op when not connected. */
@@ -252,7 +271,7 @@ class MeneUygunSDK {
     }
     if (!r.ok) throw new Error(`MeneUygun: preferences request failed (${r.status})`);
     const body = await r.json();
-    const prefs = normalizePreferences(body.preferences);
+    const prefs = readPreferences(body.preferences);
     this.setPrefs(prefs, true);
     return prefs;
   }
@@ -402,7 +421,7 @@ class MeneUygunSDK {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error_description || `Token exchange failed (${r.status})`);
     store.set(this.key("token"), body.access_token);
-    const prefs = normalizePreferences(body.preferences);
+    const prefs = readPreferences(body.preferences);
     this.setPrefs(prefs, true);
     this.lastFetch = Date.now();
     return prefs;

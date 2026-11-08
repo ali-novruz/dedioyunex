@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db, now } from "./db";
+import { exec, now, one } from "./db";
 import { env } from "./env";
 import { randomToken, sha256, sixDigitCode, safeEqual } from "./crypto";
 import { attachEmail, createAnonymousUser, findOrCreateUser, findUserByEmail, getUser, type User } from "./users";
@@ -29,17 +29,26 @@ export function normalizeEmail(raw: unknown): string {
 /** Creates and delivers a login code. Returns the code only in demo mode (DEMO_SHOW_CODES=true). */
 export async function requestCode(rawEmail: unknown): Promise<{ demoCode: string | null }> {
   const email = normalizeEmail(rawEmail);
-  const d = db();
-  const existing = d.prepare("SELECT sent_at FROM login_codes WHERE email = ?").get(email) as { sent_at: number } | undefined;
-  if (existing && now() - existing.sent_at < RESEND_AFTER) {
-    throw new AuthError("Kod artıq göndərildi. 30 saniyə sonra yenidən cəhd edin.", 429);
-  }
   const code = sixDigitCode();
-  d.prepare(
-    `INSERT INTO login_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)
-     ON CONFLICT(email) DO UPDATE SET code_hash = excluded.code_hash, expires_at = excluded.expires_at, attempts = 0, sent_at = excluded.sent_at`,
-  ).run(email, sha256(`${email}:${code}`), now() + CODE_TTL, now());
-  if (env.demoShowCodes) return { demoCode: code };
+  const t = now();
+  // Upsert only when the previous code is older than RESEND_AFTER (atomic throttle).
+  const n = await exec(
+    `INSERT INTO login_codes (email, code_hash, expires_at, attempts, sent_at) VALUES ($1, $2, $3, 0, $4)
+     ON CONFLICT (email) DO UPDATE SET code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at, attempts = 0, sent_at = EXCLUDED.sent_at
+     WHERE login_codes.sent_at < $5`,
+    [email, sha256(`${email}:${code}`), t + CODE_TTL, t, t - RESEND_AFTER],
+  );
+  if (n === 0) throw new AuthError("Kod artıq göndərildi. 30 saniyə sonra yenidən cəhd edin.", 429);
+  const demoDomain = env.demoEmailDomain;
+  if (env.demoShowCodes || (demoDomain && email.endsWith(`@${demoDomain}`))) return { demoCode: code };
+  if (!env.smtpUrl) {
+    throw new AuthError(
+      demoDomain
+        ? `E-poçt göndərmə hələ qurulmayıb. Demo üçün @${demoDomain} ünvanı istifadə edin və ya “E-poçtsuz başla” düyməsini seçin.`
+        : "E-poçt göndərmə hələ qurulmayıb. “E-poçtsuz başla” düyməsini seçin.",
+      503,
+    );
+  }
   await sendLoginCode(email, code);
   return { demoCode: null };
 }
@@ -48,32 +57,35 @@ export async function verifyCode(rawEmail: unknown, rawCode: unknown): Promise<U
   const email = normalizeEmail(rawEmail);
   const code = typeof rawCode === "string" ? rawCode.replace(/\D/g, "") : "";
   if (code.length !== 6) throw new AuthError("Kod 6 rəqəmdən ibarətdir");
-  const d = db();
-  const row = d.prepare("SELECT * FROM login_codes WHERE email = ?").get(email) as
-    | { code_hash: string; expires_at: number; attempts: number }
-    | undefined;
-  if (!row || row.expires_at < now()) throw new AuthError("Kodun vaxtı bitib. Yeni kod istəyin.");
-  if (row.attempts >= MAX_ATTEMPTS) throw new AuthError("Çox səhv cəhd. Yeni kod istəyin.", 429);
-  if (!safeEqual(row.code_hash, sha256(`${email}:${code}`))) {
-    d.prepare("UPDATE login_codes SET attempts = attempts + 1 WHERE email = ?").run(email);
-    throw new AuthError("Kod səhvdir");
+  // Count the attempt atomically before comparing, so parallel guesses cannot exceed MAX_ATTEMPTS.
+  const row = await one<{ code_hash: string; expires_at: number }>(
+    "UPDATE login_codes SET attempts = attempts + 1 WHERE email = $1 AND attempts < $2 RETURNING code_hash, expires_at",
+    [email, MAX_ATTEMPTS],
+  );
+  if (!row) {
+    const exists = await one("SELECT 1 FROM login_codes WHERE email = $1", [email]);
+    throw new AuthError(exists ? "Çox səhv cəhd. Yeni kod istəyin." : "Kodun vaxtı bitib. Yeni kod istəyin.", exists ? 429 : 400);
   }
-  d.prepare("DELETE FROM login_codes WHERE email = ?").run(email);
+  if (row.expires_at < now()) throw new AuthError("Kodun vaxtı bitib. Yeni kod istəyin.");
+  if (!safeEqual(row.code_hash, sha256(`${email}:${code}`))) throw new AuthError("Kod səhvdir");
+  await exec("DELETE FROM login_codes WHERE email = $1", [email]);
+
   // Signed in without e-mail on this device? Then the code adds the e-mail to that account.
   const current = await currentUser();
-  if (current && current.email === null) {
-    if (findUserByEmail(email)) throw new AuthError("Bu e-poçt artıq başqa hesaba bağlıdır.");
-    attachEmail(current.id, email);
-    return getUser(current.id)!;
+  if (current && current.email === null && !(await findUserByEmail(email))) {
+    await attachEmail(current.id, email);
+    return (await getUser(current.id))!;
   }
-  const user = findOrCreateUser(email);
+  // E-mail belongs to an existing account: sign this device into it (the e-mail-less session ends).
+  if (current) await endSession();
+  const user = await findOrCreateUser(email);
   await startSession(user.id);
   return user;
 }
 
 /** "Start without e-mail": an account that lives on this device until the user adds an e-mail. */
 export async function startAnonymous(): Promise<User> {
-  const user = createAnonymousUser();
+  const user = await createAnonymousUser();
   await startSession(user.id);
   return user;
 }
@@ -81,24 +93,21 @@ export async function startAnonymous(): Promise<User> {
 const TRANSFER_TTL = 15 * 60_000;
 
 /** One-time link (shown as QR) that signs another device into this account — e.g. a relative sets up grandpa's phone. */
-export function createTransferToken(userId: string): { token: string; expiresAt: number } {
+export async function createTransferToken(userId: string): Promise<{ token: string; expiresAt: number }> {
   const token = randomToken(24);
   const expiresAt = now() + TRANSFER_TTL;
-  const d = db();
-  d.prepare("DELETE FROM transfer_tokens WHERE user_id = ? OR expires_at < ?").run(userId, now());
-  d.prepare("INSERT INTO transfer_tokens (token_hash, user_id, expires_at) VALUES (?, ?, ?)").run(sha256(token), userId, expiresAt);
+  await exec("DELETE FROM transfer_tokens WHERE user_id = $1 OR expires_at < $2", [userId, now()]);
+  await exec("INSERT INTO transfer_tokens (token_hash, user_id, expires_at) VALUES ($1, $2, $3)", [sha256(token), userId, expiresAt]);
   return { token, expiresAt };
 }
 
 export async function consumeTransferToken(token: string): Promise<User> {
-  const d = db();
-  const row = d.prepare("SELECT user_id, expires_at FROM transfer_tokens WHERE token_hash = ?").get(sha256(token)) as
-    | { user_id: string; expires_at: number }
-    | undefined;
+  // DELETE … RETURNING: single use even under concurrent requests.
+  const row = await one<{ user_id: string; expires_at: number }>("DELETE FROM transfer_tokens WHERE token_hash = $1 RETURNING user_id, expires_at", [sha256(token)]);
   if (!row || row.expires_at < now()) throw new AuthError("Bu link artıq etibarlı deyil. Yeni QR kod yaradın.");
-  d.prepare("DELETE FROM transfer_tokens WHERE token_hash = ?").run(sha256(token));
-  const user = getUser(row.user_id);
+  const user = await getUser(row.user_id);
   if (!user) throw new AuthError("Hesab tapılmadı");
+  await endSession(); // replace whatever account this device had
   await startSession(user.id);
   return user;
 }
@@ -106,7 +115,7 @@ export async function consumeTransferToken(token: string): Promise<User> {
 async function startSession(userId: string): Promise<void> {
   const token = randomToken();
   const expires = now() + SESSION_DAYS * 86_400_000;
-  db().prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)").run(sha256(token), userId, expires);
+  await exec("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, $3)", [sha256(token), userId, expires]);
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -119,9 +128,7 @@ async function startSession(userId: string): Promise<void> {
 export async function currentUser(): Promise<User | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
-  const row = db().prepare("SELECT user_id, expires_at FROM sessions WHERE token_hash = ?").get(sha256(token)) as
-    | { user_id: string; expires_at: number }
-    | undefined;
+  const row = await one<{ user_id: string; expires_at: number }>("SELECT user_id, expires_at FROM sessions WHERE token_hash = $1", [sha256(token)]);
   if (!row || row.expires_at < now()) return null;
   return getUser(row.user_id);
 }
@@ -143,6 +150,6 @@ export async function requireApiUser(): Promise<User> {
 export async function endSession(): Promise<void> {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
-  if (token) db().prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha256(token));
+  if (token) await exec("DELETE FROM sessions WHERE token_hash = $1", [sha256(token)]);
   jar.delete(COOKIE);
 }

@@ -6,13 +6,13 @@ import { replacePreferences, updatePreferences } from "@/lib/users";
 export function PATCH(req: Request) {
   return handle(async () => {
     const user = await requireApiUser();
-    return { preferences: updatePreferences(user.id, await jsonBody(req)) };
+    return { preferences: await updatePreferences(user.id, await jsonBody(req)) };
   });
 }
 
 export function PUT(req: Request) {
   return handle(async () => {
     const user = await requireApiUser();
-    return { preferences: replacePreferences(user.id, await jsonBody(req)) };
+    return { preferences: await replacePreferences(user.id, await jsonBody(req)) };
   });
 }

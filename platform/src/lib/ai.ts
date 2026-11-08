@@ -19,7 +19,8 @@ export async function transcribe(audio: Blob, language: string): Promise<string>
   const c = config();
   if (!c.sttModel) throw new AiError("AI_STT_MODEL is not set", 503);
   const form = new FormData();
-  form.append("file", audio, "speech.webm");
+  const ext = audio.type.includes("mp4") || audio.type.includes("m4a") ? "m4a" : audio.type.includes("ogg") ? "ogg" : audio.type.includes("wav") ? "wav" : "webm";
+  form.append("file", audio, `speech.${ext}`);
   form.append("model", c.sttModel);
   form.append("language", language);
   form.append("response_format", "json");

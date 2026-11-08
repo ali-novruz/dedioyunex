@@ -137,7 +137,8 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
       media.current = null;
       setPhase("thinking");
       const form = new FormData();
-      form.append("audio", new Blob(chunks, { type: mr.mimeType || "audio/webm" }), "speech.webm");
+      const type = mr.mimeType || "audio/webm";
+      form.append("audio", new Blob(chunks, { type }), type.includes("mp4") ? "speech.m4a" : "speech.webm");
       try {
         const { text } = await api<{ text: string }>("/api/assistant/transcribe", { method: "POST", body: form });
         await understand(text, true);

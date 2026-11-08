@@ -11,13 +11,13 @@ export function POST(req: Request) {
     if (!params || typeof params !== "object") throw new AuthError("params is required");
     let request;
     try {
-      request = parseAuthorize(params);
+      request = await parseAuthorize(params);
     } catch (e) {
       if (e instanceof OAuthError) throw new AuthError(e.message);
       throw e;
     }
     const allow = body.decision === "allow";
-    const result = allow ? { code: issueCode(request, user.id) } : { error: "access_denied" };
+    const result = allow ? { code: await issueCode(request, user.id) } : { error: "access_denied" };
     if (request.responseMode === "web_message") {
       return {
         action: "postMessage",

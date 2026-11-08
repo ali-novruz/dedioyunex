@@ -11,7 +11,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
 
   let req;
   try {
-    req = parseAuthorize(params);
+    req = await parseAuthorize(params);
   } catch (e) {
     const msg = e instanceof OAuthError ? e.message : "Sorğu düzgün deyil";
     return (

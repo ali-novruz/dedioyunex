@@ -462,10 +462,8 @@ export class PreferenceEngine {
         });
         if (r.type === "characterData" && r.target.parentNode) this.pending.add(r.target.parentNode);
       }
-      if (this.pending.size && !this.frame) {
-        const raf = this.doc.defaultView?.requestAnimationFrame ?? ((cb: FrameRequestCallback) => setTimeout(cb, 16));
-        this.frame = raf(() => this.flush()) as unknown as number;
-      }
+      // Batch at most ~4 rescans per second: busy pages (tickers, chats) must not trigger a full style recalc every frame.
+      if (this.pending.size && !this.frame) this.frame = setTimeout(() => this.flush(), 250) as unknown as number;
     });
     this.observer.observe(this.doc.body, { childList: true, subtree: true });
   }

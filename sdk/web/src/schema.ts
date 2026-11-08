@@ -182,9 +182,30 @@ export function validatePatch(input: unknown): Partial<Omit<Preferences, "versio
   return out as Partial<Omit<Preferences, "version">>;
 }
 
-/** Validates a full preferences object (missing keys are filled from defaults). */
+/** Validates a full preferences object strictly (missing keys are filled from defaults). Use when WRITING. */
 export function normalizePreferences(input: unknown): Preferences {
   return { ...DEFAULT_PREFERENCES, ...validatePatch(input), version: SCHEMA_VERSION };
+}
+
+/**
+ * Lenient reader for stored or received preferences (forward/backward compatible):
+ * unknown keys are ignored and invalid values fall back to the default. Use when READING.
+ */
+export function readPreferences(input: unknown): Preferences {
+  const out: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+  if (input && typeof input === "object" && !Array.isArray(input)) {
+    for (const [k, v] of Object.entries(input)) {
+      if (k === "version" || !SETTING_BY_KEY.has(k as PreferenceKey)) continue;
+      try {
+        checkValue(k, v);
+        out[k] = v;
+      } catch {
+        /* invalid value: keep the default for this key */
+      }
+    }
+  }
+  out.version = SCHEMA_VERSION;
+  return out as unknown as Preferences;
 }
 
 export function isCategory(v: unknown): v is Category {

@@ -1,21 +1,28 @@
 import { NextResponse } from "next/server";
-import { revokeToken } from "@/lib/oauth";
-import { corsHeaders, oauthErrorResponse, preflight } from "@/lib/cors";
+import { revokeToken, OAuthError } from "@/lib/oauth";
+import { assertOrigin, corsHeaders, oauthErrorResponse, preflight } from "@/lib/cors";
 
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
-  let body: Record<string, unknown> = {};
+  const text = await req.text();
+  let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    body = JSON.parse(text);
   } catch {
-    const t = await req.text().catch(() => "");
-    body = Object.fromEntries(new URLSearchParams(t));
+    body = Object.fromEntries(new URLSearchParams(text));
   }
+  const clientId = typeof body.client_id === "string" ? body.client_id : null;
+  const headers = await corsHeaders(origin, clientId);
   try {
-    const { clientId } = revokeToken(body.token);
-    return NextResponse.json({}, { headers: corsHeaders(origin, clientId ?? (typeof body.client_id === "string" ? body.client_id : null)) });
+    // Browser calls must name their client and may only revoke that client's tokens.
+    if (origin) {
+      if (!clientId) throw new OAuthError("invalid_request", "client_id is required");
+      await assertOrigin(origin, clientId);
+    }
+    await revokeToken(body.token, origin ? clientId : null);
+    return NextResponse.json({}, { headers });
   } catch (e) {
-    return oauthErrorResponse(e, corsHeaders(origin, typeof body.client_id === "string" ? body.client_id : null));
+    return oauthErrorResponse(e, headers);
   }
 }
 

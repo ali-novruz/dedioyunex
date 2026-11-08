@@ -4,19 +4,21 @@
 
 | Qovluq | Nədir |
 |---|---|
-| `platform/` | İstifadəçi platforması + API + OAuth (Next.js 16, SQLite `node:sqlite`) |
+| `platform/` | İstifadəçi platforması + API + OAuth (Next.js 16, Postgres / Supabase) |
 | `sdk/web/` | Web SDK (`/sdk.js`) — ayar sxemi, tətbiq mühərriki, səsli oxunuş, uyğunluq yoxlaması |
 | `sdk/android/` | Android SDK (Kotlin/Compose) + nümunə tətbiq |
 | `sdk/ios/` | iOS SDK (Swift/SwiftUI) + nümunə — **Mac-da hələ yığılmayıb/test edilməyib** |
 | `demo-partner/` | DEMO Market — inteqrasiya nümunəsi sayt |
-| `deploy/` | Docker Compose + Caddy (avtomatik HTTPS) — Hostinger VPS üçün |
+| `deploy/` | Docker Compose (Traefik) — Hostinger VPS; `vercel-proxy/` — dedio.vercel.app → VPS |
 | `tests/` | `e2e-web.sh` (brauzer), `api-test.sh` (API), `mock-ai.mjs` |
 | `docs/` | Spesifikasiya (PDF), API müqaviləsi, sxem |
 
 ## Lokal işə salma
 
 ```bash
-cd platform && npm install && npm run dev          # http://localhost:3000  (.env.local hazırdır)
+docker run -d --name dedio-pg -p 5433:5432 -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=dedio postgres:16-alpine
+cd platform && cp .env.example .env.local   # SECRET doldurun
+npm install && npm run dev                  # http://localhost:3000
 node demo-partner/serve.mjs                         # http://localhost:4000  (DEMO Market)
 ```
 
@@ -44,11 +46,12 @@ node tests/mock-ai.mjs &                    # sonra platformanı AI_BASE_URL=htt
 BASE=http://localhost:3100 bash tests/api-test.sh
 ```
 
-## Deploy (Hostinger VPS)
+## Deploy (Hostinger VPS + Supabase + dedio.vercel.app)
 
 ```bash
-cd deploy && cp .env.example .env   # domenləri, SECRET, AI açarını yazın
-docker compose up -d --build
+# VPS-də (Traefik artıq işləyir):
+cd deploy && cp .env.example .env     # DATABASE_URL (Supabase), SECRET, AI_API_KEY
+docker compose -f docker-compose.traefik.yml up -d --build
+# Vercel: dedio.vercel.app → VPS
+cd deploy/vercel-proxy && vercel deploy --prod
 ```
-
-DNS: `APP_DOMAIN` və `DEMO_DOMAIN` üçün A qeydi → VPS IP (Vercel DNS-də "Add record").

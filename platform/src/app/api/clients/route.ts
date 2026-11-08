@@ -8,7 +8,7 @@ export function POST(req: Request) {
   return handle(async () => {
     const user = await requireApiUser();
     const body = await jsonBody(req);
-    const client = createClient(user.id, { name: String(body.name ?? ""), origins: lines(body.origins), redirectUris: lines(body.redirectUris) });
+    const client = await createClient(user.id, { name: String(body.name ?? ""), origins: lines(body.origins), redirectUris: lines(body.redirectUris) });
     return { client };
   });
 }

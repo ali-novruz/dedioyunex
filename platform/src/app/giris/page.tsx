@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/session";
 import { LoginForm } from "./LoginForm";
+import { safeNext } from "@/lib/next-path";
 import { StartAnonymous } from "@/components/StartAnonymous";
 
-function safeNext(next: string | undefined): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "";
-}
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const next = safeNext((await searchParams).next);

@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default async function ServicesPage() {
   const user = await requireUser("/xidmetler");
-  const list = connectionsOf(user.id);
+  const list = await connectionsOf(user.id);
   const demo = env.demoPartnerOrigins[0] ?? null;
   return (
     <div className="stack">

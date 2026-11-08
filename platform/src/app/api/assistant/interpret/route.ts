@@ -1,7 +1,7 @@
 import { handle, jsonBody } from "@/lib/http";
 import { requireApiUser, AuthError } from "@/lib/session";
 import { interpret, type Turn } from "@/lib/ai";
-import { takeAiQuota } from "@/lib/limits";
+import { takeAiQuota, takeIpQuota, clientIp } from "@/lib/limits";
 
 export function POST(req: Request) {
   return handle(async () => {
@@ -10,7 +10,8 @@ export function POST(req: Request) {
     if (typeof body.text !== "string") throw new AuthError("text is required");
     const prev = body.previous as Partial<Turn> | undefined;
     const previous = prev && typeof prev.said === "string" && typeof prev.question === "string" ? (prev as Turn) : null;
-    takeAiQuota(user.id);
+    takeIpQuota("ai", clientIp(req), 200, 86_400_000, "Bu şəbəkədən günlük köməkçi limiti bitdi.");
+    await takeAiQuota(user.id);
     const result = await interpret(body.text, user.prefs, previous);
     // Nothing is saved here: the user confirms first, then the client PATCHes /api/me/preferences.
     return { ...result, proposed: { ...user.prefs, ...result.patch } };

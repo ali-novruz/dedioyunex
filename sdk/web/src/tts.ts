@@ -15,20 +15,17 @@ function synth(): SpeechSynthesis | null {
   return typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis : null;
 }
 
-let voicesReady: Promise<SpeechSynthesisVoice[]> | null = null;
 function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   const s = synth();
   if (!s) return Promise.resolve([]);
-  if (!voicesReady) {
-    voicesReady = new Promise((resolve) => {
-      const now = s.getVoices();
-      if (now.length) return resolve(now);
-      const done = () => resolve(s.getVoices());
-      s.addEventListener("voiceschanged", done, { once: true });
-      setTimeout(done, 1500);
-    });
-  }
-  return voicesReady;
+  const now = s.getVoices();
+  if (now.length) return Promise.resolve(now);
+  // Voices load asynchronously in some browsers; wait once, never cache an empty list.
+  return new Promise((resolve) => {
+    const done = () => resolve(s.getVoices());
+    s.addEventListener("voiceschanged", done, { once: true });
+    setTimeout(done, 1500);
+  });
 }
 
 export async function pickVoice(language: string): Promise<{ voice: SpeechSynthesisVoice | null; info: VoiceInfo }> {

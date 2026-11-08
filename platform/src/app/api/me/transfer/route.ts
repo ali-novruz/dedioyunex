@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
 export function POST() {
   return handle(async () => {
     const user = await requireApiUser();
-    const { token, expiresAt } = createTransferToken(user.id);
+    const { token, expiresAt } = await createTransferToken(user.id);
     const url = `${env.appUrl}/kecid/${token}`;
     const svg = await QRCode.toString(url, { type: "svg", margin: 1, width: 280, errorCorrectionLevel: "M" });
     return { url, svg, expiresAt };

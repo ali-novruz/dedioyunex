@@ -8,8 +8,22 @@ J1=$(mktemp); J2=$(mktemp)
 pass=0
 ok() { pass=$((pass+1)); echo "  ✓ $*"; }
 fail() { echo "  ✗ FAIL: $*"; exit 1; }
-post() { curl -s -b "$1" -c "$1" -H "Content-Type: application/json" -X "${4:-POST}" "$BASE$2" -d "$3"; }
+post() { curl -s -b "$1" -c "$1" -H "Origin: $BASE" -H "Content-Type: application/json" -X "${4:-POST}" "$BASE$2" -d "$3"; }
 get() { curl -s -b "$1" -c "$1" "$BASE$2"; }
+
+echo "security"
+curl -s -X POST "$BASE/api/auth/anonymous" -H "Origin: https://evil.example" | grep -q "Cross-origin" && ok "CSRF: foreign Origin blocked" || fail "csrf"
+curl -s -X POST "$BASE/api/auth/anonymous" | grep -q "Cross-origin" && ok "CSRF: missing Origin blocked" || fail "csrf no origin"
+curl -s -X POST "$BASE/api/auth/request-code" -H "Origin: $BASE" -H "Content-Type: text/plain" -d '{"email":"a@b.c"}' | grep -q "application/json" && ok "non-JSON body rejected" || fail "content-type"
+for n in '//evil.example' '/\evil.example' '/%5Cevil.example'; do
+  L=$(curl -s -o /dev/null -w "%{redirect_url}" -b "$J1" "$BASE/giris?next=$n")
+  [[ "$L" != *evil* ]] || fail "open redirect via $n → $L"
+done; ok "open redirect blocked"
+R=$(post "$J2" /api/auth/request-code '{"email":"real.person@gmail.com"}')
+echo "$R" | grep -q 'demoCode' && fail "code shown for non-demo e-mail: $R" || ok "codes not shown for real e-mails without SMTP"
+R=$(post "$J2" /api/auth/request-code '{"email":"ali@demo.az"}')
+echo "$R" | grep -qE '"demoCode":"[0-9]{6}"' && ok "demo domain shows code" || fail "demo domain: $R"
+rm -f "$J2"; J2=$(mktemp)
 
 echo "anonymous account"
 post "$J1" /api/auth/anonymous '{}' | grep -q '"ok":true' || fail "anonymous start"
@@ -27,7 +41,7 @@ echo "$R" | grep -q '"ttsRate":3' && fail "invalid value passed through" || ok "
 echo "$R" | grep -q 'nonsense' && fail "unknown category passed" || ok "unknown AI category dropped"
 get "$J1" /api/me | grep -q '"fontScale":1,' && ok "interpret does not save before confirmation" || fail "saved without confirmation"
 AUDIO=./.mu-test-audio.webm; printf 'fake-audio-bytes' > "$AUDIO"; trap 'rm -f "$AUDIO"' EXIT
-R=$(curl -s -b "$J1" -c "$J1" -F "audio=@$AUDIO;type=audio/webm" "$BASE/api/assistant/transcribe")
+R=$(curl -s -b "$J1" -c "$J1" -H "Origin: $BASE" -F "audio=@$AUDIO;type=audio/webm" "$BASE/api/assistant/transcribe")
 echo "$R" | grep -q 'xırdadır' && ok "speech → text (server mode)" || fail "transcribe: $R"
 for i in 1 2 3; do post "$J1" /api/assistant/interpret '{"text":"yazılar xırdadır"}' >/dev/null; done
 R=$(post "$J1" /api/assistant/interpret '{"text":"yazılar xırdadır"}')

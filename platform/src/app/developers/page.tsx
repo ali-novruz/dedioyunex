@@ -15,7 +15,7 @@ function Code({ children }: { children: string }) {
 export default async function DevelopersPage() {
   const user = await currentUser();
   const base = env.appUrl;
-  const mine = user ? clientsOf(user.id) : [];
+  const mine = user ? await clientsOf(user.id) : [];
   return (
     <div className="stack">
       <h1 className="h1">Saytınızı MƏNƏ UYĞUN-a qoşun</h1>

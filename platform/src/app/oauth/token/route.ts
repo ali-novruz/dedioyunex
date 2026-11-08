@@ -16,10 +16,10 @@ export async function POST(req: Request) {
   const origin = req.headers.get("origin");
   const body = await readBody(req);
   const clientId = typeof body.client_id === "string" ? body.client_id : null;
-  const headers = { ...corsHeaders(origin, clientId), "Cache-Control": "no-store" };
+  const headers = { ...(await corsHeaders(origin, clientId)), "Cache-Control": "no-store" };
   try {
-    if (clientId) assertOrigin(origin, clientId);
-    return NextResponse.json(exchangeCode(body), { headers });
+    if (clientId) await assertOrigin(origin, clientId);
+    return NextResponse.json(await exchangeCode(body), { headers });
   } catch (e) {
     return oauthErrorResponse(e, headers);
   }

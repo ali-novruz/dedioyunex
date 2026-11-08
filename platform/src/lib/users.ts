@@ -1,7 +1,7 @@
 import "server-only";
 import crypto from "node:crypto";
-import { DEFAULT_PREFERENCES, isCategory, normalizePreferences, validatePatch, type Category, type Preferences } from "@sdk/schema";
-import { db, now } from "./db";
+import { DEFAULT_PREFERENCES, isCategory, normalizePreferences, readPreferences, validatePatch, type Category, type Preferences } from "@sdk/schema";
+import { exec, now, one } from "./db";
 import { decryptField, encryptField } from "./crypto";
 
 export interface User {
@@ -18,74 +18,79 @@ interface Row {
   email: string | null;
   categories: string;
   prefs: string;
-  onboarded: number;
+  onboarded: boolean;
   updated_at: number;
 }
 
 const toUser = (r: Row): User => ({
   id: r.id,
   email: r.email,
-  categories: JSON.parse(decryptField(r.categories)),
-  prefs: normalizePreferences(JSON.parse(r.prefs)),
-  onboarded: r.onboarded === 1,
+  categories: (JSON.parse(decryptField(r.categories)) as unknown[]).filter(isCategory),
+  prefs: readPreferences(JSON.parse(r.prefs)),
+  onboarded: r.onboarded,
   updatedAt: r.updated_at,
 });
 
-export function getUser(id: string): User | null {
-  const r = db().prepare("SELECT * FROM users WHERE id = ?").get(id) as Row | undefined;
+export async function getUser(id: string): Promise<User | null> {
+  const r = await one<Row>("SELECT * FROM users WHERE id = $1", [id]);
   return r ? toUser(r) : null;
 }
 
-export function findOrCreateUser(email: string): User {
-  const d = db();
-  const r = d.prepare("SELECT * FROM users WHERE email = ?").get(email) as Row | undefined;
-  if (r) return toUser(r);
-  const id = crypto.randomUUID();
-  const t = now();
-  d.prepare("INSERT INTO users (id, email, categories, prefs, onboarded, created_at, updated_at) VALUES (?, ?, '[]', ?, 0, ?, ?)")
-    .run(id, email, JSON.stringify(DEFAULT_PREFERENCES), t, t);
-  return getUser(id)!;
-}
-
-export function createAnonymousUser(): User {
-  const id = crypto.randomUUID();
-  const t = now();
-  db().prepare("INSERT INTO users (id, email, categories, prefs, onboarded, created_at, updated_at) VALUES (?, NULL, '[]', ?, 0, ?, ?)")
-    .run(id, JSON.stringify(DEFAULT_PREFERENCES), t, t);
-  return getUser(id)!;
-}
-
-export function findUserByEmail(email: string): User | null {
-  const r = db().prepare("SELECT * FROM users WHERE email = ?").get(email) as Row | undefined;
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const r = await one<Row>("SELECT * FROM users WHERE email = $1", [email]);
   return r ? toUser(r) : null;
 }
 
-/** Adds an e-mail to an account created without one. */
-export function attachEmail(userId: string, email: string): void {
-  db().prepare("UPDATE users SET email = ?, updated_at = ? WHERE id = ? AND email IS NULL").run(email, now(), userId);
+export async function findOrCreateUser(email: string): Promise<User> {
+  const t = now();
+  // Insert-or-ignore then read: safe when two verifications for the same e-mail race.
+  await exec(
+    `INSERT INTO users (id, email, categories, prefs, onboarded, created_at, updated_at) VALUES ($1, $2, '[]', $3, FALSE, $4, $4)
+     ON CONFLICT (email) DO NOTHING`,
+    [crypto.randomUUID(), email, JSON.stringify(DEFAULT_PREFERENCES), t],
+  );
+  return (await findUserByEmail(email))!;
 }
 
-export function updatePreferences(userId: string, patch: unknown): Preferences {
-  const user = getUser(userId);
+export async function createAnonymousUser(): Promise<User> {
+  const id = crypto.randomUUID();
+  const t = now();
+  await exec("INSERT INTO users (id, email, categories, prefs, onboarded, created_at, updated_at) VALUES ($1, NULL, '[]', $2, FALSE, $3, $3)", [
+    id,
+    JSON.stringify(DEFAULT_PREFERENCES),
+    t,
+  ]);
+  return (await getUser(id))!;
+}
+
+/** Adds an e-mail to an account created without one. Returns false if the account already has one. */
+export async function attachEmail(userId: string, email: string): Promise<boolean> {
+  return (await exec("UPDATE users SET email = $1, updated_at = $2 WHERE id = $3 AND email IS NULL", [email, now(), userId])) === 1;
+}
+
+export async function updatePreferences(userId: string, patch: unknown): Promise<Preferences> {
+  const user = await getUser(userId);
   if (!user) throw new Error("User not found");
   const next = normalizePreferences({ ...user.prefs, ...validatePatch(patch) });
-  db().prepare("UPDATE users SET prefs = ?, updated_at = ? WHERE id = ?").run(JSON.stringify(next), now(), userId);
+  await exec("UPDATE users SET prefs = $1, updated_at = $2 WHERE id = $3", [JSON.stringify(next), now(), userId]);
   return next;
 }
 
-export function replacePreferences(userId: string, prefs: unknown): Preferences {
+export async function replacePreferences(userId: string, prefs: unknown): Promise<Preferences> {
   const next = normalizePreferences(prefs);
-  db().prepare("UPDATE users SET prefs = ?, updated_at = ? WHERE id = ?").run(JSON.stringify(next), now(), userId);
+  await exec("UPDATE users SET prefs = $1, updated_at = $2 WHERE id = $3", [JSON.stringify(next), now(), userId]);
   return next;
 }
 
-export function setCategories(userId: string, cats: unknown): Category[] {
-  if (!Array.isArray(cats) || !cats.every(isCategory)) throw new Error("categories must be an array of known category ids");
+export async function setCategories(userId: string, cats: unknown): Promise<Category[]> {
+  if (!Array.isArray(cats) || !cats.every(isCategory)) throw new CategoryError("categories must be an array of known category ids");
   const unique = [...new Set(cats)] as Category[];
-  db().prepare("UPDATE users SET categories = ?, onboarded = 1, updated_at = ? WHERE id = ?").run(encryptField(JSON.stringify(unique)), now(), userId);
+  await exec("UPDATE users SET categories = $1, onboarded = TRUE, updated_at = $2 WHERE id = $3", [encryptField(JSON.stringify(unique)), now(), userId]);
   return unique;
 }
 
-export function deleteUser(userId: string): void {
-  db().prepare("DELETE FROM users WHERE id = ?").run(userId);
+export class CategoryError extends Error {}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await exec("DELETE FROM users WHERE id = $1", [userId]);
 }

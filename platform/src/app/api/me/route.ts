@@ -14,7 +14,7 @@ export function DELETE() {
   return handle(async () => {
     const u = await requireApiUser();
     await endSession();
-    deleteUser(u.id);
+    await deleteUser(u.id);
     return { ok: true };
   });
 }
