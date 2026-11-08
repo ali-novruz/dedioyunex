@@ -61,7 +61,8 @@ Yerli: platforma http://localhost:3000 · demo sayt http://localhost:4000
 
 ## 🔄 İndi edilən
 
-- **Hostinger VPS deploy** (`dedio` layihəsi): konteynerlər işləyir (platforma, demo, müvəqqəti Postgres), platforma serverdə yığılır. Ünvan hələ cavab vermir — Traefik/HTTPS yoxlanılır.
+- **Hostinger VPS deploy** (`dedio` layihəsi): 3 konteyner işləyir — platforma (yığıldı, “Ready”), demo sayt, müvəqqəti Postgres. Firewall 80/443 açıqdır.
+  - Bu kompüterin komanda mühiti VPS IP-sinə çıxış vermir və brauzer paneli yeni sayta icazə istəyir, ona görə canlı ünvanı **mən yoxlaya bilmədim** — sizin açıb baxmağınız lazımdır.
   - Backend: `https://dedio.89-116-236-208.sslip.io`
   - Demo: `https://demo.89-116-236-208.sslip.io`
 
