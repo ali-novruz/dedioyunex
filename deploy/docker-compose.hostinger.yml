@@ -1,17 +1,16 @@
-# For Hostinger Docker Manager (VPS API): images are built straight from the public GitHub repo,
-# so no files need to be copied to the server. Environment comes from the project's .env (see .env.example).
+# For Hostinger Docker Manager (VPS API): images are built by GitHub Actions (.github/workflows/docker.yml)
+# and pulled from GHCR, so no files need to be copied to the server. Environment comes from the project's .env.
 # DATABASE_URL: Supabase (preferred) — or the bundled "db" service below (postgres://dedio:${DB_PASSWORD}@db:5432/dedio, DATABASE_SSL=disable)
 # as an interim database until the Supabase connection string is set.
 services:
   platform:
-    build:
-      context: https://github.com/ali-novruz/dedioyunex.git#main
-      dockerfile: platform/Dockerfile
+    image: ghcr.io/ali-novruz/dedioyunex-platform:latest
     container_name: dedio-platform
     restart: unless-stopped
     env_file: .env
     environment:
       DEMO_PARTNER_ORIGIN: https://${DEMO_DOMAIN}
+    depends_on: [db]
     labels:
       - traefik.enable=true
       - traefik.http.routers.dedio.rule=Host(`${BACKEND_DOMAIN}`)
@@ -30,8 +29,7 @@ services:
     volumes: [dedio-db:/var/lib/postgresql/data]
 
   demo-partner:
-    build:
-      context: https://github.com/ali-novruz/dedioyunex.git#main:demo-partner
+    image: ghcr.io/ali-novruz/dedioyunex-demo:latest
     container_name: dedio-demo
     restart: unless-stopped
     environment:

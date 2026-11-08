@@ -9,3 +9,4 @@ node_modules/
 /sdk/android/local.properties
 /sdk/android/.kotlin/
 .DS_Store
+dist/
