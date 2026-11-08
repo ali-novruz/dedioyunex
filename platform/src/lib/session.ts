@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db, now } from "./db";
 import { env } from "./env";
 import { randomToken, sha256, sixDigitCode, safeEqual } from "./crypto";
-import { findOrCreateUser, getUser, type User } from "./users";
+import { attachEmail, createAnonymousUser, findOrCreateUser, findUserByEmail, getUser, type User } from "./users";
 import { sendLoginCode } from "./mail";
 
 const COOKIE = "mu_session";
@@ -59,7 +59,46 @@ export async function verifyCode(rawEmail: unknown, rawCode: unknown): Promise<U
     throw new AuthError("Kod səhvdir");
   }
   d.prepare("DELETE FROM login_codes WHERE email = ?").run(email);
+  // Signed in without e-mail on this device? Then the code adds the e-mail to that account.
+  const current = await currentUser();
+  if (current && current.email === null) {
+    if (findUserByEmail(email)) throw new AuthError("Bu e-poçt artıq başqa hesaba bağlıdır.");
+    attachEmail(current.id, email);
+    return getUser(current.id)!;
+  }
   const user = findOrCreateUser(email);
+  await startSession(user.id);
+  return user;
+}
+
+/** "Start without e-mail": an account that lives on this device until the user adds an e-mail. */
+export async function startAnonymous(): Promise<User> {
+  const user = createAnonymousUser();
+  await startSession(user.id);
+  return user;
+}
+
+const TRANSFER_TTL = 15 * 60_000;
+
+/** One-time link (shown as QR) that signs another device into this account — e.g. a relative sets up grandpa's phone. */
+export function createTransferToken(userId: string): { token: string; expiresAt: number } {
+  const token = randomToken(24);
+  const expiresAt = now() + TRANSFER_TTL;
+  const d = db();
+  d.prepare("DELETE FROM transfer_tokens WHERE user_id = ? OR expires_at < ?").run(userId, now());
+  d.prepare("INSERT INTO transfer_tokens (token_hash, user_id, expires_at) VALUES (?, ?, ?)").run(sha256(token), userId, expiresAt);
+  return { token, expiresAt };
+}
+
+export async function consumeTransferToken(token: string): Promise<User> {
+  const d = db();
+  const row = d.prepare("SELECT user_id, expires_at FROM transfer_tokens WHERE token_hash = ?").get(sha256(token)) as
+    | { user_id: string; expires_at: number }
+    | undefined;
+  if (!row || row.expires_at < now()) throw new AuthError("Bu link artıq etibarlı deyil. Yeni QR kod yaradın.");
+  d.prepare("DELETE FROM transfer_tokens WHERE token_hash = ?").run(sha256(token));
+  const user = getUser(row.user_id);
+  if (!user) throw new AuthError("Hesab tapılmadı");
   await startSession(user.id);
   return user;
 }

@@ -97,6 +97,7 @@ function buildCss(assetBase: string): string {
     // readable font
     `${A}[data-mu-dyslexia-font] body,${A}[data-mu-dyslexia-font] body *${notIcon}{font-family:"MU Lexend",system-ui,sans-serif!important}`,
     // icon labels inserted by the scanner
+    `${A} [data-mu-labeled]{width:auto!important;min-width:max-content!important;padding-inline:.5em!important;display:inline-flex!important;align-items:center!important}`,
     `${A} [${UI}='icon-label']{display:inline-block!important;margin-inline-start:.35em!important;font-size:.85em!important;font-weight:700!important;line-height:1.2!important;vertical-align:middle!important;white-space:nowrap!important}`,
     // reading ruler
     `[${UI}='ruler']{position:fixed;left:0;right:0;pointer-events:none;z-index:2147483646;background:rgba(0,0,0,.45);transition:none}`,
@@ -299,7 +300,10 @@ export class PreferenceEngine {
     }
     this.marked.clear();
     this.html.classList.remove("mu-scaling");
-    for (const l of this.labels) l.remove();
+    for (const l of this.labels) {
+      l.parentElement?.removeAttribute("data-mu-labeled");
+      l.remove();
+    }
     this.labels.clear();
     this.stopRuler();
   }
@@ -389,6 +393,7 @@ export class PreferenceEngine {
       span.setAttribute("aria-hidden", "true");
       span.textContent = label.trim();
       el.appendChild(span);
+      el.setAttribute("data-mu-labeled", "");
       this.labels.add(span);
     });
   }

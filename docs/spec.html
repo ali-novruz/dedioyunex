@@ -57,20 +57,20 @@
 <div class="cover">
   <h1>MƏNƏ UYĞUN</h1>
   <p class="sub">Şəxsi rəqəmsal əlçatanlıq profili — məhsul spesifikasiyası, xüsusiyyətlər, prioritetlər və MVP planı</p>
-  <p class="meta">YUNEX Hackathon · Versiya 1.0 · 8 noyabr 2026</p>
+  <p class="meta">YUNEX Hackathon · Versiya 1.1 (MVP hazırdır) · 8 noyabr 2026</p>
 </div>
 
 <h2>1. İdeya</h2>
 <div class="pitch">
   <p><b>MƏNƏ UYĞUN</b> — yaşlılar, həmçinin görmə, eşitmə, hərəkət və anlama çətinliyi olan insanlar üçün şəxsi rəqəmsal əlçatanlıq profilidir. İstifadəçi ehtiyaclarını bir dəfə — səslə, yazaraq və ya əl ilə — bildirir; süni intellekt bunu iri şrift, yüksək kontrast, səsli oxunuş, sadə rejim kimi konkret ayarlara çevirir. İnteqrasiya olunmuş istənilən veb-sayt və ya mobil tətbiqdə <b>“MƏNƏ UYĞUN-dan ayarları gətir”</b> düyməsinə bir toxunuşla interfeys dərhal ona uyğunlaşır və hər növbəti girişdə avtomatik tətbiq olunur.</p>
-  <p>Saytlara heç bir sağlamlıq məlumatı ötürülmür — yalnız interfeys ayarları. Dövlət portalı, bank, e-ticarət, təhsil və ya istənilən xidmət Web, Android və iOS SDK-sı ilə bir neçə dəqiqəyə qoşulur. Platforma istifadəçi üçün pulsuzdur, qoşulan qurumlar illik lisenziya ödəyir.</p>
+  <p>Ad, e-poçt və ehtiyac kateqoriyaları heç bir xidmətə ötürülmür — yalnız istifadəçinin gördüyü və təsdiqlədiyi interfeys ayarları. E-poçtu olmayan istifadəçi hesabsız başlaya bilər, yaxını isə profili onun üçün qurub QR kodla telefonuna ötürə bilər. Dövlət portalı, bank, e-ticarət, təhsil və ya istənilən xidmət Web, Android və iOS SDK-sı ilə bir neçə dəqiqəyə qoşulur. Platforma istifadəçi üçün pulsuzdur; qurumlar 3 aylıq pulsuz pilotdan sonra illik lisenziya ödəyir.</p>
   <p class="slogan">Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.</p>
 </div>
 
 <h3>Problem</h3>
 <ul>
   <li>Telefonun öz ayarları əsasən yalnız şrifti böyüdür; tətbiqlərin və saytların çoxu bu ayarlara düzgün uyğunlaşmır, böyüdüləndə dizayn pozulur.</li>
-  <li>Mürəkkəb interfeysi sadələşdirmək (lazımsız menyuları gizlətmək, addım-addım rejim) imkanı heç bir əməliyyat sistemində yoxdur.</li>
+  <li>Cihaz səviyyəsində sadə rejimlər var (iPhone Assistive Access, Samsung Easy Mode), amma onlar bütün telefonu dəyişir — bank və ya dövlət xidmətinin <b>daxilində</b> lazımsız hissələri gizlədib əsas əməliyyatı önə çıxaran həll yoxdur.</li>
   <li>Hər xidmətin öz ayar menyusu varsa belə, istifadəçi hər birində ayrı-ayrı tənzimləməli olur — yaşlı insan üçün bu, praktikada mümkün deyil.</li>
   <li>Nəticə: bu insanlar bank, dövlət və digər rəqəmsal xidmətlərdən müstəqil istifadə edə bilmir, başqasından asılı qalır.</li>
 </ul>
@@ -92,7 +92,8 @@
   <tr><td>Quraşdırma</td><td>Hər cihazda ayrıca</td><td>Hər brauzerdə ayrıca</td><td>Heç nə quraşdırılmır, hesabla gəlir</td></tr>
   <tr><td>Veb + mobil tətbiq</td><td>Yalnız dəstəkləyən tətbiqlər</td><td>Yalnız masaüstü veb</td><td>Veb, Android, iOS</td></tr>
   <tr><td>Dizayn</td><td>Böyüdəndə tez-tez pozulur</td><td>Kənardan müdaxilə, pozulur</td><td>Saytın öz dizayn sisteminə tətbiq olunur</td></tr>
-  <tr><td>Sadə rejim</td><td>Yoxdur</td><td>Yoxdur</td><td>Var — nəyin qalacağını xidmət özü seçir</td></tr>
+  <tr><td>Sadə rejim</td><td>Yalnız cihaz səviyyəsində</td><td>Yoxdur</td><td>Xidmətin daxilində — nəyin qalacağını xidmət özü seçir</td></tr>
+  <tr><td>Partnyor olmadan</td><td>İşləyir</td><td>İşləyir</td><td>SDK lazımdır; SDK-sız rejim (genişlənmə) yol xəritəsinin 1-ci maddəsidir</td></tr>
   <tr><td>Səslə qurma</td><td>Yoxdur</td><td>Yoxdur</td><td>AI ilə: “yazılar xırdadır” deməyin kifayətdir</td></tr>
 </table>
 
@@ -230,7 +231,7 @@ ContentView().meneUygun()</pre>
   "largeTargets": true, "reduceMotion": true,
   "simpleMode": true, "hideDistractions": true,
   "dyslexiaFont": false, "readingRuler": false,
-  "tts": { "enabled": true, "rate": 0.9 },
+  "tts": true, "ttsRate": 0.8,
   "captions": false, "visualAlerts": false,
   "extendedTimeouts": true, "confirmActions": true, "plainLanguage": true,
   "language": "az"
@@ -239,10 +240,14 @@ ContentView().meneUygun()</pre>
 
 <h2 class="page-break">5. Məxfilik və təhlükəsizlik</h2>
 <ul>
-  <li><b>Xidmətlərə yalnız interfeys ayarları gedir.</b> Ad, e-poçt, ehtiyac kateqoriyaları və heç bir sağlamlıq məlumatı ötürülmür.</li>
+  <li><b>Xidmətlərə yalnız interfeys ayarları gedir.</b> Ad, e-poçt və ehtiyac kateqoriyaları ötürülmür; yalnız istifadəçinin gördüyü və təsdiqlədiyi ayarlar. (Qeyd: “ekran oxuyucu” kimi bəzi ayarlar dolayı məlumat verə bilər — buna görə hər xidmət üçün ayrıca icazə və ayrıca anonim ID istifadə olunur.)</li>
   <li><b>Hər xidmət üçün ayrıca anonim ID.</b> Fərqli saytlar eyni istifadəçini öz aralarında tanıya bilmir.</li>
-  <li><b>Səs saxlanmır.</b> Səs mətnə çevrildikdən və ayarlar çıxarıldıqdan sonra silinir.</li>
-  <li><b>Ehtiyac kateqoriyaları könüllüdür</b> və yalnız platformada istifadəçiyə uyğun ekran göstərmək üçün istifadə olunur.</li>
+  <li><b>Səs saxlanmır.</b> Səs mətnə çevrilir, yazı serverdə saxlanılmır.</li>
+  <li><b>Hüquqi yoxlama:</b> Azərbaycanın şəxsi məlumatlar qanunu ilə uyğunluq hüquqşünasla yoxlanılmalıdır (hələ edilməyib).</li>
+  <li><b>Ehtiyac kateqoriyaları könüllüdür</b>, yalnız platformada uyğun ekran göstərmək üçün istifadə olunur və verilənlər bazasında şifrələnmiş saxlanılır (AES-256-GCM).</li>
+  <li><b>Fırıldaqçılığa qarşı:</b> icazə ekranında “Təsdiqlənmiş tərəfdaş” nişanı və ya xəbərdarlıq; yalnız qeydiyyatlı domenlərə yönləndirmə; hər ekranda “MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir”.</li>
+  <li><b>Fail-open:</b> MƏNƏ UYĞUN serveri cavab verməsə belə partnyor sayt bloklanmır — SDK asinxron yüklənir və son ayarları cihazdakı keşdən tətbiq edir.</li>
+  <li><b>AI limitləri:</b> istifadəçi başına dəqiqəlik və gündəlik limit; AI cavabı sxemə qarşı serverdə yoxlanılır, yanlış açar/dəyər atılır; ayar təsdiqsiz saxlanmır, “əvvəlki ayarlara qayıt” var.</li>
   <li><b>Tam nəzarət istifadəçidədir:</b> hər bağlantını ayırmaq, profili ixrac etmək, hesabı silmək.</li>
   <li><b>Standart təhlükəsizlik:</b> OAuth 2.0 + PKCE, yalnız icazəli domenlərə yönləndirmə, qısa ömürlü tokenlər.</li>
   <li><b>WCAG uyğunluğunu əvəz etmir, tamamlayır.</b> Uyğunluq xidmətin öz kodunda təmin olunur; MƏNƏ UYĞUN istifadəçinin şəxsi seçimlərini ona çatdırır.</li>
@@ -251,12 +256,15 @@ ContentView().meneUygun()</pre>
 <h2>6. Biznes modeli</h2>
 <ul>
   <li><b>İstifadəçi üçün pulsuz</b> — həmişə.</li>
-  <li><b>Qurumlar üçün illik lisenziya</b> (B2B / B2G): dövlət portalları, banklar, e-ticarət, təhsil platformaları.</li>
-  <li><b>Niyə ödəyirlər:</b> yaşlanan müştəri bazası, ESG və əlçatanlıq hesabatı, AB-yə xidmət göstərənlər üçün Avropa Əlçatanlıq Aktı (EAA, iyun 2025-dən qüvvədə), inteqrasiyanın sadəliyi (bir SDK).</li>
-  <li><b>İlk partnyorlar:</b> dövlət portalı və 1–2 bank — istifadəçi kütləsini ilk onlar gətirir, sonra digər xidmətlər qoşulur.</li>
+  <li><b>Qurumlar üçün:</b> 3 aylıq pulsuz pilot → illik lisenziya (B2B / B2G). Qiymət hələ fərziyyədir.</li>
+  <li><b>Pilotda ölçülən nəticə:</b> əməliyyatı yarımçıq tərk edən yaşlı istifadəçilərin payı, çağrı mərkəzinə düşən “necə edim” sorğuları, əməliyyatın addım sayı və müddəti (əvvəl/sonra).</li>
+  <li><b>Hədəf sübut:</b> bir bankdan niyyət məktubu (LOI).</li>
+  <li><b>Niyə ödəyirlər:</b> ölçülə bilən nəticə (yuxarıdakı göstəricilər), yaşlanan müştəri bazası, ESG hesabatı, inteqrasiyanın sadəliyi (bir sətir). EAA ikinci dərəcəli arqumentdir — MƏNƏ UYĞUN uyğunluğu əvəz etmir.</li>
+  <li><b>İlk addım konkretdir:</b> 1 bank + 1 dövlət portalı. İstifadəçini onlar gətirir; partnyorsuz dəyər üçün brauzer genişlənməsi yol xəritəsində birincidir.</li>
 </ul>
 
-<h2>7. Prioritetlər</h2>
+<h2>7. Prioritetlər və MVP vəziyyəti</h2>
+<div class="note"><b>MVP hazırdır (8 noyabr 2026):</b> P0 və P1-in hamısı yazılıb və test olunub — veb axın 7/7 addım, API 35/35 yoxlama. Android SDK yığılır (APK), cihazda hələ sınanmayıb. iOS SDK yazılıb, Mac olmadığı üçün yığılmayıb.</div>
 <p><span class="tag P0">P0</span> demo üçün mütləqdir &nbsp; <span class="tag P1">P1</span> bu gün hədəf &nbsp; <span class="tag P2">P2</span> vaxt qalarsa &nbsp; <span class="tag RM">Yol xəritəsi</span> hackathondan sonra</p>
 <table>
   <tr><th style="width:9%">Prioritet</th><th style="width:24%">Hissə</th><th>Əhatə</th></tr>
@@ -271,7 +279,8 @@ ContentView().meneUygun()</pre>
   <tr><td><span class="tag P2">P2</span></td><td>iOS SDK</td><td>Swift kitabxanası və <code>.meneUygun()</code>. Mac olmadan kod yazılır, amma test edilə bilmir</td></tr>
   <tr><td><span class="tag P2">P2</span></td><td>B növ ayarların demosu</td><td>Partnyor saytda vaxt limiti, təsdiq sualı, altyazı nümunəsi</td></tr>
   <tr><td><span class="tag P2">P2</span></td><td>Rus və ingilis dili</td><td>Platforma interfeysi</td></tr>
-  <tr><td><span class="tag RM">YX</span></td><td>SDK-sız rejim</td><td>Veb: SDK qoşmayan saytlar üçün brauzer genişlənməsi. Android: ekran üstü qat və OCR ilə səsli oxunuş (iOS buna icazə vermir)</td></tr>
+  <tr><td><span class="tag P1">✓</span></td><td>Əlavə (rəy əsasında)</td><td>E-poçtsuz başlama, yaxının QR ilə profil ötürməsi, “təsdiqlənmiş tərəfdaş” nişanı, uyğunluq göstəricisi (“bu sayt ayarlarınızdan 10/11-ni dəstəkləyir”), sayt sahibləri üçün <code>?mu-check</code> yoxlaması, AI aydınlaşdırıcı sual + geri qaytarma + limit, açıq sxem (WCAG / ISO/IEC 24751 xəritəsi), fail-open SDK</td></tr>
+  <tr><td><span class="tag RM">YX 1</span></td><td>SDK-sız rejim</td><td>Veb: SDK qoşmayan saytlar üçün brauzer genişlənməsi. Android: ekran üstü qat və OCR ilə səsli oxunuş (iOS buna icazə vermir)</td></tr>
   <tr><td><span class="tag RM">YX</span></td><td>Dövlət kimliyi</td><td>ASAN Login / SİMA ilə bağlantı</td></tr>
   <tr><td><span class="tag RM">YX</span></td><td>Genişlənmə</td><td>Səslə idarəetmə, Flutter/React Native SDK, partnyor analitika paneli, xidmətlər üçün əlçatanlıq yoxlaması</td></tr>
 </table>
@@ -291,19 +300,19 @@ ContentView().meneUygun()</pre>
     <div class="box">Verilənlər bazası: istifadəçilər, ayarlar, bağlantılar</div>
   </div>
   <div class="col"><i>Xarici xidmətlər</i>
-    <div class="box ai">Səs → mətn (Whisper)</div>
-    <div class="box ai">Mətn → ayarlar (Claude Haiku 5.5, strukturlaşdırılmış cavab)</div>
+    <div class="box ai">Səs → mətn (Whisper, Groq; və ya brauzer)</div>
+    <div class="box ai">Mətn → ayarlar (Llama 3.3, JSON cavab, sxem yoxlaması)</div>
     <div class="box ai">E-poçt göndərmə (giriş kodu)</div>
   </div>
 </div>
 <table>
   <tr><th style="width:28%">Hissə</th><th>Texnologiya</th></tr>
   <tr><td>Platforma + API</td><td>Next.js (TypeScript), bir layihədə</td></tr>
-  <tr><td>Verilənlər bazası</td><td>PostgreSQL</td></tr>
+  <tr><td>Verilənlər bazası</td><td>SQLite (Node 24 <code>node:sqlite</code>), miqrasiyalarla — tək VPS üçün; böyüdükdə PostgreSQL</td></tr>
   <tr><td>Web SDK</td><td>TypeScript, tək fayl, asılılıqsız</td></tr>
   <tr><td>Android SDK</td><td>Kotlin, Jetpack Compose, Custom Tabs</td></tr>
   <tr><td>iOS SDK</td><td>Swift, SwiftUI, ASWebAuthenticationSession</td></tr>
-  <tr><td>AI</td><td>Whisper (səs), Claude Haiku 5.5 (ayarların çıxarılması)</td></tr>
+  <tr><td>AI</td><td>Pulsuz: Groq — Whisper (səs) + Llama 3.3 70B (ayarların çıxarılması); istənilən OpenAI-uyğun API ilə dəyişdirilə bilər</td></tr>
   <tr><td>Səsli oxunuş</td><td>Brauzerin Web Speech API-si; Azərbaycan səsi yoxdursa bulud TTS</td></tr>
 </table>
 
@@ -324,30 +333,36 @@ ContentView().meneUygun()</pre>
   <tr><td>Məlumat sızarsa?</td><td>Xidmətlərdə yalnız interfeys ayarları var, ad və sağlamlıq məlumatı yoxdur. Hər sayt üçün ID fərqlidir, səs saxlanmır.</td></tr>
   <tr><td>accessiBe kimi overlay-lərdən fərqi?</td><td>Onlar sayta öz təxminləri ilə kənardan müdaxilə edir və uyğunluq vəd edir. Biz istifadəçinin real seçimini saytın öz dizaynına veririk və WCAG-ı əvəz etdiyimizi iddia etmirik.</td></tr>
   <tr><td>SDK qoşmayan saytlarda nə olacaq?</td><td>Yol xəritəsində: veb üçün brauzer genişlənməsi, Android üçün ekran üstü qat və OCR.</td></tr>
-  <tr><td>Kim ilk qoşulacaq?</td><td>Dövlət portalı və 1–2 bank — istifadəçiləri onlar gətirir.</td></tr>
+  <tr><td>Kim ilk qoşulacaq?</td><td>1 bank + 1 dövlət portalı — istifadəçiləri onlar gətirir. 3 aylıq pulsuz pilot, nəticə ölçülür.</td></tr>
+  <tr><td>Bu artıq var — GPII / Morphic?</td><td>GPII/Morphic ideyanı kitabxana və iş kompüterlərində sübut edib. Biz onu bank və dövlət xidmətlərinin daxilinə — veb və mobil tətbiqlərə gətiririk; sadə rejim və təsdiq kimi xidmət daxilindəki ayarlar orada yoxdur.</td></tr>
+  <tr><td>Serveriniz çöksə bank saytı da çökəcək?</td><td>Xeyr. SDK asinxron yüklənir və heç vaxt səhifəni bloklamır; server cavab verməsə son ayarlar cihazdakı keşdən tətbiq olunur (fail-open).</td></tr>
+  <tr><td>Yaşlının e-poçtu yoxdursa?</td><td>E-poçtsuz başlaya bilər; ya da nəvəsi profili qurub QR kodla onun telefonuna ötürür. SMS kodu yol xəritəsindədir.</td></tr>
+  <tr><td>Fırıldaqçı saxta düymə qoysa?</td><td>Yalnız qeydiyyatlı domenlər icazə ala bilər; icazə ekranında “təsdiqlənmiş tərəfdaş” nişanı; platforma heç vaxt şifrə, kart və pul istəmir və bunu hər ekranda yazır.</td></tr>
+  <tr><td>Sxeminiz standartdırmı?</td><td>Sxem açıqdır (<code>/v1/schema</code>, CC BY 4.0) və hər ayar WCAG 2.2 meyarlarına və ISO/IEC 24751 sahələrinə xəritələnib (yaxın uyğunluq).</td></tr>
 </table>
 
 <h2>11. Risklər və açıq suallar</h2>
 <table>
   <tr><th style="width:35%">Mövzu</th><th>Vəziyyət</th></tr>
   <tr><td>iOS SDK-nın testi</td><td>Mac və Xcode tələb edir. Mac yoxdursa kod yazılır, “test edilməyib” kimi qeyd olunur.</td></tr>
-  <tr><td>Azərbaycan dilində səs → mətn</td><td>Whisper keyfiyyəti ilk saatda real nümunələrlə yoxlanmalıdır.</td></tr>
+  <tr><td>Azərbaycan dilində səs → mətn</td><td>Whisper keyfiyyəti yaşlı nitqi ilə yoxlanmalıdır. Mətnlə yazmaq səslə bərabər əsas yoldur; demo üçün əvvəlcədən çəkilmiş ehtiyat video hazırlanmalıdır.</td></tr>
+  <tr><td>Real istifadəçi testi</td><td>Hələ edilməyib. 3–5 nəfərlə (yaşlı qohum, tanış) 5 dəqiqəlik test: addım sayı və vaxt (əvvəl/sonra) + bir qısa rəy pitch üçün ən güclü sübutdur.</td></tr>
   <tr><td>Azərbaycan dilində səsli oxunuş</td><td>Brauzerlərdə Azərbaycan səsi olmaya bilər — test lazımdır; yoxdursa bulud TTS.</td></tr>
-  <tr><td>Startup məlumatı</td><td>Ad, kodun yeri, texnologiya, mobil tətbiqi var/yox — gözlənilir.</td></tr>
-  <tr><td>API açarları</td><td>Anthropic (Claude) və Whisper üçün OpenAI və ya fal.ai — gözlənilir.</td></tr>
-  <tr><td>Hosting və domen</td><td>Vercel / Hostinger / Supabase / Neon — hansı var, gözlənilir.</td></tr>
-  <tr><td>Təqdim vaxtı</td><td>Hackathonun son tarixi və saatı — gözlənilir.</td></tr>
+  
+  <tr><td>AI açarı</td><td>Pulsuz Groq açarı (Whisper + Llama) lazımdır; köməkçi sınaq serveri ilə test olunub, real açarla hələ yox.</td></tr>
+  <tr><td>Hosting və domen</td><td>Hostinger VPS + Docker Compose + Caddy (avtomatik HTTPS) hazırdır; domen Vercel DNS-dən VPS-ə yönləndiriləcək.</td></tr>
+  
 </table>
 
-<h2>12. Bugünkü iş planı</h2>
+<h2>12. İş planı (vəziyyət)</h2>
 <ol>
-  <li>API müqaviləsi və ayar sxemi (hər şeyin əsası) — ilk iş.</li>
-  <li>Paralel: platforma + API · Web SDK · Android SDK.</li>
-  <li>AI köməkçi (səs, mətn, təsdiq).</li>
-  <li>Startup inteqrasiyası.</li>
-  <li>Deploy və uçdan-uca test (sayt + emulator).</li>
-  <li>iOS SDK (Mac varsa test ilə).</li>
-  <li>Demo videosu.</li>
+  <li>✓ API müqaviləsi və ayar sxemi.</li>
+  <li>✓ Platforma + API · Web SDK · Android SDK · iOS SDK (yığılmayıb).</li>
+  <li>✓ AI köməkçi (səs, mətn, aydınlaşdırıcı sual, təsdiq, geri qaytarma).</li>
+  <li>✓ DEMO Market inteqrasiyası + avtomatik testlər.</li>
+  <li>○ Groq açarı ilə real səs testi.</li>
+  <li>○ VPS deploy + domen.</li>
+  <li>○ Öz saytınıza inteqrasiya, 3–5 nəfərlik istifadəçi testi, demo videosu.</li>
 </ol>
 
 </body>

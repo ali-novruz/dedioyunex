@@ -33,10 +33,10 @@ export default async function DevelopersPage() {
       )}
 
       <h2 className="h2">2. Skripti &lt;head&gt; hissəsinə əlavə edin</h2>
-      <Code>{`<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID"></script>`}</Code>
+      <Code>{`<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>`}</Code>
       <p className="muted">
         Bu qədər. Skript saytın sağ aşağı küncündə “MƏNƏ UYĞUN-dan ayarları gətir” düyməsini göstərir və heç bir dəyişiklik etmədən (avtomatik rejim) yazıları,
-        kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. Ən yaxşı nəticə üçün skripti <code>&lt;head&gt;</code>-də, <code>async</code>/<code>defer</code> olmadan qoyun — ayarlar səhifə görünməzdən əvvəl tətbiq olunur.
+        kontrastı, rəngləri, düymələri, animasiyaları, reklamları və səsli oxunuşu idarə edir. <code>async</code> ilə qoşun: MƏNƏ UYĞUN serveri cavab verməsə belə saytınız heç vaxt gözləmir və bloklanmır (fail-open) — istifadəçinin son ayarları cihazda saxlanılır və dərhal tətbiq olunur.
       </p>
 
       <h2 className="h2">Platformaya görə</h2>
@@ -48,20 +48,20 @@ import Script from "next/script";
 
 <html>
   <head>
-    <Script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" strategy="beforeInteractive" />
+    <Script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" strategy="afterInteractive" />
   </head>
   ...`}</Code>
         </details>
         <details className="card">
           <summary className="cursor-pointer font-bold">React / Vite / Vue / Angular (index.html)</summary>
           <Code>{`<!-- index.html, <head> içində -->
-<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID"></script>`}</Code>
+<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>`}</Code>
         </details>
         <details className="card">
           <summary className="cursor-pointer font-bold">WordPress</summary>
           <p className="muted">“WPCode” və ya “Insert Headers and Footers” plaginində “Header” bölməsinə yapışdırın, ya da temanın <code>functions.php</code> faylına:</p>
           <Code>{`add_action('wp_head', function () {
-  echo '<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID"></script>';
+  echo '<script src="${base}/sdk.js" data-client-id="SIZIN_CLIENT_ID" async></script>';
 }, 1);`}</Code>
         </details>
         <details className="card">
@@ -111,6 +111,19 @@ html[data-mu-contrast="high"] { --text: #000; --bg: #fff; }
 html[data-mu-contrast="dark"] { --text: #fff; --bg: #000; }`}</Code>
         </div>
         <div className="card stack">
+          <b>Uyğunluq: hansı ayarları özünüz dəstəkləyirsiniz</b>
+          <p className="muted">B növ ayarları tətbiq edirsinizsə, siyahını bildirin — istifadəçi “Bu sayt ayarlarınızdan 9/10-nu dəstəkləyir” görəcək.</p>
+          <Code>{`<script src="${base}/sdk.js" data-client-id="..." data-supports="confirmActions,extendedTimeouts,plainLanguage" async></script>`}</Code>
+        </div>
+        <div className="card stack">
+          <b>Saytınızı yoxlayın</b>
+          <p className="muted">Ünvanın sonuna <code>?mu-check</code> əlavə edin (məs. <code>https://saytim.az/?mu-check</code>): səhifə 200% yazı ölçüsündə yoxlanılır — üfüqi sürüşmə, kəsilən mətnlər, kiçik düymələr, aşağı kontrast, adsız ikonlar. Konsolda: <code>await MeneUygun.check()</code>.</p>
+        </div>
+        <div className="card stack">
+          <b>Açıq sxem</b>
+          <p className="muted">Bütün ayarlar, dəyərlər və WCAG / ISO/IEC 24751 uyğunluqları: <a className="font-bold text-[var(--brand)] underline" href="/v1/schema">{`${base}/v1/schema`}</a></p>
+        </div>
+        <div className="card stack">
           <b>JavaScript API</b>
           <Code>{`MeneUygun.connect()        // düyməsiz qoşulma (klik içində çağırın)
 MeneUygun.disconnect()
@@ -118,6 +131,8 @@ MeneUygun.refresh()        // ən son ayarları çək
 MeneUygun.preferences      // hazırkı ayarlar və ya null
 MeneUygun.isConnected
 MeneUygun.speak("Mətn")    // istifadəçinin səs ayarları ilə oxu
+MeneUygun.compatibility    // { active, supported, unsupported[] }
+await MeneUygun.check()    // uyğunluq hesabatı
 MeneUygun.on("connect" | "disconnect" | "preferences" | "error", cb)
 document.addEventListener("meneuygun:preferences", (e) => e.detail)`}</Code>
         </div>

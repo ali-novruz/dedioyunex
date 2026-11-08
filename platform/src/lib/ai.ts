@@ -53,18 +53,27 @@ Rules:
 - If the user asks to read aloud / can't read → tts true.
 - If the user wants to undo everything ("hamısını sıfırla"), set every changed key back to its normal value.
 - Never invent keys. If nothing applies, return an empty patch and explain kindly.
+- If the request is too vague to pick settings safely (e.g. only "kömək edin", "pisdir", "bilmirəm"), do NOT guess:
+  return an empty patch and ONE short, simple clarifying question in Azerbaijani in "question" (e.g. "Sizə nə çətindir: yazıları oxumaq, səsləri eşitmək, yoxsa düymələrə toxunmaq?").
+  Statements like "gözüm zəif görür" or "yazılar xırdadır" are clear enough — act on them.
 
 Reply with ONLY a JSON object:
-{"patch": {<key>: <value>, ...}, "categories": [<category ids that match the user's difficulties>], "summary": "<1–2 short, warm sentences in Azerbaijani, addressing the user as 'Siz', saying in plain words what you changed>"}`;
+{"patch": {<key>: <value>, ...}, "categories": [<category ids that match the user's difficulties>], "summary": "<1–2 short, warm sentences in Azerbaijani, addressing the user as 'Siz', saying in plain words what you changed; empty string if you ask a question>", "question": "<clarifying question or empty string>"}`;
 
 export interface Interpretation {
   patch: Partial<Omit<Preferences, "version">>;
   categories: Category[];
   summary: string;
+  question: string | null;
   ignored: string[];
 }
 
-export async function interpret(text: string, current: Preferences): Promise<Interpretation> {
+export interface Turn {
+  said: string;
+  question: string;
+}
+
+export async function interpret(text: string, current: Preferences, previous: Turn | null = null): Promise<Interpretation> {
   const c = config();
   if (!c.chatModel) throw new AiError("AI_CHAT_MODEL is not set", 503);
   const input = text.trim();
@@ -80,7 +89,13 @@ export async function interpret(text: string, current: Preferences): Promise<Int
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM() },
-        { role: "user", content: `Current settings: ${JSON.stringify(current)}\n\nUser said: """${input}"""` },
+        ...(previous
+          ? [
+              { role: "user", content: `Current settings: ${JSON.stringify(current)}\n\nUser said: """${previous.said.slice(0, 1000)}"""` },
+              { role: "assistant", content: JSON.stringify({ patch: {}, categories: [], summary: "", question: previous.question.slice(0, 300) }) },
+              { role: "user", content: `User answered: """${input}"""` },
+            ]
+          : [{ role: "user", content: `Current settings: ${JSON.stringify(current)}\n\nUser said: """${input}"""` }]),
       ],
     }),
   });
@@ -113,7 +128,10 @@ export function parseInterpretation(content: string): Interpretation {
   }
   if (ignored.length) console.warn("[ai] ignored invalid suggestions:", ignored.join(", "));
   const categories = Array.isArray(raw.categories) ? [...new Set(raw.categories.filter(isCategory))] : [];
-  const summary = typeof raw.summary === "string" && raw.summary.trim() ? raw.summary.trim() : "";
+  const summary = typeof raw.summary === "string" ? raw.summary.trim() : "";
+  const q = (raw as { question?: unknown }).question;
+  const question = typeof q === "string" && q.trim() ? q.trim() : null;
+  if (question && Object.keys(patch).length === 0) return { patch: {}, categories, summary: "", question, ignored };
   if (!summary) throw new AiError("AI did not return a summary");
-  return { patch: patch as Interpretation["patch"], categories, summary, ignored };
+  return { patch: patch as Interpretation["patch"], categories, summary, question: null, ignored };
 }

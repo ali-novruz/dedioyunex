@@ -21,6 +21,13 @@ export const env = {
   get demoPartnerOrigins(): string[] {
     return (process.env.DEMO_PARTNER_ORIGIN ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   },
+  /** Partner client ids that passed manual review (shown with a "verified" badge on the consent screen). */
+  get verifiedClientIds(): string[] {
+    return (process.env.VERIFIED_CLIENT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  },
+  get aiDailyLimit() {
+    return Number(process.env.AI_DAILY_LIMIT ?? 60);
+  },
   get demoShowCodes() {
     return process.env.DEMO_SHOW_CODES === "true";
   },

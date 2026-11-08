@@ -10,6 +10,7 @@ export interface Client {
   allowedOrigins: string[];
   redirectUris: string[];
   createdAt: number;
+  verified: boolean;
 }
 
 interface Row {
@@ -19,6 +20,7 @@ interface Row {
   allowed_origins: string;
   redirect_uris: string;
   created_at: number;
+  verified: number;
 }
 
 const toClient = (r: Row): Client => ({
@@ -28,13 +30,14 @@ const toClient = (r: Row): Client => ({
   allowedOrigins: JSON.parse(r.allowed_origins),
   redirectUris: JSON.parse(r.redirect_uris),
   createdAt: r.created_at,
+  verified: r.verified === 1 || env.verifiedClientIds.includes(r.id),
 });
 
 export function seedDemoClients(d: DatabaseSync): void {
   const upsert = d.prepare(
-    `INSERT INTO clients (id, name, owner_user_id, allowed_origins, redirect_uris, created_at)
-     VALUES (?, ?, NULL, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET name = excluded.name, allowed_origins = excluded.allowed_origins, redirect_uris = excluded.redirect_uris`,
+    `INSERT INTO clients (id, name, owner_user_id, allowed_origins, redirect_uris, created_at, verified)
+     VALUES (?, ?, NULL, ?, ?, ?, 1)
+     ON CONFLICT(id) DO UPDATE SET name = excluded.name, allowed_origins = excluded.allowed_origins, redirect_uris = excluded.redirect_uris, verified = 1`,
   );
   upsert.run("demo-partner", "DEMO Market (veb)", JSON.stringify(env.demoPartnerOrigins), "[]", now());
   upsert.run("demo-mobile", "DEMO Market (mobil)", "[]", JSON.stringify(["meneuygun-demo://callback"]), now());

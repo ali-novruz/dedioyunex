@@ -10,6 +10,7 @@ interface Proposal {
   patch: Partial<Preferences>;
   categories: Category[];
   summary: string;
+  question: string | null;
   proposed: Preferences;
 }
 
@@ -40,6 +41,8 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
   const [error, setError] = useState<string | null>(null);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [usedVoice, setUsedVoice] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<{ said: string; question: string } | null>(null);
+  const [previousPrefs, setPreviousPrefs] = useState<Preferences | null>(null);
   const rec = useRef<Recognition | null>(null);
   const media = useRef<MediaRecorder | null>(null);
   const finalText = useRef("");
@@ -64,8 +67,17 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
       const r = await api<Proposal & { ignored: string[] }>("/api/assistant/interpret", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: t }),
+        body: JSON.stringify({ text: t, previous: pendingQuestion }),
       });
+      if (r.question) {
+        // Too vague: ask one clarifying question instead of guessing.
+        setPendingQuestion({ said: pendingQuestion ? `${pendingQuestion.said} / ${t}` : t, question: r.question });
+        setPhase("idle");
+        setTyped("");
+        if (viaVoice || saved.tts) say(r.question).catch(() => {});
+        return;
+      }
+      setPendingQuestion(null);
       setProposal(r);
       setPreview(r.proposed);
       setPhase("proposal");
@@ -155,6 +167,7 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
     if (!proposal) return;
     setError(null);
     try {
+      setPreviousPrefs(saved);
       const next = await save(proposal.patch);
       if (proposal.categories.length) {
         const me = await api<{ categories: Category[] }>("/api/me");
@@ -165,6 +178,24 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
       setPreview(null);
       setPhase("saved");
       if (usedVoice || next.tts) say("Ayarlarınız yadda saxlanıldı.").catch(() => {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function undo() {
+    if (!previousPrefs) return;
+    setError(null);
+    try {
+      const { preferences } = await api<{ preferences: Preferences }>("/api/me/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(previousPrefs),
+      });
+      setSaved(preferences);
+      setPreviousPrefs(null);
+      setPhase("idle");
+      setHeard("");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -216,6 +247,14 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
 
       {error && <p className="error" role="alert">{error}</p>}
 
+      {pendingQuestion && phase !== "proposal" && (
+        <div className="card stack !border-[var(--brand)]" style={{ borderWidth: 3 }} role="status" aria-live="polite">
+          <p className="text-[1.25rem] font-bold">🤔 {pendingQuestion.question}</p>
+          <p className="muted">Düyməyə basıb cavab verin və ya aşağıda yazın.</p>
+          <button className="btn btn-secondary" onClick={() => setPendingQuestion(null)}>Sualı ləğv et</button>
+        </div>
+      )}
+
       {phase === "proposal" && proposal && (
         <div className="card stack !border-[var(--brand)]" style={{ borderWidth: 3 }} aria-live="polite">
           {heard && <p className="muted">Siz dediniz: “{heard}”</p>}
@@ -240,7 +279,14 @@ export function Assistant({ sttMode, aiReady, autoStart }: { sttMode: "server" |
         </div>
       )}
 
-      {phase === "saved" && <p className="ok" role="status">✓ Ayarlarınız yadda saxlanıldı. Qoşulmuş bütün xidmətlərdə tətbiq olunacaq.</p>}
+      {phase === "saved" && (
+        <div className="stack">
+          <p className="ok" role="status">✓ Ayarlarınız yadda saxlanıldı. Qoşulmuş bütün xidmətlərdə tətbiq olunacaq.</p>
+          {previousPrefs && (
+            <button className="btn btn-secondary btn-block" onClick={undo}>↩ Əvvəlki ayarlara qayıt</button>
+          )}
+        </div>
+      )}
 
       {phase !== "proposal" && (
         <form

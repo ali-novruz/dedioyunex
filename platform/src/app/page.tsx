@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/session";
+import { StartAnonymous } from "@/components/StartAnonymous";
 
 export default async function Home() {
   const user = await currentUser();
@@ -15,6 +16,7 @@ export default async function Home() {
       <Link href="/giris" className="btn btn-primary btn-block text-[1.25rem]">
         Başla
       </Link>
+      <StartAnonymous />
 
       <h2 className="h2">Necə işləyir?</h2>
       <ol className="stack">
@@ -30,7 +32,9 @@ export default async function Home() {
       </ol>
 
       <div className="notice">
-        <b>Məxfilik:</b> saytlara yalnız interfeys ayarlarınız gedir. Adınız, e-poçtunuz və sağlamlıq məlumatınız heç kimə ötürülmür.
+        <b>Məxfilik:</b> adınız, e-poçtunuz və seçdiyiniz çətinliklər heç bir sayta ötürülmür. Yalnız sizin gördüyünüz və təsdiqlədiyiniz interfeys ayarları (yazı ölçüsü, rənglər və s.) ötürülür.
+        <br />
+        <b>Təhlükəsizlik:</b> MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir.
       </div>
 
       <p className="muted">

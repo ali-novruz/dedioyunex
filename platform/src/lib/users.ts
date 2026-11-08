@@ -2,10 +2,11 @@ import "server-only";
 import crypto from "node:crypto";
 import { DEFAULT_PREFERENCES, isCategory, normalizePreferences, validatePatch, type Category, type Preferences } from "@sdk/schema";
 import { db, now } from "./db";
+import { decryptField, encryptField } from "./crypto";
 
 export interface User {
   id: string;
-  email: string;
+  email: string | null; // null = account without e-mail (this device only until an e-mail is added)
   categories: Category[];
   prefs: Preferences;
   onboarded: boolean;
@@ -14,7 +15,7 @@ export interface User {
 
 interface Row {
   id: string;
-  email: string;
+  email: string | null;
   categories: string;
   prefs: string;
   onboarded: number;
@@ -24,7 +25,7 @@ interface Row {
 const toUser = (r: Row): User => ({
   id: r.id,
   email: r.email,
-  categories: JSON.parse(r.categories),
+  categories: JSON.parse(decryptField(r.categories)),
   prefs: normalizePreferences(JSON.parse(r.prefs)),
   onboarded: r.onboarded === 1,
   updatedAt: r.updated_at,
@@ -46,6 +47,24 @@ export function findOrCreateUser(email: string): User {
   return getUser(id)!;
 }
 
+export function createAnonymousUser(): User {
+  const id = crypto.randomUUID();
+  const t = now();
+  db().prepare("INSERT INTO users (id, email, categories, prefs, onboarded, created_at, updated_at) VALUES (?, NULL, '[]', ?, 0, ?, ?)")
+    .run(id, JSON.stringify(DEFAULT_PREFERENCES), t, t);
+  return getUser(id)!;
+}
+
+export function findUserByEmail(email: string): User | null {
+  const r = db().prepare("SELECT * FROM users WHERE email = ?").get(email) as Row | undefined;
+  return r ? toUser(r) : null;
+}
+
+/** Adds an e-mail to an account created without one. */
+export function attachEmail(userId: string, email: string): void {
+  db().prepare("UPDATE users SET email = ?, updated_at = ? WHERE id = ? AND email IS NULL").run(email, now(), userId);
+}
+
 export function updatePreferences(userId: string, patch: unknown): Preferences {
   const user = getUser(userId);
   if (!user) throw new Error("User not found");
@@ -63,7 +82,7 @@ export function replacePreferences(userId: string, prefs: unknown): Preferences 
 export function setCategories(userId: string, cats: unknown): Category[] {
   if (!Array.isArray(cats) || !cats.every(isCategory)) throw new Error("categories must be an array of known category ids");
   const unique = [...new Set(cats)] as Category[];
-  db().prepare("UPDATE users SET categories = ?, onboarded = 1, updated_at = ? WHERE id = ?").run(JSON.stringify(unique), now(), userId);
+  db().prepare("UPDATE users SET categories = ?, onboarded = 1, updated_at = ? WHERE id = ?").run(encryptField(JSON.stringify(unique)), now(), userId);
   return unique;
 }
 

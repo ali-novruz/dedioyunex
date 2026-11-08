@@ -33,6 +33,11 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         <b>{req.client.name}</b> ayarlarınızı istəyir
       </h1>
       <p className="lead">{where}</p>
+      {req.client.verified ? (
+        <p className="ok">✓ Təsdiqlənmiş tərəfdaş — MƏNƏ UYĞUN bu xidməti yoxlayıb.</p>
+      ) : (
+        <p className="error">⚠️ Bu xidmət hələ MƏNƏ UYĞUN tərəfindən yoxlanılmayıb. Yalnız tanıdığınız və etibar etdiyiniz sayta icazə verin.</p>
+      )}
       {!user.onboarded && (
         <div className="notice stack">
           <p>Siz hələ ayarlarınızı qurmamısınız. Əvvəlcə qursanız, sayt dərhal sizə uyğunlaşacaq.</p>
@@ -43,10 +48,13 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         <p className="font-bold">✓ Paylaşılacaq: interfeys ayarlarınız</p>
         <p className="muted">Yazı ölçüsü, rənglər, səsli oxunuş, sadə rejim və digər görünüş ayarları.</p>
         <p className="font-bold">✗ Paylaşılmayacaq</p>
-        <p className="muted">Adınız, e-poçtunuz, seçdiyiniz çətinliklər və hər hansı sağlamlıq məlumatı.</p>
+        <p className="muted">Adınız, e-poçtunuz və seçdiyiniz çətinliklər. Xidmət yalnız sizin gördüyünüz və təsdiqlədiyiniz interfeys ayarlarını alır.</p>
+      </div>
+      <div className="notice">
+        <b>Diqqət:</b> MƏNƏ UYĞUN heç vaxt şifrə, kart məlumatı və ya pul istəmir. Belə bir şey istənilirsə, bu səhifəni bağlayın.
       </div>
       <Consent params={params} />
-      <p className="muted text-[.9rem]">İstədiyiniz vaxt “Bağlı xidmətlər” bölməsindən bu icazəni ləğv edə bilərsiniz. ({user.email})</p>
+      <p className="muted text-[.9rem]">İstədiyiniz vaxt “Bağlı xidmətlər” bölməsindən bu icazəni ləğv edə bilərsiniz.{user.email ? ` (${user.email})` : ""}</p>
     </div>
   );
 }

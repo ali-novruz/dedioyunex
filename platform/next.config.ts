@@ -6,6 +6,8 @@ const root = path.join(__dirname, "..");
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: root,
+  // never ship the local database inside the build
+  outputFileTracingExcludes: { "*": ["./data/**", "../platform/data/**"] },
   turbopack: {
     root,
     rules: {

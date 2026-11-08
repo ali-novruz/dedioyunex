@@ -49,9 +49,11 @@ Seeded demo clients:
 | `redirect_uri` | mobile: exact registered URI. web popup: `postmessage` |
 | `response_mode` | mobile: omit (query). web popup: `web_message` |
 | `origin` | web popup only: `location.origin` of the partner page (must be in `allowed_origins`) |
+| `return_to` | web popup only, optional: page URL on the same origin. Used when the popup has no `window.opener` (opened as a tab): the browser is sent to `return_to#mu_code=…&mu_state=…` |
 
 User logs in if needed and sees the consent screen.
 - Mobile result: redirect to `{redirect_uri}?code=...&state=...` or `{redirect_uri}?error=access_denied&state=...`.
+- Web, popup blocked: `response_mode=mu_fragment`, `redirect_uri=<page URL on a registered origin>` → `redirect_uri#mu_code=…&mu_state=…` (exchange with that same `redirect_uri`).
 - Web result: the popup calls `window.opener.postMessage({ type: "meneuygun:authorize", code, state } | { type: "meneuygun:authorize", error: "access_denied", state }, origin)` and closes.
 
 Code lifetime: 5 minutes, single use.
@@ -83,3 +85,7 @@ Body `{ "token": "<access_token>" }` → 200 `{}` (also 200 for unknown tokens).
 ## CORS
 
 `/oauth/token`, `/oauth/revoke`, `/v1/preferences` answer CORS only for origins in the client's `allowed_origins`. Requests without an `Origin` header (mobile apps) are allowed.
+
+## Schema — `GET {BASE}/v1/schema`
+
+Public, no auth. All settings with type, allowed values, kind (A = SDK applies, B = service applies), need categories and best-effort mapping to WCAG 2.2 / ISO/IEC 24751 / CSS media features.
