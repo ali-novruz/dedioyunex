@@ -1,11 +1,13 @@
 # Backlog
 
 ## Done (MVP, 2026-11-08)
+- Database moved to Postgres (Supabase), schema `dedio`, migrations with advisory lock; atomic single-use codes/tokens.
+- Security review fixes: CSRF (Origin check on /api), open redirect, demo codes only for DEMO_EMAIL_DOMAIN, IP limits, JSON-only bodies, lenient preference reading, SDK fail-open/focus sync/offline disconnect.
 - Platform: e-mail code login, e-mail-less start, need-based onboarding + presets, voice/text AI assistant (clarifying question, confirm, undo, daily limit), manual settings editor (28 settings / 6 categories), connected services, QR transfer to another device, export, account deletion.
 - API: OAuth 2.0 + PKCE (web popup / no-opener fallback / redirect, mobile custom scheme), pairwise subject ids, CORS per registered origin, revoke, public `/v1/schema` with WCAG/ISO 24751 mapping.
 - Web SDK: auto mode (works on any site), tokens mode, compatibility indicator (`data-supports`), `?mu-check` checker, fail-open (cached prefs), cross-tab + on-focus sync.
 - Verified partner badge, anti-scam text, need categories encrypted at rest (AES-256-GCM).
-- Tests: `tests/e2e-web.sh` (7 steps, PASS), `tests/api-test.sh` (35 checks, PASS).
+- Tests: `tests/e2e-web.sh` (7 steps, PASS), `tests/api-test.sh` (41 checks, PASS on Postgres).
 
 ## Not verified / open
 - **iOS SDK** never compiled (no Mac). First thing on a Mac: `xcodebuild` the Example, run PreferencesTests.
@@ -13,7 +15,8 @@
 - **Real AI key**: assistant tested only against `tests/mock-ai.mjs`. Needs a Groq (free) key; check Azerbaijani Whisper quality with real elderly speech.
 - **Azerbaijani TTS**: browsers have no az voice → Turkish voice is used and the UI says so. Cloud TTS (az-AZ) is a roadmap item.
 - **E-mail delivery**: only `DEMO_SHOW_CODES=true` tested; SMTP path untested.
-- **Deploy**: Docker files written; VPS + domain not set up yet.
+- **Deploy**: `deploy/docker-compose.hostinger.yml` (built from the public GitHub repo via Hostinger Docker API) + `deploy/vercel-proxy` ready. Waiting for Supabase DATABASE_URL; Vercel project `dedio` not created yet.
+- **DB TLS**: `DATABASE_SSL=require` encrypts but does not pin Supabase's CA (rejectUnauthorized=false). Add Supabase CA file for verify-full.
 
 ## Roadmap
 1. Browser extension for sites without the SDK (gives value without partners).

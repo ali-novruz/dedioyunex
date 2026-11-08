@@ -1,0 +1,32 @@
+# For Hostinger Docker Manager (VPS API): images are built straight from the public GitHub repo,
+# so no files need to be copied to the server. Environment comes from the project's .env (see .env.example).
+services:
+  platform:
+    build:
+      context: https://github.com/ali-novruz/dedioyunex.git#main
+      dockerfile: platform/Dockerfile
+    container_name: dedio-platform
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DEMO_PARTNER_ORIGIN: https://${DEMO_DOMAIN}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dedio.rule=Host(`${BACKEND_DOMAIN}`)
+      - traefik.http.routers.dedio.entrypoints=websecure
+      - traefik.http.routers.dedio.tls.certresolver=letsencrypt
+      - traefik.http.services.dedio.loadbalancer.server.port=3000
+
+  demo-partner:
+    build:
+      context: https://github.com/ali-novruz/dedioyunex.git#main:demo-partner
+    container_name: dedio-demo
+    restart: unless-stopped
+    environment:
+      PLATFORM_URL: ${APP_URL}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dedio-demo.rule=Host(`${DEMO_DOMAIN}`)
+      - traefik.http.routers.dedio-demo.entrypoints=websecure
+      - traefik.http.routers.dedio-demo.tls.certresolver=letsencrypt
+      - traefik.http.services.dedio-demo.loadbalancer.server.port=4000
