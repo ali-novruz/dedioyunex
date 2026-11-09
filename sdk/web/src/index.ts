@@ -165,9 +165,17 @@ const ICON = {
   pointer: svg('<path d="M9 11V5a1.5 1.5 0 0 1 3 0v6l5.5 1.2a2 2 0 0 1 1.5 2.3l-.8 4A3 3 0 0 1 15.3 21h-3.1a4 4 0 0 1-3.2-1.6L5.5 14.7a1.5 1.5 0 0 1 2.3-2z"/>'),
 };
 
+/** A button's words. Visually hidden on phones (see WIDGET_CSS), still read by screen readers. */
+function wordsOf(text: string): HTMLElement {
+  const t = document.createElement("span");
+  t.className = "t";
+  t.textContent = text;
+  return t;
+}
+
 function setLabel(btn: HTMLElement, icon: keyof typeof ICON, text: string): void {
   btn.innerHTML = ICON[icon];
-  btn.append(text);
+  btn.append(wordsOf(text));
 }
 
 // The Cizzy mark: the letter c drawn as a dial with its knob.
@@ -207,6 +215,13 @@ button:disabled{cursor:progress}
 .bubble{background:${INK};color:${PAPER};border-radius:3px;padding:.7em .9em;max-width:min(22em,88vw);line-height:1.4}
 .bubble b{display:block;margin-bottom:.2em;color:${FIELD}}
 @media (prefers-reduced-motion:reduce){button{transition:none}}
+@media (max-width:767px){
+:host([data-words]){bottom:76px!important}
+button{max-width:calc(100vw - 32px)}
+button.dock{width:48px;height:48px;min-height:48px;padding:0;gap:0;justify-content:center;font-size:17px}
+.w:not(.words) button.dock:not(.on):not(:disabled) .t{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.words button.dock,button.dock.on,button.dock:disabled{width:auto;height:auto;padding:.35em .7em;gap:.4em;font-size:15px}
+}
 `;
 
 class CizzySDK {
@@ -684,6 +699,7 @@ html[data-cz-listening] body *{cursor:help!important}`;
   private paintButton(root: HTMLElement, floating: boolean): void {
     const connected = this.isConnected && !!this.prefs;
     root.textContent = "";
+    root.classList.toggle("words", !!this.prefs?.iconLabels);
     const el = (tag: string, cls: string, text?: string) => {
       const e = document.createElement(tag);
       e.className = cls;
@@ -696,15 +712,15 @@ html[data-cz-listening] body *{cursor:help!important}`;
       return mark;
     };
     if (!connected) {
-      const btn = el("button", "primary") as HTMLButtonElement;
-      btn.append(logo(), document.createTextNode(this.busy ? T.waiting : T.connect));
+      const btn = el("button", "primary dock") as HTMLButtonElement;
+      btn.append(logo(), wordsOf(this.busy ? T.waiting : T.connect));
       btn.disabled = this.busy;
       btn.addEventListener("click", () => this.connect().catch(() => {}));
       root.append(btn);
     } else {
       const row = el("div", "row");
-      const chip = el("button", "chip");
-      chip.append(logo(), document.createTextNode(T.active));
+      const chip = el("button", "chip dock");
+      chip.append(logo(), wordsOf(T.active));
       chip.setAttribute("aria-expanded", String(this.menuOpen));
       chip.addEventListener("click", () => {
         this.menuOpen = !this.menuOpen;
@@ -755,16 +771,19 @@ html[data-cz-listening] body *{cursor:help!important}`;
     }
     const root = this.ttsRoot!;
     root.textContent = "";
+    root.classList.toggle("words", !!this.prefs?.iconLabels);
+    this.ttsHost!.toggleAttribute("data-words", !!this.prefs?.iconLabels);
     if (ai) {
       const arow = document.createElement("div");
       arow.className = "row";
       arow.style.marginBottom = ".45em";
       const what = document.createElement("button");
+      what.className = "dock";
       setLabel(what, "page", this.helpLoading ? T.thinking : T.whatPage);
       what.disabled = this.helpLoading;
       what.addEventListener("click", () => void this.openPanel());
       const expl = document.createElement("button");
-      expl.className = this.explaining ? "on" : "";
+      expl.className = this.explaining ? "dock on" : "dock";
       setLabel(expl, "question", this.explaining ? T.whatIsThisOn : T.whatIsThis);
       expl.setAttribute("aria-pressed", String(this.explaining));
       expl.addEventListener("click", () => (this.explaining ? this.stopExplaining() : this.startExplaining()));
@@ -793,14 +812,16 @@ html[data-cz-listening] body *{cursor:help!important}`;
     const row = document.createElement("div");
     row.className = "row";
     const listen = document.createElement("button");
-    listen.className = this.listening ? "on" : "";
+    listen.className = this.listening ? "dock on" : "dock";
     setLabel(listen, this.listening ? "pointer" : "speaker", this.listening ? T.listening : T.listen);
     listen.setAttribute("aria-pressed", String(this.listening));
     listen.addEventListener("click", () => (this.listening ? this.stopListening() : this.startListening()));
     const page = document.createElement("button");
+    page.className = "dock";
     setLabel(page, "page", T.readPage);
     page.addEventListener("click", () => this.readElement(document.querySelector("main,[role=main],article") ?? document.body));
     const stop = document.createElement("button");
+    stop.className = "dock";
     setLabel(stop, "stop", T.stop);
     stop.addEventListener("click", () => {
       stopSpeaking();

@@ -154,7 +154,9 @@ function extraCss(A: string, notIcon: string): string[] {
     // colours
     `${A}[data-cz-background-color],${A}[data-cz-background-color] body{background:var(--cz-background-color)!important}`,
     `${A}[data-cz-background-color] :is(div,section,article,main,header,footer,nav,aside,ul,ol,li,p,table,tr,td,th,form,fieldset)${mine}{background-color:var(--cz-background-color)!important;background-image:none!important}`,
-    `${A}[data-cz-text-color] body,${A}[data-cz-text-color] ${all}:not(a):not(button):not(svg):not(svg *){color:var(--cz-text-color)!important;-webkit-text-fill-color:var(--cz-text-color)!important}`,
+    // Text fill inherits, so without the reset a link or button would take the text colour over its own background.
+    `${A}[data-cz-text-color] body,${A}[data-cz-text-color] ${all}:not(a):not(button):not(a *):not(button *):not(svg):not(svg *){color:var(--cz-text-color)!important;-webkit-text-fill-color:var(--cz-text-color)!important}`,
+    `${A}[data-cz-text-color] :is(a,button),${A}[data-cz-text-color] :is(a,button) *{-webkit-text-fill-color:currentcolor!important}`,
     `${A}[data-cz-heading-color] ${headings}{color:var(--cz-heading-color)!important;-webkit-text-fill-color:var(--cz-heading-color)!important}`,
     `${A}[data-cz-link-color] a[href]${mine},${A}[data-cz-link-color] a[href]${mine} *{color:var(--cz-link-color)!important;-webkit-text-fill-color:var(--cz-link-color)!important}`,
     `${A}[data-cz-button-color] ${buttons}{background-color:var(--cz-button-color)!important;background-image:none!important}`,
