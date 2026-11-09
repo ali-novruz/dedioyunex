@@ -1,6 +1,4 @@
-<p align="center"><img src="platform/public/logo.svg" alt="Cizzy" width="300"></p>
-
-<p align="center"><b>Bir dəfə qur, hər xidmətdə özünə uyğun istifadə et.</b></p>
+<p align="center"><img src="docs/banner.png" alt="Cizzy" width="100%"></p>
 
 <p align="center">
   <a href="https://cizzy.vercel.app">Canlı platforma</a> ·
